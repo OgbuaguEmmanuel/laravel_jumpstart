@@ -15,6 +15,9 @@ Route::prefix('auth')
             ->name('auth.login')->middleware('guest');
         Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])
             ->name('auth.logout')->middleware('auth:api');
+        Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])
+            ->name('auth.forgot-password.email')->middleware('guest');
+        
     });
 
 
