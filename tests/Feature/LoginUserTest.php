@@ -4,10 +4,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
-beforeEach(function () {
-    Artisan::call('passport:client --personal --no-interaction');
-});
-
 test('login route exists and it is a post', function () {
     $response = $this->get('/api/auth/login');
 
@@ -88,6 +84,14 @@ test('user cannot login with invalid credentials', function () {
 
 });
 
+beforeEach(function () {
+    Artisan::call('passport:client', [
+        '--personal' => true,
+        '--name' => 'Test Personal Access Client',
+        '--provider' => 'users',
+    ]);
+});
+
 test('user can login with valid credentials', function () {
 
     $user = User::factory()->create([
@@ -106,3 +110,4 @@ test('user can login with valid credentials', function () {
     expect($response->json('data.user.id'))->toBe($user->id);
 
 });
+
