@@ -9,22 +9,24 @@ $firstName = 'John';
 $lastName = 'Doe';
 $email = 'test@example.com';
 $password = '@LaravPel1!@231';
+$phoneNumber = '+2347012345678';
+$url = '/api/auth/register';
 
-test('register route exists and is a POST method', function () {
+test('register route exists and is a POST method', function () use ($url) {
 
     $this->withoutMiddleware();
 
-    $response = $this->get('/api/register');
+    $response = $this->get($url);
 
     $response->assertStatus(405);
     $response->assertSeeText('Method Not Allowed');
 
-    $this->postJson('/api/register', [])->assertStatus(422);
+    $this->postJson($url, [])->assertStatus(422);
 
 });
 
-test('first name is required for registration', function () use ($lastName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('first name is required for registration', function () use ($lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'last_name' => $lastName,
         'email' => $email,
         'password' => $password,
@@ -38,8 +40,8 @@ test('first name is required for registration', function () use ($lastName, $ema
     ]);
 });
 
-test('first name must be a string for registration', function () use ($lastName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('first name must be a string for registration', function () use ($lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'last_name' => $lastName,
         'first_name' => 12345,
         'email' => $email,
@@ -54,8 +56,8 @@ test('first name must be a string for registration', function () use ($lastName,
     ]);
 });
 
-test('first name must be a minimum of 2 for registration', function () use ($lastName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('first name must be a minimum of 2 for registration', function () use ($lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'last_name' => $lastName,
         'first_name' => 'A',
         'email' => $email,
@@ -70,8 +72,8 @@ test('first name must be a minimum of 2 for registration', function () use ($las
     ]);
 });
 
-test('first name must be a maximum of 100 for registration', function () use ($lastName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('first name must be a maximum of 100 for registration', function () use ($lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'last_name' => $lastName,
         'first_name' => str_repeat('A', 101),
         'email' => $email,
@@ -87,8 +89,8 @@ test('first name must be a maximum of 100 for registration', function () use ($l
 });
 
 
-test('last name is required for registration', function () use ($firstName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('last name is required for registration', function () use ($firstName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'email' => $email,
         'password' => $password,
@@ -102,8 +104,8 @@ test('last name is required for registration', function () use ($firstName, $ema
     ]);
 });
 
-test('last name must be a string for registration', function () use ($firstName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('last name must be a string for registration', function () use ($firstName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => 12345,
         'email' => $email,
@@ -118,8 +120,8 @@ test('last name must be a string for registration', function () use ($firstName,
     ]);
 });
 
-test('last name must be a minimum of 2 for registration', function () use ($firstName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('last name must be a minimum of 2 for registration', function () use ($firstName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => 'A',
         'email' => $email,
@@ -135,8 +137,8 @@ test('last name must be a minimum of 2 for registration', function () use ($firs
 });
 
 
-test('last name must be a maximum of 100 for registration', function () use ($firstName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('last name must be a maximum of 100 for registration', function () use ($firstName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => str_repeat('A', 101),
         'email' => $email,
@@ -152,8 +154,8 @@ test('last name must be a maximum of 100 for registration', function () use ($fi
 });
 
 
-test('email is required for registration', function () use ($firstName, $lastName, $password) {
-    $response = $this->postJson('/api/register', [
+test('email is required for registration', function () use ($firstName, $lastName, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'password' => $password,
@@ -167,8 +169,8 @@ test('email is required for registration', function () use ($firstName, $lastNam
     ]);
 });
 
-test('email must be a valid email format for registration', function () use ($firstName, $lastName, $password) {
-    $response = $this->postJson('/api/register', [
+test('email must be a valid email format for registration', function () use ($firstName, $lastName, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => 'invalid-email',
@@ -183,12 +185,12 @@ test('email must be a valid email format for registration', function () use ($fi
     ]);
 });
 
-test('email must be unique for registration', function () use ($firstName, $lastName, $email, $password) {
+test('email must be unique for registration', function () use ($firstName, $lastName, $email, $password, $url) {
     User::factory()->create([
         'email' => $email
     ]);
 
-    $response = $this->postJson('/api/register', [
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -203,8 +205,8 @@ test('email must be unique for registration', function () use ($firstName, $last
     ]);
 });
 
-test('email must be a maximum of 255 characters for registration', function () use ($firstName, $lastName, $password) {
-    $response = $this->postJson('/api/register', [
+test('email must be a maximum of 255 characters for registration', function () use ($firstName, $lastName, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => str_repeat('a', 256) . '@example.com',
@@ -220,8 +222,8 @@ test('email must be a maximum of 255 characters for registration', function () u
 });
 
 
-test('password is required for registration', function () use ($firstName, $lastName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('password is required for registration', function () use ($firstName, $lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -234,8 +236,8 @@ test('password is required for registration', function () use ($firstName, $last
     ]);
 });
 
-test('password must be a string for registration', function () use ($firstName, $lastName, $email) {
-    $response = $this->postJson('/api/register', [
+test('password must be a string for registration', function () use ($firstName, $lastName, $email, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -250,8 +252,8 @@ test('password must be a string for registration', function () use ($firstName, 
 });
 
 
-test('password must be confirmed for registration', function () use ($firstName, $lastName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('password must be confirmed for registration', function () use ($firstName, $lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -264,8 +266,8 @@ test('password must be confirmed for registration', function () use ($firstName,
     ]);
 });
 
-test('password must be a minimum of 8 characters for registration', function () use ($firstName, $lastName, $email) {
-    $response = $this->postJson('/api/register', [
+test('password must be a minimum of 8 characters for registration', function () use ($firstName, $lastName, $email, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -280,8 +282,8 @@ test('password must be a minimum of 8 characters for registration', function () 
     ]);
 });
 
-test('password must contain a letter for registration', function () use ($firstName, $lastName, $email) {
-    $response = $this->postJson('/api/register', [
+test('password must contain a letter for registration', function () use ($firstName, $lastName, $email, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -296,8 +298,8 @@ test('password must contain a letter for registration', function () use ($firstN
     ]);
 });
 
-test('password must contain at least an uppercase letter for registration', function () use ($firstName, $lastName, $email) {
-    $response = $this->postJson('/api/register', [
+test('password must contain at least an uppercase letter for registration', function () use ($firstName, $lastName, $email, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -312,8 +314,8 @@ test('password must contain at least an uppercase letter for registration', func
     ]);
 });
 
-test('password must contain at least an lowercase letter for registration', function () use ($firstName, $lastName, $email) {
-    $response = $this->postJson('/api/register', [
+test('password must contain at least an lowercase letter for registration', function () use ($firstName, $lastName, $email, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -328,8 +330,8 @@ test('password must contain at least an lowercase letter for registration', func
     ]);
 });
 
-test('password must contain at least a number for registration', function () use ($firstName, $lastName, $email) {
-    $response = $this->postJson('/api/register', [
+test('password must contain at least a number for registration', function () use ($firstName, $lastName, $email, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -344,8 +346,8 @@ test('password must contain at least a number for registration', function () use
     ]);
 });
 
-test('password must contain at least a symbol for registration', function () use ($firstName, $lastName, $email) {
-    $response = $this->postJson('/api/register', [
+test('password must contain at least a symbol for registration', function () use ($firstName, $lastName, $email, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -360,8 +362,8 @@ test('password must contain at least a symbol for registration', function () use
     ]);
 });
 
-test('password must not be compromised for registration', function () use ($firstName, $lastName, $email) {
-    $response = $this->postJson('/api/register', [
+test('password must not be compromised for registration', function () use ($firstName, $lastName, $email, $url) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
@@ -376,12 +378,13 @@ test('password must not be compromised for registration', function () use ($firs
     ]);
 });
 
-test('there is no validation error for registration', function() use ($firstName, $lastName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('there is no validation error for registration', function() use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
         'password' => $password,
+        'phone_number' => $phoneNumber,
         'password_confirmation' => $password,
     ]);
 
@@ -389,11 +392,12 @@ test('there is no validation error for registration', function() use ($firstName
 
 });
 
-test('expect to see a user created', function() use ($firstName, $lastName, $email, $password) {
-    $response = $this->postJson('/api/register', [
+test('expect to see a user created', function() use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
+    $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
         'email' => $email,
+        'phone_number' => $phoneNumber,
         'password' => $password,
         'password_confirmation' => $password,
     ]);
@@ -411,3 +415,4 @@ test('expect to see a user created', function() use ($firstName, $lastName, $ema
     $response->assertSeeText('User registered successfully.');
 });
 
+// write test to validate phone number
