@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Traits\AuthHelpers;
+use Exception;
 use Illuminate\Support\Facades\Hash;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 
@@ -13,17 +14,24 @@ class LoginUserAction
     /**
      * Create a new class instance.
      */
-    public function __construct(array $data)
+    public function __invoke(array $data)
     {
         $user = $this->getUserByEmail($data['email']);
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            return ResponseBuilder::asError(404)
-                ->withMessage('Invalid Login credentials')
-                ->build();
+            throw new Exception("Invalid Login Credential", 404);
         }
 
-        $token = $user->createToken('Laravel Password Grant Client')->accessToken;
+        try {
+            $token = $user->createToken('UserAuthToken')->accessToken;
+        } catch (Exception $e) {
+            logger()->error('Login failed: ' . $e->getMessage(), [
+                'email' => $data['email'],
+                'code' => $e->getCode(),
+            ]);
+            throw new Exception("Something went wrong. Please contact support", 500);
+        }
+
         $userDetails = $user->only('id', 'first_name', 'last_name', 'email', 'created_at');
 
         return [

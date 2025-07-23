@@ -1,9 +1,6 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 $firstName = 'John';
 $lastName = 'Doe';
@@ -415,4 +412,65 @@ test('expect to see a user created', function() use ($firstName, $lastName, $ema
     $response->assertSeeText('User registered successfully.');
 });
 
-// write test to validate phone number
+test('phone number is required for registration', function () use ($firstName, $lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'email' => $email,
+        'password' => $password,
+        'password_confirmation' => $password,
+    ]);
+
+    $response->assertStatus(422);
+    $response->assertJsonValidationErrors(['phone_number']);
+    $response->assertSeeText('The phone number field is required.');
+});
+
+test('phone number must be a valid Nigerian phone number for registration', function () use ($firstName, $lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'email' => $email,
+        'phone_number' => '+234-801-234-5678',
+        'password' => $password,
+        'password_confirmation' => $password,
+    ]);
+
+    $response->assertStatus(422);
+    $response->assertJsonValidationErrors(['phone_number']);
+    $response->assertSeeText('The phone number field format is invalid.');
+});
+
+test('phone number must be unique for registration', function () use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
+    User::factory()->create([
+        'phone_number' => $phoneNumber
+    ]);
+
+    $response = $this->postJson($url, [
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'email' => $email,
+        'phone_number' => $phoneNumber,
+        'password' => $password,
+        'password_confirmation' => $password,
+    ]);
+
+    $response->assertStatus(422);
+    $response->assertJsonValidationErrors(['phone_number']);
+    $response->assertSeeText('The phone number has already been taken.');
+});
+
+test('phone number must be a string for registration', function () use ($firstName, $lastName, $email, $password, $url) {
+    $response = $this->postJson($url, [
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'email' => $email,
+        'phone_number' => 1234567890,
+        'password' => $password,
+        'password_confirmation' => $password,
+    ]);
+
+    $response->assertStatus(422);
+    $response->assertJsonValidationErrors(['phone_number']);
+    $response->assertSeeText('The phone number field must be a string.');
+});
