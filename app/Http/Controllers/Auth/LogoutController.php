@@ -11,7 +11,7 @@ class LogoutController extends Controller
 {
     public function logout(Request $request)
     {
-        $request->user()->token()->revoke();
+        $request->user()->currentAccessToken()->delete();
         Auth::forgetUser();
 
         return ResponseBuilder::asSuccess()
