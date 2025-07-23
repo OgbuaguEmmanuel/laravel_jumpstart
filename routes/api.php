@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\VerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,7 +18,12 @@ Route::prefix('auth')
             ->name('auth.logout')->middleware('auth:api');
         Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])
             ->name('auth.forgot-password.email')->middleware('guest');
-        
+        Route::post('/password-reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('auth.password.reset')
+            ->middleware('guest');
+        Route::get('/email/verify', [VerificationController::class, 'verify'])->name('auth.verification.verify')
+            ->middleware('auth:api', 'signed','throttle:6,1');
+        Route::post('/email/resend-verification', [VerificationController::class, 'resend'])->middleware('auth:api', 'throttle:6,1')
+            ->name('auth.verification.resend');
     });
 
 
