@@ -28,4 +28,9 @@ trait AuthHelpers
     {
         return User::where('email', $email)->first();
     }
+
+    protected function getUserByID($id)
+    {
+        return User::find($id);
+    }
 }

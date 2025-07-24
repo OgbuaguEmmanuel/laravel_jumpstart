@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\Crypt;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -45,6 +46,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_enabled_at' => 'datetime',
         ];
     }
 
@@ -69,5 +71,31 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getFullNameAttribute(): string
     {
         return ucwords("{$this->first_name} {$this->last_name}");
+    }
+
+    // Accessor to decrypt the 2FA secret when accessed
+    public function getTwoFactorSecretAttribute($value)
+    {
+        return $value ? Crypt::decryptString($value) : null;
+    }
+
+    public function setTwoFactorSecretAttribute($value)
+    {
+        $this->attributes['two_factor_secret'] = $value ? Crypt::encryptString($value) : null;
+    }
+
+    public function getTwoFactorRecoveryCodesAttribute($value)
+    {
+        return $value ? json_decode(Crypt::decryptString($value), true) : [];
+    }
+
+    public function setTwoFactorRecoveryCodesAttribute($value)
+    {
+        $this->attributes['two_factor_recovery_codes'] = $value ? Crypt::encryptString(json_encode($value)) : null;
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return ! is_null($this->two_factor_secret) && ! is_null($this->two_factor_enabled_at);
     }
 }

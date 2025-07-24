@@ -104,6 +104,10 @@ test('user can login with valid credentials', function () {
         'password' => 'password123'
     ]);
 
+    logger()->info('Login response', [
+        'response' => $response->getContent(),
+        'status' => $response->status(),
+    ]);
     $response->assertStatus(200);
     $response->assertSeeText('Login successful');
     $response->assertSeeText('token');
