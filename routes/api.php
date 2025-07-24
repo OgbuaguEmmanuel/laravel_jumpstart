@@ -38,6 +38,8 @@ Route::prefix('auth')
             Route::post('/recovery-codes', [TwoFactorAuthenticationController::class, 'generateNewRecoveryCodes'])
                 ->name('auth.2fa.recovery-codes');
         });
+        Route::post('/change-password', [App\Http\Controllers\Auth\PasswordController::class, 'changePassword'])
+            ->name('auth.change-password')->middleware('auth:api');
     });
 
 
