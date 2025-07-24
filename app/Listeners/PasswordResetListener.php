@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\ResetPasswordEvent;
-use App\Http\Controllers\SuccessfulPasswordResetNotification;
+use App\Notifications\SuccessfulPasswordResetNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 

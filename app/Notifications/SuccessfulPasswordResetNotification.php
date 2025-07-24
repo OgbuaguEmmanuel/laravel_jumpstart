@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class SuccessfulPasswordResetNotification extends Controller implements ShouldQueue
+class SuccessfulPasswordResetNotification implements ShouldQueue
 {
     use Queueable;
     /**
