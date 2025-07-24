@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\VerificationController;
 use Illuminate\Http\Request;
@@ -44,6 +45,11 @@ Route::prefix('auth')->middleware('auth:api')
             Route::post('/recovery-codes', [TwoFactorAuthenticationController::class, 'generateNewRecoveryCodes'])
                 ->name('auth.2fa.recovery-codes');
         });
+
+        Route::get('redirect/{provider}', [SocialAuthController::class, 'redirectToProvider'])
+            ->name('auth.social.redirect');
+        Route::get('callback/{provider}', [SocialAuthController::class, 'handleProviderCallback'])
+            ->name('auth.social.callback');
 
     });
 

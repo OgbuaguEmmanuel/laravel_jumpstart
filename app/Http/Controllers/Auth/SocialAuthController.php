@@ -12,7 +12,7 @@ use Laravel\Socialite\Facades\Socialite;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpFoundation\Response;
 
-class SocialiteController extends Controller
+class SocialAuthController extends Controller
 {
     /**
      * Validate the provider name.
@@ -23,8 +23,8 @@ class SocialiteController extends Controller
     protected function isValidProvider(string $provider): bool
     {
         $validProviders = [
-            'facebook', 'twitter', 'google', 'github', 'linkedin-openid',
-            'gitlab', 'bitbucket', 'slack',
+            'facebook', 'x', 'google', 'github', 'linkedin-openid',
+            'gitlab', 'bitbucket', 'slack', 'slack-openid',
         ];
         return in_array($provider, $validProviders);
     }
@@ -45,28 +45,27 @@ class SocialiteController extends Controller
         }
 
         try {
-            $driver = Socialite::driver($provider);
+            $driver = Socialite::driver($provider)->stateless();
 
-            if ($provider === 'google') {
-                $driver->scopes(['openid', 'profile', 'email']);
-            } elseif ($provider === 'linkedin-openid') {
-                $driver->scopes(['openid', 'profile', 'email']);
-            } elseif ($provider === 'twitter') {
-                // For X (Twitter), if you need email, ensure it's enabled in your App settings.
-                // Socialite's 'twitter' driver (OAuth 1.0a) typically handles it if permitted.
-                // For Twitter API v2 (OAuth 2.0), you might need 'twitter-oauth-2' driver
-                // (requires a separate package like socialite-providers/twitter-oauth-2)
-                // and scopes like ['tweet.read', 'users.read', 'offline.access'].
-            } elseif ($provider === 'slack') {
-                 // Common Slack scopes: 'users:read.email', 'users:read', 'team:read'
-                 // Scopes depend on what information your app needs.
-                 $driver->scopes(['users:read.email', 'users:read']);
-            } elseif ($provider === 'slack-openid') {
-                // OpenID Connect for Slack: 'openid', 'profile', 'email'
-                $driver->scopes(['openid', 'profile', 'email']);
+            // Set provider-specific scopes
+            switch ($provider) {
+                case 'google':
+                    $driver->scopes(['openid', 'profile', 'email']);
+                    break;
+                case 'linkedin-openid':
+                    $driver->scopes(['openid', 'profile', 'email']);
+                    break;
+                case 'slack':
+                    $driver->scopes(['users:read.email', 'users:read']);
+                    break;
             }
 
-            return $driver->redirect();
+            $url = $driver->redirect()->getTargetUrl();
+
+            return ResponseBuilder::asSuccess()
+                ->withHttpCode(Response::HTTP_OK)
+                ->withData(['url' => $url])
+                ->build();
         } catch (Exception $e) {
             Log::error("Socialite redirect failed for {$provider}: " . $e->getMessage());
             return ResponseBuilder::asError(500)
@@ -105,14 +104,12 @@ class SocialiteController extends Controller
             // Get user information from the provider
             $socialUser = Socialite::driver($provider)->user();
 
-            // Validate essential data from social provider
             $validator = Validator::make([
                 'id' => $socialUser->getId(),
                 'email' => $socialUser->getEmail(),
             ], [
                 'id' => ['required', 'string'],
-                'email' => ['required', 'email'], // Note: Some providers (like Twitter) might not provide email.
-                                                  // Adjust this based on your provider's capabilities or fallback logic.
+                'email' => ['required', 'email'],
             ]);
 
             if ($validator->fails()) {
@@ -123,10 +120,8 @@ class SocialiteController extends Controller
                     ->build();
             }
 
-            // Find or create a user in your database
             $user = User::where('provider_name', $provider)
-                        ->where('provider_id', $socialUser->getId())
-                        ->first();
+                ->where('provider_id', $socialUser->getId())->first();
 
             if (!$user) {
                 // If user with this provider_id doesn't exist, check by email
@@ -134,25 +129,20 @@ class SocialiteController extends Controller
 
                 if ($user) {
                     // User exists with this email but not linked to this social account.
-                    // Option 1: Link the social account to the existing user.
-                    // This is ideal for allowing users to add multiple login methods.
-                    $user->provider_name = $provider;
-                    $user->provider_id = $socialUser->getId();
-                    $user->avatar = $socialUser->getAvatar();
-                    $user->save();
+                    $user->update([
+                        'provider_name' => $provider,
+                        'provider_id' => $socialUser->getId(),
+                        'avatar' => $socialUser->getAvatar(),
+                    ]);
                     Log::info("Linked {$provider} account to existing user: {$user->email}");
 
-                    // Option 2 (Alternative/Optional): Prevent linking directly.
-                    // If you want to force users to manually link accounts from their profile settings
-                    // or require a password confirmation, you might throw an error here
-                    // or redirect them to a specific linking page on the frontend.
-                    // For API, you'd return an error indicating a conflict.
-                    // Example: throw new Exception("An account with this email already exists. Please log in with your password to link your social account.");
                 } else {
                     // No existing user, create a new one.
+                    $nameParts = explode(' ', $socialUser->getName(), 2);
+
                     $user = User::create([
-                        'first_name' => $socialUser->getName() ? explode(' ', $socialUser->getName(), 2)[0] : 'User',
-                        'last_name' => $socialUser->getName() ? (isset(explode(' ', $socialUser->getName(), 2)[1]) ? explode(' ', $socialUser->getName(), 2)[1] : '') : '',
+                        'first_name' =>$nameParts[0] ?? 'User',
+                        'last_name' => $nameParts[1] ?? '',
                         'email' => $socialUser->getEmail(),
                         'password' => Hash::make(Str::random(16)), // Assign a random password, user won't use it directly
                         'provider_name' => $provider,
@@ -164,24 +154,23 @@ class SocialiteController extends Controller
                 }
             }
 
-            // Log the user in (API token creation)
             $token = $user->createToken('SocialAuthToken')->accessToken;
 
-            // Redirect to your frontend application's success URL, passing the token.
-            // This is crucial for SPA/mobile app integration.
-            $frontendSuccessUrl = config('app.frontend_url') . '/auth/social/callback?token=' . $token . '&user_id=' . $user->id;
-
-            return redirect()->to($frontendSuccessUrl);
+            return ResponseBuilder::asSuccess()
+                ->withHttpCode(Response::HTTP_OK)
+                ->withData([
+                    'token' => $token,
+                    'user' => $user
+                ])
+                ->build();
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-            // This usually means an invalid token or revoked access from the provider
-            Log::error("Socialite Guzzle ClientException for {$provider}: " . $e->getMessage() . " Response: " . $e->getResponse()->getBody()->getContents());
+            Log::error("Socialite Guzzle ClientException for {$provider}: " . $e->getMessage());
             return ResponseBuilder::asError(400)
                 ->withHttpCode(Response::HTTP_BAD_REQUEST)
                 ->withMessage("Error communicating with {$provider}. Please try again.")
                 ->build();
         } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
-            // This usually means a CSRF mismatch. Common if user opens multiple tabs or takes too long.
             Log::warning("Socialite InvalidStateException for {$provider}: " . $e->getMessage());
             return ResponseBuilder::asError(400)
                 ->withHttpCode(Response::HTTP_BAD_REQUEST)
@@ -191,7 +180,7 @@ class SocialiteController extends Controller
             Log::error("Socialite callback failed for {$provider}: " . $e->getMessage());
             return ResponseBuilder::asError(500)
                 ->withHttpCode(Response::HTTP_INTERNAL_SERVER_ERROR)
-                ->withMessage("An unexpected error occurred during {$provider} authentication. Please try again.")
+                ->withMessage("An unexpected error occurred during {$provider} authentication.")
                 ->build();
         }
     }
