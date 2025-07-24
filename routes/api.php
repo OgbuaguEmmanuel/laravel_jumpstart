@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -53,4 +54,20 @@ Route::prefix('auth')->middleware('auth:api')
 
     });
 
-
+Route::prefix('/notifications')->middleware('auth:apir')
+    ->group(function (): void {
+        Route::get('/all', [NotificationController::class, 'index'])
+            ->name('notification.all');
+        Route::get('/read', [NotificationController::class, 'read'])
+            ->name('notification.read');
+        Route::get('/unread', [NotificationController::class, 'unread'])
+            ->name('notification.unread');
+        Route::get('/{notification}/view', [NotificationController::class, 'view'])
+            ->name('notification.view');
+        Route::post('/{notification}/unread', [NotificationController::class, 'markUnread'])
+            ->name('notification.markunread');
+        Route::post('/{notification}/read', [NotificationController::class, 'markRead'])
+            ->name('notification.markread');
+        Route::post('/{notification}/delete', [NotificationController::class, 'destroy'])
+            ->name('notification.delete');
+    });
