@@ -3,19 +3,20 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Config;
 
-test('forgot passowrd request api exists', function () {
-    $response = $this->get('/api/auth/forgot-password');
+$url = '/api/auth/forgot-password';
+
+test('forgot passowrd request api exists', function () use ($url){
+    $response = $this->get($url);
 
     $response->assertStatus(405);
 });
 
-
-test('user can trigger forgot password with email and callback url required', function() {
+test('user can trigger forgot password with email and callback url required', function() use ($url) {
 
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson('/api/auth/forgot-password',[]);
+    ->postJson($url,[]);
 
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['email', 'callbackUrl'])
@@ -23,12 +24,12 @@ test('user can trigger forgot password with email and callback url required', fu
     $response->assertSeeText('The callback url field is required.');
 });
 
-test('email is valid', function() {
+test('email is valid', function() use ($url) {
 
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson('/api/auth/forgot-password', [
+    ->postJson($url, [
         'email' => 'invalid-email',
         'callbackUrl' => 'https://example.com/callback'
     ]);
@@ -38,12 +39,12 @@ test('email is valid', function() {
         ->assertSeeText('The email field must be a valid email address.');
 });
 
-test('email exists in users table', function() {
+test('email exists in users table', function() use ($url) {
 
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson('/api/auth/forgot-password', [
+    ->postJson($url, [
         'email' => 'example@test.com',
         'callbackUrl' => 'https://example.com/callback'
     ]);
@@ -53,12 +54,12 @@ test('email exists in users table', function() {
         ->assertSeeText('The selected email is invalid.');
 });
 
-test('callbackUrl is valid', function() {
+test('callbackUrl is valid', function() use ($url) {
 
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson('/api/auth/forgot-password', [
+    ->postJson($url, [
         'email' => 'example@test.com',
         'callbackUrl' => 'invalid-url'
     ]);
@@ -68,7 +69,7 @@ test('callbackUrl is valid', function() {
         ->assertSeeText('The callback url field must be a valid URL.');
 });
 
-test('user can trigger forgot password with valid email and callbackUrl', function() {
+test('user can trigger forgot password with valid email and callbackUrl', function() use ($url) {
 
     Config::set('mail.mailer', 'log');
     Config::set('queue.default', 'sync');
@@ -80,7 +81,7 @@ test('user can trigger forgot password with valid email and callbackUrl', functi
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson('/api/auth/forgot-password', [
+    ->postJson($url, [
         'email' => $user->email,
         'callbackUrl' => 'https://example.com/callback'
     ]);

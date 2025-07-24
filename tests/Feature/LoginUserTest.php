@@ -4,15 +4,17 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
-test('login route exists and it is a post', function () {
-    $response = $this->get('/api/auth/login');
+$url = '/api/auth/login';
+
+test('login route exists and it is a post', function () use ($url) {
+    $response = $this->get($url);
 
     expect($response->status())->toBe(405);
     expect($response->status())->not()->toBe(404);
 });
 
-test('email is required for login', function () {
-    $response = $this->postJson('/api/auth/login', [
+test('email is required for login', function () use ($url) {
+    $response = $this->postJson($url, [
         'password' => 'password123',
     ]);
 
@@ -21,8 +23,8 @@ test('email is required for login', function () {
     $response->assertSeeText('The email field is required.');
 });
 
-test('password is required for login', function () {
-    $response = $this->postJson('/api/auth/login', [
+test('password is required for login', function () use ($url) {
+    $response = $this->postJson($url, [
         'email' => 'example@test.com'
     ]);
 
@@ -31,13 +33,13 @@ test('password is required for login', function () {
     $response->assertSeeText('The password field is required.');
 });
 
-test('email must exist in users table', function () {
+test('email must exist in users table', function () use ($url){
 
     $user = User::factory()->create([
         'email' => 'jumpstart@test.com'
     ]);
 
-    $response = $this->postJson('api/auth/login',[
+    $response = $this->postJson($url,[
         'email' => $user->email,
         'password' => 'wrongpassword'
     ]);
@@ -46,8 +48,8 @@ test('email must exist in users table', function () {
 
 });
 
-test('email must be a valid email address', function () {
-    $response = $this->postJson('/api/auth/login', [
+test('email must be a valid email address', function () use ($url) {
+    $response = $this->postJson($url, [
         'email' => 'invalid-email',
         'password' => 'password123'
     ]);
@@ -57,8 +59,8 @@ test('email must be a valid email address', function () {
     $response->assertSeeText('The email field must be a valid email address.');
 });
 
-test('password must be a string', function () {
-    $response = $this->postJson('/api/auth/login', [
+test('password must be a string', function () use ($url) {
+    $response = $this->postJson($url, [
         'email' => 'example@test.com',
         'password' => 123456
     ]);
@@ -68,13 +70,13 @@ test('password must be a string', function () {
     $response->assertSeeText('The password field must be a string.');
 });
 
-test('user cannot login with invalid credentials', function () {
+test('user cannot login with invalid credentials', function () use ($url) {
     $user = User::factory()->create([
         'email' => 'jumpstart@test.com',
         'password' => Hash::make('password123')
     ]);
 
-    $response = $this->postJson('/api/auth/login', [
+    $response = $this->postJson($url, [
         'email' => $user->email,
         'password' => 'password'
     ]);
@@ -92,14 +94,14 @@ beforeEach(function () {
     ]);
 });
 
-test('user can login with valid credentials', function () {
+test('user can login with valid credentials', function () use ($url) {
 
     $user = User::factory()->create([
         'email' => 'jumpstart@test.com',
         'password' => Hash::make('password123')
     ]);
 
-    $response = $this->postJson('/api/auth/login', [
+    $response = $this->postJson($url, [
         'email' => $user->email,
         'password' => 'password123'
     ]);

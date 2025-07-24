@@ -2,22 +2,22 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Auth;
-use Laravel\Passport\Passport;
 
-test('logout route exists', function () {
-    $response = $this->get('/api/auth/logout');
+$url = '/api/auth/logout';
+
+test('logout route exists', function () use ($url) {
+    $response = $this->get($url);
 
     $response->assertStatus(405);
 });
 
-test('user must be logged in to logout', function () {
-    $response = $this->postJson('/api/auth/logout');
+test('user must be logged in to logout', function () use ($url) {
+    $response = $this->postJson($url);
 
     $response->assertStatus(401);
     $response->assertJson([
-            'message' => 'Unauthenticated.'
-        ]);
+        'message' => 'Unauthenticated.'
+    ]);
 });
 
 beforeEach(function () {
@@ -28,7 +28,7 @@ beforeEach(function () {
     ]);
 });
 
-test('user can logout successfully', function () {
+test('user can logout successfully', function () use ($url) {
     $user = User::factory()->create();
 
     $personalAccessTokenResult = $user->createToken('TestToken');
@@ -37,7 +37,7 @@ test('user can logout successfully', function () {
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $rawToken,
         'Accept' => 'application/json'
-    ])->postJson('/api/auth/logout');
+    ])->postJson($url);
 
     $response->assertStatus(200)
         ->assertJson([

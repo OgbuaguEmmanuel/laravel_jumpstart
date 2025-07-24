@@ -10,25 +10,31 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::prefix('auth')
+Route::prefix('auth')->middleware('guest')
     ->group(function () {
         Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])
-            ->name('auth.register')->middleware('guest');
+            ->name('auth.register');
         Route::post('/login', [LoginController::class, 'login'])
-            ->name('auth.login')->middleware('guest');
-        Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])
-            ->name('auth.logout')->middleware('auth:api');
+            ->name('auth.login');
         Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])
-            ->name('auth.forgot-password.email')->middleware('guest');
+            ->name('auth.forgot-password.email');
         Route::post('/password-reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])
-            ->name('auth.password.reset')->middleware('guest');
-        Route::get('/email/verify', [VerificationController::class, 'verify'])
-            ->name('auth.verification.verify')->middleware('auth:api', 'signed','throttle:6,1');
-        Route::post('/email/resend-verification', [VerificationController::class, 'resend'])
-            ->middleware('auth:api', 'throttle:6,1')->name('auth.verification.resend');
+            ->name('auth.password.reset');
         Route::post('/login/2fa-challenge', [LoginController::class, 'challenge'])
-            ->middleware('guest')->name('auth.login.2fa-challenge');
-        Route::middleware('auth:api')->prefix('2fa')->group(function () {
+            ->name('auth.login.2fa-challenge');
+    });
+
+Route::prefix('auth')->middleware('auth:api')
+    ->group(function () {
+        Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])
+            ->name('auth.logout');
+        Route::get('/email/verify', [VerificationController::class, 'verify'])
+            ->middleware('signed','throttle:6,1')->name('auth.verification.verify');
+        Route::post('/email/resend-verification', [VerificationController::class, 'resend'])
+            ->middleware('throttle:6,1')->name('auth.verification.resend');
+        Route::post('/change-password', [App\Http\Controllers\Auth\PasswordController::class, 'changePassword'])
+            ->name('auth.change-password');
+        Route::prefix('2fa')->group(function () {
             Route::post('/setup', [TwoFactorAuthenticationController::class, 'setup'])
                 ->name('auth.2fa.setup');
             Route::post('/enable', [TwoFactorAuthenticationController::class, 'enable'])
@@ -38,8 +44,7 @@ Route::prefix('auth')
             Route::post('/recovery-codes', [TwoFactorAuthenticationController::class, 'generateNewRecoveryCodes'])
                 ->name('auth.2fa.recovery-codes');
         });
-        Route::post('/change-password', [App\Http\Controllers\Auth\PasswordController::class, 'changePassword'])
-            ->name('auth.change-password')->middleware('auth:api');
+
     });
 
 

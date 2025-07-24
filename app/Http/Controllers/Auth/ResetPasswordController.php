@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Events\ResetPasswordEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Notifications\SuccessfulPasswordResetNotification;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Contracts\Auth\Guard;
@@ -26,7 +27,7 @@ class ResetPasswordController extends Controller
      */
     public function broker(): PasswordBroker
     {
-        return Password::broker('api');
+        return Password::broker('users');
     }
 
     /**
@@ -69,11 +70,9 @@ class ResetPasswordController extends Controller
                 $user->save();
 
                 if (!$user->hasVerifiedEmail()) {
-                    $user->notify(new VerifyEmailNotification(config('frontend.email_verification.url.user')));
+                    logger()->info('User does not have verified email, sending verification notification.');
+                    $user->notify(new VerifyEmailNotification(config('frontend.email_verification.url.user', 'https://example.com/verify-email')));
                 }
-
-                $callbackUrl = request('callbackContactUrl', config('frontend.user.url'));
-                event(new ResetPasswordEvent($user, $callbackUrl));
             }
         );
 
