@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -71,3 +72,17 @@ Route::prefix('/notifications')->middleware('auth:apir')
         Route::post('/{notification}/delete', [NotificationController::class, 'destroy'])
             ->name('notification.delete');
     });
+
+Route::middleware(['auth:api','role:super-admin'])->group( function() {
+    Route::apiResource('/permissions', App\Http\Controllers\PermissionsController::class)
+        ->only('index', 'store');
+
+    Route::apiResource('/roles', RolesController::class)
+        ->only('index', 'store');
+    Route::post('/roles/{role}/give-permission', [RolesController::class, 'givePermission']);
+    Route::post('/roles/{role}/revoke-permission', [RolesController::class, 'revokePermission']);
+    Route::post('/users/{user}/assignRole/roles/{role}', [RolesController::class,'assignRole']);
+    Route::post('/users/{user}/removeRole/roles/{role}', [RolesController::class,'removeRole']);
+});
+
+

@@ -9,11 +9,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Crypt;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, HasMedia
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, InteractsWithMedia, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -50,6 +53,13 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_enabled_at' => 'datetime',
         ];
     }
+
+    /**
+     * Overwrite default web guard for roles and permission
+     *
+     * @var string
+     */
+    protected $guard_name = 'users';
 
     /**
      * Send the password reset notification.
