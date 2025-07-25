@@ -12,7 +12,10 @@
 */
 
 use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
@@ -44,7 +47,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function createUserAndGenerateToken()
+function createUserAndGenerateToken($data = null)
 {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
@@ -55,4 +58,44 @@ function createUserAndGenerateToken()
         'token' => $personalAccessTokenResult->accessToken,
         'user' => $user
     ];
+}
+
+function createUnverifiedUserAndGenerateToken()
+{
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+        'email_verified_at' => null
+    ]);
+
+    $personalAccessTokenResult = $user->createToken('TestToken');
+    return [
+        'token' => $personalAccessTokenResult->accessToken,
+        'user' => $user
+    ];
+}
+
+function verificationUrlParam($user)
+{
+    $signedRoute = URL::temporarySignedRoute(
+        'auth.verification.verify',
+        Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
+        [
+            'id' => $user->id,
+            'hash' => sha1($user->email),
+        ]
+    );
+
+    // Pull down the signed route for restructuring with the callbackUrl
+    $parsedUrl = parse_url($signedRoute);
+    parse_str($parsedUrl['query'], $urlQueries);
+
+    // Build the query parameters
+    $parameters = http_build_query([
+        'expires' => $urlQueries['expires'],
+        'hash' => $urlQueries['hash'],
+        'id' => $urlQueries['id'],
+        'signature' => $urlQueries['signature']
+    ]);
+
+    return "{$parameters}";
 }
