@@ -19,7 +19,6 @@ class PasswordController extends Controller
                 ->withMessage('Current password is incorrect')
                 ->build();
         }
-
         $user->password = Hash::make($request->validated('new_password'));
         $user->save();
 

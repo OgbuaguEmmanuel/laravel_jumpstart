@@ -11,6 +11,9 @@
 |
 */
 
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
@@ -41,7 +44,15 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function createUserAndGenerateToken()
 {
-    // ..
+    $user = User::factory()->create([
+        'password' => Hash::make('password')
+    ]);
+
+    $personalAccessTokenResult = $user->createToken('TestToken');
+    return [
+        'token' => $personalAccessTokenResult->accessToken,
+        'user' => $user
+    ];
 }
