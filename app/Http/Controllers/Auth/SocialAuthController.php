@@ -110,7 +110,7 @@ class SocialAuthController extends Controller
                 'id' => $socialUser->getId(),
                 'email' => $socialUser->getEmail(),
             ], [
-                'id' => ['required', 'string'],
+                'id' => ['required', 'numeric'],
                 'email' => ['required', 'email'],
             ]);
 
