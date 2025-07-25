@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 
 $url = '/api/auth/logout';
@@ -29,11 +28,7 @@ beforeEach(function () {
 });
 
 test('user can logout successfully', function () use ($url) {
-    $user = User::factory()->create();
-
-    $personalAccessTokenResult = $user->createToken('TestToken');
-    $rawToken = $personalAccessTokenResult->accessToken;
-
+    $rawToken = createUserAndGenerateToken()['token'];
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $rawToken,
         'Accept' => 'application/json'

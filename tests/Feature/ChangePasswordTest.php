@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
@@ -115,7 +114,6 @@ test('change password with correct details', function () use ($url) {
     $data = createUserAndGenerateToken();
     $rawToken = $data['token'];
     $user = $data['user'];
-    $password = $user->password;
 
     $response = $this->withHeaders([
         'Authorization' => 'Bearer ' . $rawToken,

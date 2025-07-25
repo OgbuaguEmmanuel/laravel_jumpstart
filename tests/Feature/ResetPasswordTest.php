@@ -203,6 +203,7 @@ test('callbackContactUrl is required', function() use ($url) {
 });
 
 test('can reset password with valid data', function () use ($url, $password) {
+
     $user = \App\Models\User::factory()->create(['email_verified_at' => null]);
     $token = \Illuminate\Support\Facades\Password::broker('users')->createToken($user);
 

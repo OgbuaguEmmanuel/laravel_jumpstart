@@ -47,7 +47,7 @@ expect()->extend('toBeOne', function () {
 function createUserAndGenerateToken()
 {
     $user = User::factory()->create([
-        'password' => Hash::make('password')
+        'password' => Hash::make('password'),
     ]);
 
     $personalAccessTokenResult = $user->createToken('TestToken');
