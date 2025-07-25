@@ -60,6 +60,9 @@ class SocialAuthController extends Controller
                 case 'slack':
                     $driver->scopes(['users:read.email', 'users:read']);
                     break;
+                case 'gitlab':
+                    $driver->scopes(['read_user', 'email']);
+                break;
             }
 
             $url = $driver->redirect()->getTargetUrl();
