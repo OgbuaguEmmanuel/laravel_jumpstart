@@ -9,7 +9,7 @@ use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
+Route::middleware('auth:api','verified')->get('/user', function (Request $request) {
     return $request->user();
 });
 
@@ -25,6 +25,10 @@ Route::prefix('auth')->middleware('guest')
             ->name('auth.password.reset');
         Route::post('/login/2fa-challenge', [LoginController::class, 'challenge'])
             ->name('auth.login.2fa-challenge');
+        Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])
+            ->name('auth.social.redirect');
+        Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])
+            ->name('auth.social.callback');
     });
 
 Route::prefix('auth')->middleware('auth:api')
@@ -47,12 +51,6 @@ Route::prefix('auth')->middleware('auth:api')
             Route::post('/recovery-codes', [TwoFactorAuthenticationController::class, 'generateNewRecoveryCodes'])
                 ->name('auth.2fa.recovery-codes');
         });
-
-        Route::get('redirect/{provider}', [SocialAuthController::class, 'redirectToProvider'])
-            ->name('auth.social.redirect');
-        Route::get('callback/{provider}', [SocialAuthController::class, 'handleProviderCallback'])
-            ->name('auth.social.callback');
-
     });
 
 Route::prefix('/notifications')->middleware('auth:apir')

@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Socialite\Facades\Socialite;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Str;
 
 class SocialAuthController extends Controller
 {
@@ -23,8 +25,8 @@ class SocialAuthController extends Controller
     protected function isValidProvider(string $provider): bool
     {
         $validProviders = [
-            'facebook', 'x', 'google', 'github', 'linkedin-openid',
-            'gitlab', 'bitbucket', 'slack', 'slack-openid',
+            'facebook', 'google', 'github', 'linkedin-openid',
+            'gitlab', 'bitbucket', 'slack','x'
         ];
         return in_array($provider, $validProviders);
     }
@@ -102,7 +104,7 @@ class SocialAuthController extends Controller
 
         try {
             // Get user information from the provider
-            $socialUser = Socialite::driver($provider)->user();
+            $socialUser = Socialite::driver($provider)->stateless()->user();
 
             $validator = Validator::make([
                 'id' => $socialUser->getId(),
