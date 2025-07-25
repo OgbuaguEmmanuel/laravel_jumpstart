@@ -6,7 +6,6 @@ use App\Traits\AuthHelpers;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
-use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use PragmaRX\Google2FALaravel\Google2FA;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,17 +34,14 @@ class LoginUserAction
 
         if ($user->hasTwoFactorEnabled()) {
             $challengeKey = Str::uuid()->toString();
-
             Cache::put('2fa_challenge:' . $challengeKey, $user->id, now()->addMinutes(5));
 
-            return ResponseBuilder::asSuccess()
-                ->withHttpCode(Response::HTTP_ACCEPTED)
-                ->withMessage('Two-factor authentication required. Please provide your 2FA code.')
-                ->withData([
-                    'requires_2fa' => true,
-                    '2fa_challenge_key' => $challengeKey,
-                ])
-                ->build();
+            return [
+                'requires_2fa' => true,
+                '2fa_challenge_key' => $challengeKey,
+                'message' => 'Two-factor authentication required. Please provide your 2FA code.',
+                'status' => Response::HTTP_ACCEPTED
+            ];
         }
 
         try {
@@ -63,6 +59,8 @@ class LoginUserAction
         return [
             'token' => $token,
             'user' => $userDetails,
+            'message' => 'Login successful',
+            'status' => Response::HTTP_OK
         ];
     }
 }

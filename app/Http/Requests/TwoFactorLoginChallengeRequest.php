@@ -23,8 +23,8 @@ class TwoFactorLoginChallengeRequest extends FormRequest
     {
         return [
             '2fa_challenge_key' => ['required', 'string', 'uuid'],
-        'code' => ['nullable', 'numeric', 'digits:6', 'required_without:recovery_code'],
-            'recovery_code' => ['nullable', 'string', 'required_without:code'],
+            'code' => ['nullable', 'numeric', 'digits:6', 'required_without:recovery_code','prohibits:recovery_code'],
+            'recovery_code' => ['nullable', 'string', 'required_without:code','prohibits:code'],
         ];
     }
 
@@ -38,6 +38,8 @@ class TwoFactorLoginChallengeRequest extends FormRequest
         return [
             'code.required_without' => 'Either a 2FA code or a recovery code is required.',
             'recovery_code.required_without' => 'Either a 2FA code or a recovery code is required.',
+            'code.prohibits' => 'The 2FA code cannot be present when a recovery code is also provided.',
+            'recovery_code.prohibits' => 'A recovery code cannot be present when a 2FA code is also provided.',
         ];
     }
 }

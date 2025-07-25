@@ -19,14 +19,10 @@ class LoginController extends Controller
         try {
             $result = $action($request->validated());
 
-            if ($result instanceof ResponseBuilder) {
-                return $result;
-            }
-
             return ResponseBuilder::asSuccess()
-                ->withHttpCode(Response::HTTP_OK)
-                ->withData($result)
-                ->withMessage('Login successful')
+                ->withHttpCode($result['status'])
+                ->withData(collect($result)->except(['message', 'status'])->all())
+                ->withMessage($result['message'])
                 ->build();
         } catch (Exception $e) {
             $statusCode = $e->getCode() >= 100 && $e->getCode() < 600 ? $e->getCode() : Response::HTTP_INTERNAL_SERVER_ERROR;
