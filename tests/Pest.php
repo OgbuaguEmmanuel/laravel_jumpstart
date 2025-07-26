@@ -47,7 +47,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function createUserAndGenerateToken($data = null)
+function createUserAndGenerateToken()
 {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
