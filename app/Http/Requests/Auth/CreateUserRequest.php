@@ -27,7 +27,7 @@ class CreateUserRequest extends FormRequest
             'last_name' => 'required|string|max:100|min:2',
             'email' => 'required|string|email|max:255|unique:users',
             'phone_number' => [
-                'required',
+                'nullable',
                 'string',
                 'unique:users',
                 'regex:/^(?:\+?234|0|234)?(70|80|91|90|81|71|070|080|091|090|081|071)\d{8}$/'
