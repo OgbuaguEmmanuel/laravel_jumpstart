@@ -57,9 +57,6 @@ class SocialAuthController extends Controller
                 case 'linkedin-openid':
                     $driver->scopes(['openid', 'profile', 'email']);
                     break;
-                case 'slack':
-                    $driver->scopes(['users:read.email', 'users:read']);
-                    break;
                 case 'gitlab':
                     $driver->scopes(['read_user', 'email']);
                 break;
@@ -110,10 +107,10 @@ class SocialAuthController extends Controller
             $socialUser = Socialite::driver($provider)->stateless()->user();
 
             $validator = Validator::make([
-                'id' => $socialUser->getId(),
+                'id' => (string) $socialUser->getId(),
                 'email' => $socialUser->getEmail(),
             ], [
-                'id' => ['required', 'numeric'],
+                'id' => ['required', 'string'],
                 'email' => ['required', 'email'],
             ]);
 
