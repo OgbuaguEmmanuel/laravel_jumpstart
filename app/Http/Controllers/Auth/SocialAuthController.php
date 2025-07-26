@@ -62,7 +62,6 @@ class SocialAuthController extends Controller
                 break;
             }
 
-            return $driver->redirect();
             $url = $driver->redirect()->getTargetUrl();
 
             return ResponseBuilder::asSuccess()
