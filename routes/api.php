@@ -25,10 +25,13 @@ Route::prefix('auth')->middleware('guest')
             ->name('auth.password.reset');
         Route::post('/login/2fa-challenge', [LoginController::class, 'challenge'])
             ->name('auth.login.2fa-challenge');
-        Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])
-            ->name('auth.social.redirect');
-        Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])
-            ->name('auth.social.callback');
+
+        Route::middleware('web')->group(function () {
+            Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])
+                ->name('auth.social.redirect');
+            Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])
+                ->name('auth.social.callback');
+        });
     });
 
 Route::prefix('auth')->middleware('auth:api')

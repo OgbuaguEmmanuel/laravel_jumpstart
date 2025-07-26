@@ -26,7 +26,7 @@ class SocialAuthController extends Controller
     {
         $validProviders = [
             'facebook', 'google', 'github', 'linkedin-openid',
-            'gitlab', 'bitbucket', 'slack','x'
+            'gitlab', 'bitbucket', 'slack','twitter-oauth-2'
         ];
         return in_array($provider, $validProviders);
     }
@@ -62,6 +62,7 @@ class SocialAuthController extends Controller
                 break;
             }
 
+            return $driver->redirect();
             $url = $driver->redirect()->getTargetUrl();
 
             return ResponseBuilder::asSuccess()
