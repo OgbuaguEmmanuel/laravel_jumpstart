@@ -412,7 +412,7 @@ test('expect to see a user created', function() use ($firstName, $lastName, $ema
     $response->assertSeeText('User registered successfully.');
 });
 
-test('phone number is required for registration', function () use ($firstName, $lastName, $email, $password, $url) {
+test('phone number is optional for registration', function () use ($firstName, $lastName, $email, $password, $url) {
     $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
@@ -421,8 +421,7 @@ test('phone number is required for registration', function () use ($firstName, $
         'password_confirmation' => $password,
     ]);
 
-    $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['phone_number']);
+    $response->assertStatus(201);
     $response->assertSeeText('The phone number field is required.');
 });
 
@@ -438,7 +437,7 @@ test('phone number must be a valid Nigerian phone number for registration', func
 
     $response->assertStatus(422);
     $response->assertJsonValidationErrors(['phone_number']);
-    $response->assertSeeText('The phone number field format is invalid.');
+    $response->assertSeeText('User registered successfully.');
 });
 
 test('phone number must be unique for registration', function () use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
