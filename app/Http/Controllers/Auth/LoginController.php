@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Actions\LoginUserAction;
-use App\Actions\LoginUserUsing2FA;
+use App\Actions\LoginUserUsing2FAAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginUserRequest;
 use App\Http\Requests\TwoFactorLoginChallengeRequest;
@@ -17,7 +17,7 @@ class LoginController extends Controller
     public function login(LoginUserRequest $request, LoginUserAction $action)
     {
         try {
-            $result = $action($request->validated());
+            $result = $action->handle($request->validated());
 
             return ResponseBuilder::asSuccess()
                 ->withHttpCode($result['status'])
@@ -34,10 +34,10 @@ class LoginController extends Controller
         }
     }
 
-    public function challenge(TwoFactorLoginChallengeRequest $request, LoginUserUsing2FA $action)
+    public function challenge(TwoFactorLoginChallengeRequest $request, LoginUserUsing2FAAction $action)
     {
         try {
-            $result = $action($request->validated());
+            $result = $action->handle($request->validated());
 
             return ResponseBuilder::asSuccess()
                 ->withHttpCode(Response::HTTP_OK)

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use PragmaRX\Google2FALaravel\Google2FA;
 
-class LoginUserUsing2FA
+class LoginUserUsing2FAAction
 {
     use AuthHelpers;
 
@@ -22,7 +22,7 @@ class LoginUserUsing2FA
     /**
      * Create a new class instance.
      */
-    public function __invoke(array $data)
+    public function handle(array $data)
     {
         $challengeKey = $data['2fa_challenge_key'];
         $userId = Cache::get('2fa_challenge:' . $challengeKey);

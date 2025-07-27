@@ -24,7 +24,7 @@ class LoginUserAction
     /**
      * Create a new class instance.
      */
-    public function __invoke(array $data)
+    public function handle(array $data)
     {
         $user = $this->getUserByEmail($data['email']);
 
