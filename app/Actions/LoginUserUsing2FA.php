@@ -81,7 +81,7 @@ class LoginUserUsing2FA
             throw new Exception("Something went wrong. Please contact support", 500);
         }
 
-        $userDetails = $user->only('id', 'first_name', 'last_name', 'email', 'created_at');
+        $userDetails = $user->only('id', 'first_name', 'last_name', 'email');
 
         return [
             'token' => $token,

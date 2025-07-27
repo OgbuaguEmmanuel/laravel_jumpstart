@@ -39,6 +39,11 @@ class LoginController extends Controller
         try {
             $result = $action($request->validated());
 
+            return ResponseBuilder::asSuccess()
+                ->withHttpCode(Response::HTTP_OK)
+                ->withMessage('Logged in successfully with 2FA.')
+                ->withData($result)
+                ->build();
         } catch (ValidationException $e) {
             return ResponseBuilder::asError(Response::HTTP_UNPROCESSABLE_ENTITY)
                 ->withHttpCode(Response::HTTP_UNPROCESSABLE_ENTITY)
@@ -53,11 +58,5 @@ class LoginController extends Controller
                 ->withMessage($e->getMessage())
                 ->build();
         }
-
-        return ResponseBuilder::asSuccess()
-            ->withHttpCode(Response::HTTP_OK)
-            ->withMessage('Logged in successfully with 2FA.')
-            ->withData($result)
-            ->build();
     }
 }
