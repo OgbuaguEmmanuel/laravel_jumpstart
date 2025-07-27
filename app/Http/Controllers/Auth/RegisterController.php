@@ -11,7 +11,7 @@ class RegisterController extends Controller
 {
     public function register(CreateUserRequest $request, CreateUserAction $action)
     {
-        $action($request->validated());
+        $action->handle($request->validated());
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(201)

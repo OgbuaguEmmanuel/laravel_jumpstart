@@ -10,7 +10,7 @@ class CreateUserAction
     /**
      * Create a new class instance.
      */
-    public function __invoke(array $data): User
+    public function handle(array $data): User
     {
         return User::create([
             'first_name' => $data['first_name'],
