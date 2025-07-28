@@ -9,6 +9,7 @@ use App\Http\Requests\Roles\RevokePermissionFromRoleRequest;
 use App\Http\Requests\Roles\StoreRoleRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Spatie\Permission\Models\Role;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -43,8 +44,8 @@ class RolesController extends Controller
      */
     public function store(StoreRoleRequest $request): Response
     {
-        $user = $request->user();
-        $ipAddress = $request->ip();
+        $user = Auth::user();
+        $ipAddress = request()->ip();
 
         $role = Role::create([
             'name' => ucwords($request->validated('name'))
@@ -59,7 +60,6 @@ class RolesController extends Controller
             ->withProperties([
                 'name' => $role->name,
                 'ip_address' => $ipAddress,
-                'action_type' => "Role with name: {{$role->name}} created",
             ])
             ->log("Role with name: {{$role->name}} created");
 
@@ -81,27 +81,30 @@ class RolesController extends Controller
      */
     public function givePermissions(GivePermissionToRoleRequest $request, Role $role): Response
     {
-        $ipAddress= $request->ip();
-        $user = $request->user();
+        $ipAddress = request()->ip();
+        $user = Auth::user();
 
         $permissionNames = $request->validated('permissions');
 
-        $alreadyAssignedPermissions = $role->permissions()->whereIn('name', $permissionNames)
-            ->pluck('name')->toArray();
+        $alreadyAssignedPermissions = $role->permissions()->whereIn('name', $permissionNames)->pluck('name')->toArray();
 
-        $msg = 'Role already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions);
+        $responseMessage = 'Role already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions);
+
         if (!empty($alreadyAssignedPermissions)) {
-             activity()
+            activity()
                 ->inLog(ActivityLogType::RolesAndPermissions)
+                ->performedOn($role)
                 ->causedBy($user)
                 ->withProperties([
-                    'alreadyAssignedPermissions' => $alreadyAssignedPermissions,
+                    'role_name' => $role->name,
+                    'permissions_requested' => $permissionNames,
+                    'permissions_already_assigned' => $alreadyAssignedPermissions,
                     'ip_address' => $ipAddress,
-                    'action_type' => $msg,
                 ])
-                ->log($msg);
+                ->log("Failed to assign permissions to role '{$role->name}'. Reason: {$responseMessage}");
+
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
-                ->withMessage($msg)
+                ->withMessage($responseMessage)
                 ->build();
         }
 
@@ -110,13 +113,14 @@ class RolesController extends Controller
 
         activity()
             ->inLog(ActivityLogType::RolesAndPermissions)
+            ->performedOn($role)
             ->causedBy($user)
             ->withProperties([
-                'permissions' => $permissionNames,
+                'role_name' => $role->name,
+                'permissions_assigned' => $permissionNames,
                 'ip_address' => $ipAddress,
-                'action_type' => 'Permission successfully assigned to role',
             ])
-            ->log('Permission successfully assigned to role');
+            ->log("Permissions [" . implode(', ', $permissionNames) . "] successfully assigned to role '{$role->name}'.");
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
@@ -136,8 +140,8 @@ class RolesController extends Controller
      */
     public function revokePermissions(RevokePermissionFromRoleRequest $request, Role $role): Response
     {
-        $ipAddress = $request->ip();
-        $user = $request->user();
+        $ipAddress = request()->ip();
+        $user = Auth::user();
 
         $permissionNames = $request->validated('permissions');
 
@@ -153,7 +157,6 @@ class RolesController extends Controller
                 ->withProperties([
                     'notAssignedPermission' => $notAssigned,
                     'ip_address' => $ipAddress,
-                    'action_type' => $msg,
                 ])
                 ->log($msg);
 
@@ -171,7 +174,6 @@ class RolesController extends Controller
             ->withProperties([
                 'permissions' => $permissionNames,
                 'ip_address' => $ipAddress,
-                'action_type' => 'Permission successfully revoked from role',
             ])
             ->log('Permission successfully revoked from role');
 
@@ -202,7 +204,6 @@ class RolesController extends Controller
                 ->withProperties([
                     'name' => $role->name,
                     'ip_address' => $ipAddress,
-                    'action_type' => "Role with name: {{$role->name}} already assigned to user",
                 ])
                 ->log("Role with name: {{$role->name}} already assigned to user");
 
@@ -221,7 +222,6 @@ class RolesController extends Controller
             ->withProperties([
                 'name' => $role->name,
                 'ip_address' => $ipAddress,
-                'action_type' => "Role with name: {{$role->name}} assigned to user",
             ])
             ->log("Role with name: {{$role->name}} assigned to user");
 
@@ -256,7 +256,6 @@ class RolesController extends Controller
                 ->withProperties([
                     'name' => $role->name,
                     'ip_address' => $ipAddress,
-                    'action_type' => "Role with name: {{$role->name}} revoked from user",
                 ])
                 ->log("Role with name: {{$role->name}} revoked from user");
 
@@ -275,7 +274,6 @@ class RolesController extends Controller
             ->withProperties([
                 'name' => $role->name,
                 'ip_address' => $ipAddress,
-                'action_type' => "Role with name: {{$role->name}} hasn't been assigned to this user",
             ])
             ->log("Role with name: {{$role->name}} hasn't been assigned to this user");
 

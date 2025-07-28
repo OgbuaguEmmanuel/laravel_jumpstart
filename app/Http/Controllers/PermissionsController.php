@@ -9,6 +9,7 @@ use App\Http\Requests\Permission\RevokePermissionFromUserRequest;
 use App\Http\Requests\Permission\StorePermissionRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Spatie\Permission\Models\Permission;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -32,8 +33,8 @@ class PermissionsController extends Controller
 
     public function store(StorePermissionRequest $request): Response
     {
-        $user = $request->user();
-        $ipAddress = $request->ip();
+        $user = Auth::user();
+        $ipAddress = request()->ip();
 
         $permission = Permission::create([
             'name' => $request->validated('name')
@@ -48,7 +49,6 @@ class PermissionsController extends Controller
             ->withProperties([
                 'name' => $permission->name,
                 'ip_address' => $ipAddress,
-                'action_type' => "Permission with name: {{$permission->name}} created",
             ])
             ->log("Permission with name: {{$permission->name}} created");
 
@@ -61,13 +61,13 @@ class PermissionsController extends Controller
             ->build();
     }
 
-    public function assignPermissionToUser(AssignPermissionToUserRequest $request, User $user)
+    public function assignPermissionsToUser(AssignPermissionToUserRequest $request, User $user)
     {
-        $ipAddress = $request->ip();
+        $ipAddress = request()->ip();
 
         $permissionNames = $request->validated('permissions');
         $alreadyAssignedPermissions = $user->permissions()->whereIn('name', $permissionNames)->pluck('name')->toArray();
-        $msg ='User already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions);
+        $message ='User already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions);
 
         if (!empty($alreadyAssignedPermissions)) {
             activity()
@@ -76,11 +76,11 @@ class PermissionsController extends Controller
                 ->withProperties([
                     'alreadyAssignedPermissions' => $alreadyAssignedPermissions,
                     'ip_address' => $ipAddress,
-                    'action_type' => $msg,
                 ])
-                ->log($msg);
+                ->log($message);
+
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
-                ->withMessage($msg)
+                ->withMessage($message)
                 ->build();
         }
 
@@ -93,7 +93,6 @@ class PermissionsController extends Controller
             ->withProperties([
                 'permissions' => $permissionNames,
                 'ip_address' => $ipAddress,
-                'action_type' => 'Permission successfully assigned to user',
             ])
             ->log('Permission successfully assigned to user');
 
@@ -106,9 +105,9 @@ class PermissionsController extends Controller
             ->build();
     }
 
-    public function removePermissionToUser(RevokePermissionFromUserRequest $request, User $user)
+    public function removePermissionsToUser(RevokePermissionFromUserRequest $request, User $user)
     {
-        $ipAddress = $request->ip();
+        $ipAddress = request()->ip();
 
         $permissionNames = $request->validated('permissions');
         $userActuallyHas = $user->permissions()->whereIn('name', $permissionNames)
@@ -124,7 +123,6 @@ class PermissionsController extends Controller
                 ->withProperties([
                     'notAssignedPermission' => $notAssigned,
                     'ip_address' => $ipAddress,
-                    'action_type' => $msg,
                 ])
                 ->log($msg);
 
@@ -142,7 +140,6 @@ class PermissionsController extends Controller
             ->withProperties([
                 'permissions' => $permissionNames,
                 'ip_address' => $ipAddress,
-                'action_type' => 'Permission successfully revoked from user',
             ])
             ->log('Permission successfully revoked from user');
 

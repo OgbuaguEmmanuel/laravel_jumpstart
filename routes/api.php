@@ -80,8 +80,8 @@ Route::get('/activities', [App\Http\Controllers\ActivityLogController::class, 'l
 
 Route::middleware(['auth:api'])->group( function() {
     Route::apiResource('/permissions', PermissionsController::class)->only('index', 'store');
-    Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionToUser']);
-    Route::post('users/{user}/revoke-permissions', [PermissionsController::class, 'revokePermissionToUser']);
+    Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser']);
+    Route::post('users/{user}/revoke-permissions', [PermissionsController::class, 'revokePermissionsToUser']);
 
     Route::apiResource('/roles', RolesController::class)->only('index', 'store');
     Route::post('/roles/{role}/give-permission', [RolesController::class, 'givePermissions']);
