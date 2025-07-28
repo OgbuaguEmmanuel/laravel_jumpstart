@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\ActivityLogType;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Auth;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Crypt;
 use Spatie\Activitylog\LogOptions;
@@ -61,13 +61,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     }
 
     /**
-     * Overwrite default web guard for roles and permission
-     *
-     * @var string
-     */
-    protected $guard_name = 'users';
-
-    /**
      * Send the password reset notification.
      *
      * @param string $token
@@ -116,7 +109,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return ! is_null($this->two_factor_secret) && ! is_null($this->two_factor_enabled_at);
     }
 
-    // Spatie Activity Log configuration
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -125,7 +117,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             // Only log attributes that actually changed (default, good for updates)
             ->logOnlyDirty()
             // Use the User model's class name as the log name for organization
-            ->useLogName(self::class)
+            ->useLogName(ActivityLogType::UserModel)
             // Don't log if only these attributes change
             ->dontLogIfAttributesChangedOnly([
                 'updated_at',

@@ -14,6 +14,7 @@ use BenSampo\Enum\Enum;
  * @method static TwoFactorAuth()
  * @method static SocialAuth()
  * @method static Role()
+ * @method static User()
  */
 final class ActivityLogType extends Enum
 {
@@ -26,4 +27,5 @@ final class ActivityLogType extends Enum
     const TwoFactorAuth = 'TwoFactorAuth';
     const SocialAuth = 'SocialAuth';
     const Role = 'Role';
+    const UserModel = 'User';
 }

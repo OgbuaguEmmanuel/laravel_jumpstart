@@ -77,7 +77,7 @@ Route::prefix('/notifications')->middleware('auth:apir')
 Route::get('/activities', [App\Http\Controllers\ActivityLogController::class, 'listActivities'])
     ->withoutMiddleware('auth:api')->name('activity.list');
 
-Route::middleware(['auth:api','role:super-admin'])->group( function() {
+Route::middleware(['auth:api'])->group( function() {
     Route::apiResource('/permissions', App\Http\Controllers\PermissionsController::class)
         ->only('index', 'store');
 
