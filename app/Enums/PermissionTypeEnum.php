@@ -7,11 +7,11 @@ use BenSampo\Enum\Enum;
 /**
  * @method static static viewActivity()
  * @method static static viewAllActivities()
- * @method static static OptionThree()
+ * @method static static createAdmin()
  */
 final class PermissionTypeEnum extends Enum
 {
     const viewActivity = 'view activity';
     const viewAllActivities = 'view all activities';
-    const OptionThree = 2;
+    const createAdmin = 'create Admin';
 }
