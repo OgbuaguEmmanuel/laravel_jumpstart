@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\TwoFactor;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class Disable2FARequest extends FormRequest
+class Verify2FARequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +22,7 @@ class Disable2FARequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => ['required', 'string'],
+            'code' => ['required', 'numeric', 'digits:6'],
         ];
     }
 }

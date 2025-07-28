@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\TwoFactor;
 
 use Illuminate\Foundation\Http\FormRequest;
 
