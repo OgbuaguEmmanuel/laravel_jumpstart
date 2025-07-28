@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -56,7 +57,7 @@ Route::prefix('auth')->middleware('auth:api')
         });
     });
 
-Route::prefix('/notifications')->middleware('auth:apir')
+Route::prefix('/notifications')->middleware('auth:api')
     ->group(function (): void {
         Route::get('/all', [NotificationController::class, 'index'])
             ->name('notification.all');
@@ -78,13 +79,13 @@ Route::get('/activities', [App\Http\Controllers\ActivityLogController::class, 'l
     ->withoutMiddleware('auth:api')->name('activity.list');
 
 Route::middleware(['auth:api'])->group( function() {
-    Route::apiResource('/permissions', App\Http\Controllers\PermissionsController::class)
-        ->only('index', 'store');
+    Route::apiResource('/permissions', PermissionsController::class)->only('index', 'store');
+    Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionToUser']);
+    Route::post('users/{user}/revoke-permissions', [PermissionsController::class, 'revokePermissionToUser']);
 
-    Route::apiResource('/roles', RolesController::class)
-        ->only('index', 'store');
-    Route::post('/roles/{role}/give-permission', [RolesController::class, 'givePermission']);
-    Route::post('/roles/{role}/revoke-permission', [RolesController::class, 'revokePermission']);
+    Route::apiResource('/roles', RolesController::class)->only('index', 'store');
+    Route::post('/roles/{role}/give-permission', [RolesController::class, 'givePermissions']);
+    Route::post('/roles/{role}/revoke-permission', [RolesController::class, 'revokePermissions']);
     Route::post('/users/{user}/assignRole/roles/{role}', [RolesController::class,'assignRole']);
     Route::post('/users/{user}/removeRole/roles/{role}', [RolesController::class,'removeRole']);
 });

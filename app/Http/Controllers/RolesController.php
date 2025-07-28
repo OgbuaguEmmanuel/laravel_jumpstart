@@ -8,9 +8,7 @@ use App\Http\Requests\Roles\RevokePermissionFromRoleRequest;
 use App\Http\Requests\Roles\StoreRoleRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Services\RolesService;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,28 +16,13 @@ use Symfony\Component\HttpFoundation\Response;
 class RolesController extends Controller
 {
     /**
-     * @var RolesService $rolesService
-     */
-    public RolesService $rolesService;
-
-    /**
-     * Instantiate the class and inject classes it depends on.
-     */
-    public function __construct(RolesService $rolesService)
-    {
-        $this->rolesService = $rolesService;
-    }
-
-    /**
      * List  all roles
      *
      * @return Response
      */
     public function index(Request $request): Response
     {
-        $roles = $this->rolesService->index();
-
-        $roles = QueryBuilder::for($roles)
+        $roles = QueryBuilder::for(Role::query())
             ->defaultSort('-created_at')
             ->paginate($request->get('per_page'));
 
@@ -59,7 +42,11 @@ class RolesController extends Controller
      */
     public function store(StoreRoleRequest $request): Response
     {
-        $role = $this->rolesService->store($request->validated());
+        $role = Role::create([
+            'name' => ucwords($request->validated('name'))
+        ]);
+
+        $role->refresh();
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
@@ -77,24 +64,27 @@ class RolesController extends Controller
      * @param Role $role
      * @return Response
      */
-    public function givePermission(GivePermissionToRoleRequest $request, Role $role): Response
+    public function givePermissions(GivePermissionToRoleRequest $request, Role $role): Response
     {
-        $permission = Permission::where('name', $request->get('permission'))
-            ->where('guard_name', $request->get('guard_name'))
-            ->first();
+        $permissionNames = $request->validated('permissions');
 
-        if ($role->hasPermissionTo($permission->name)) {
-            return ResponseBuilder::asError(400)
-                ->withMessage('Role already has this permission!!!')
+        $alreadyAssignedPermissions = $role->permissions()->whereIn('name', $permissionNames)
+            ->pluck('name')->toArray();
+
+        if (!empty($alreadyAssignedPermissions)) {
+            return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
+                ->withMessage('Role already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions))
                 ->build();
         }
-        $role = $this->rolesService->givePermission($request, $role);
+
+        $role->givePermissionTo($permissionNames);
+        $role->refresh();
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
-            ->withMessage('Permission successfully assigned to role!!!')
+            ->withMessage('Permissions successfully assigned to role!!!')
             ->withData([
-                'role' => $role
+                'role_permissions' => $role->permissions->pluck('name')->toArray()
             ])
             ->build();
     }
@@ -106,22 +96,29 @@ class RolesController extends Controller
      * @param Role $role
      * @return Response
      */
-    public function revokePermission(RevokePermissionFromRoleRequest $request, Role $role): Response
+    public function revokePermissions(RevokePermissionFromRoleRequest $request, Role $role): Response
     {
-        $permission = Permission::where('name', $request->get('permission'))
-            ->where('guard_name', $request->get('guard_name'))
-            ->first();
+        $permissionNames = $request->validated('permissions');
 
-        if ($role->hasPermissionTo($permission->name)) {
-            $this->rolesService->revokePermission($request, $role);
+        $roleActuallyHas = $role->permissions()->whereIn('name', $permissionNames)
+            ->pluck('name')->toArray();
 
-            return ResponseBuilder::asSuccess()
-                ->withMessage('Permission successfully revoked from role!!!')
+        $notAssigned = array_diff($permissionNames, $roleActuallyHas);
+
+        if (!empty($notAssigned)) {
+            return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
+                ->withMessage('Role does not have the following permissions: ' . implode(', ', $notAssigned))
                 ->build();
         }
 
-        return ResponseBuilder::asError(400)
-            ->withMessage("This permission hasn't been assigned to this role!!!")
+        $role->revokePermissionTo($permissionNames);
+        $role->refresh();
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage('Permissions successfully revoked from role!!!')
+            ->withData([
+                'role_permissions' => $role->permissions->pluck('name')->toArray()
+            ])
             ->build();
     }
 
@@ -135,17 +132,19 @@ class RolesController extends Controller
     public function assignRole(User $user, Role $role): Response
     {
         if ($user->hasRole($role)) {
-            return ResponseBuilder::asError(400)
+            return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
                 ->withMessage('User already has this role!!!')
                 ->build();
         }
-        $user = $this->rolesService->assignRole($role, $user);
+
+        $user->assignRole($role);
+        $user->refresh();
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
             ->withMessage('Role successfully assigned to user!!!')
             ->withData([
-                'user' => $user
+                'user_roles' => $user->roles->pluck('name')->toArray()
             ])
             ->build();
     }
@@ -160,14 +159,18 @@ class RolesController extends Controller
     public function removeRole(User $user, Role $role): Response
     {
         if ($user->hasRole($role)) {
-            $this->rolesService->removeRole($user, $role);
+            $user->removeRole($role);
+            $user->refresh();
 
             return ResponseBuilder::asSuccess()
-                ->withMessage('Role successfully removed from role!!!')
+                ->withMessage('Role successfully removed from user!!!')
+                ->withData([
+                    'user_roles' => $user->roles->pluck('name')->toArray()
+                ])
                 ->build();
         }
 
-        return ResponseBuilder::asError(400)
+        return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
             ->withMessage("This role hasn't been assigned to this user!!!")
             ->build();
     }

@@ -22,8 +22,8 @@ class RevokePermissionFromRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'permission' => ['required', 'exists:permissions,name'],
-
+            'permissions' => 'required|array',
+            'permissions.*' => ['required', 'exists:permissions,name']
         ];
     }
 }
