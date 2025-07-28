@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ActivityLogType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Roles\GivePermissionToRoleRequest;
 use App\Http\Requests\Roles\RevokePermissionFromRoleRequest;
@@ -42,11 +43,25 @@ class RolesController extends Controller
      */
     public function store(StoreRoleRequest $request): Response
     {
+        $user = $request->user();
+        $ipAddress = $request->ip();
+
         $role = Role::create([
             'name' => ucwords($request->validated('name'))
         ]);
 
         $role->refresh();
+
+        activity()
+            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->performedOn($role)
+            ->causedBy($user)
+            ->withProperties([
+                'name' => $role->name,
+                'ip_address' => $ipAddress,
+                'action_type' => "Role with name: {{$role->name}} created",
+            ])
+            ->log("Role with name: {{$role->name}} created");
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
@@ -66,19 +81,42 @@ class RolesController extends Controller
      */
     public function givePermissions(GivePermissionToRoleRequest $request, Role $role): Response
     {
+        $ipAddress= $request->ip();
+        $user = $request->user();
+
         $permissionNames = $request->validated('permissions');
 
         $alreadyAssignedPermissions = $role->permissions()->whereIn('name', $permissionNames)
             ->pluck('name')->toArray();
 
+        $msg = 'Role already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions);
         if (!empty($alreadyAssignedPermissions)) {
+             activity()
+                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->causedBy($user)
+                ->withProperties([
+                    'alreadyAssignedPermissions' => $alreadyAssignedPermissions,
+                    'ip_address' => $ipAddress,
+                    'action_type' => $msg,
+                ])
+                ->log($msg);
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
-                ->withMessage('Role already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions))
+                ->withMessage($msg)
                 ->build();
         }
 
         $role->givePermissionTo($permissionNames);
         $role->refresh();
+
+        activity()
+            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->causedBy($user)
+            ->withProperties([
+                'permissions' => $permissionNames,
+                'ip_address' => $ipAddress,
+                'action_type' => 'Permission successfully assigned to role',
+            ])
+            ->log('Permission successfully assigned to role');
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
@@ -98,21 +136,44 @@ class RolesController extends Controller
      */
     public function revokePermissions(RevokePermissionFromRoleRequest $request, Role $role): Response
     {
+        $ipAddress = $request->ip();
+        $user = $request->user();
+
         $permissionNames = $request->validated('permissions');
 
         $roleActuallyHas = $role->permissions()->whereIn('name', $permissionNames)
             ->pluck('name')->toArray();
 
         $notAssigned = array_diff($permissionNames, $roleActuallyHas);
-
+        $msg = 'Role does not have the following permissions: ' . implode(', ', $notAssigned);
         if (!empty($notAssigned)) {
+            activity()
+                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->causedBy($user)
+                ->withProperties([
+                    'notAssignedPermission' => $notAssigned,
+                    'ip_address' => $ipAddress,
+                    'action_type' => $msg,
+                ])
+                ->log($msg);
+
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
-                ->withMessage('Role does not have the following permissions: ' . implode(', ', $notAssigned))
+                ->withMessage($msg)
                 ->build();
         }
 
         $role->revokePermissionTo($permissionNames);
         $role->refresh();
+
+        activity()
+            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->causedBy($user)
+            ->withProperties([
+                'permissions' => $permissionNames,
+                'ip_address' => $ipAddress,
+                'action_type' => 'Permission successfully revoked from role',
+            ])
+            ->log('Permission successfully revoked from role');
 
         return ResponseBuilder::asSuccess()
             ->withMessage('Permissions successfully revoked from role!!!')
@@ -131,7 +192,20 @@ class RolesController extends Controller
      */
     public function assignRole(User $user, Role $role): Response
     {
+        $ipAddress = request()->ip();
+
         if ($user->hasRole($role)) {
+            activity()
+                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->performedOn($role)
+                ->causedBy($user)
+                ->withProperties([
+                    'name' => $role->name,
+                    'ip_address' => $ipAddress,
+                    'action_type' => "Role with name: {{$role->name}} already assigned to user",
+                ])
+                ->log("Role with name: {{$role->name}} already assigned to user");
+
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
                 ->withMessage('User already has this role!!!')
                 ->build();
@@ -139,6 +213,17 @@ class RolesController extends Controller
 
         $user->assignRole($role);
         $user->refresh();
+
+        activity()
+            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->performedOn($role)
+            ->causedBy($user)
+            ->withProperties([
+                'name' => $role->name,
+                'ip_address' => $ipAddress,
+                'action_type' => "Role with name: {{$role->name}} assigned to user",
+            ])
+            ->log("Role with name: {{$role->name}} assigned to user");
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
@@ -158,9 +243,22 @@ class RolesController extends Controller
      */
     public function removeRole(User $user, Role $role): Response
     {
+        $ipAddress = request()->ip();
+
         if ($user->hasRole($role)) {
             $user->removeRole($role);
             $user->refresh();
+
+            activity()
+                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->performedOn($role)
+                ->causedBy($user)
+                ->withProperties([
+                    'name' => $role->name,
+                    'ip_address' => $ipAddress,
+                    'action_type' => "Role with name: {{$role->name}} revoked from user",
+                ])
+                ->log("Role with name: {{$role->name}} revoked from user");
 
             return ResponseBuilder::asSuccess()
                 ->withMessage('Role successfully removed from user!!!')
@@ -169,6 +267,17 @@ class RolesController extends Controller
                 ])
                 ->build();
         }
+
+        activity()
+            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->performedOn($role)
+            ->causedBy($user)
+            ->withProperties([
+                'name' => $role->name,
+                'ip_address' => $ipAddress,
+                'action_type' => "Role with name: {{$role->name}} hasn't been assigned to this user",
+            ])
+            ->log("Role with name: {{$role->name}} hasn't been assigned to this user");
 
         return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
             ->withMessage("This role hasn't been assigned to this user!!!")

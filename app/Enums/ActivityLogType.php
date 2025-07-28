@@ -13,7 +13,7 @@ use BenSampo\Enum\Enum;
  * @method static Logout()
  * @method static TwoFactorAuth()
  * @method static SocialAuth()
- * @method static Role()
+ * @method static RolesAndPermissions()
  * @method static User()
  */
 final class ActivityLogType extends Enum
@@ -26,6 +26,6 @@ final class ActivityLogType extends Enum
     const Logout = 'Logout';
     const TwoFactorAuth = 'TwoFactorAuth';
     const SocialAuth = 'SocialAuth';
-    const Role = 'Role';
+    const RolesAndPermissions = 'RolesAndPermissions';
     const UserModel = 'User';
 }

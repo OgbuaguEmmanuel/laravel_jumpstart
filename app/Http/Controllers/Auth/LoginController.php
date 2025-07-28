@@ -6,7 +6,7 @@ use App\Actions\LoginUserAction;
 use App\Actions\LoginUserUsing2FAAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginUserRequest;
-use App\Http\Requests\TwoFactorLoginChallengeRequest;
+use App\Http\Requests\TwoFactor\TwoFactorLoginChallengeRequest;
 use Exception;
 use Illuminate\Validation\ValidationException;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
