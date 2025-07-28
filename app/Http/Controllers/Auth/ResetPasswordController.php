@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\ActivityLogType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Notifications\VerifyEmailNotification;
@@ -59,23 +60,53 @@ class ResetPasswordController extends Controller
      */
     public function reset(ResetPasswordRequest $request): Response
     {
+        $ipAddress = $request->ip();
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
+            function ($user, $password) use($ipAddress) {
                 $user->forceFill([
                     'password' => Hash::make($password)
                 ])->setRememberToken(Str::random(60));
                 $user->save();
 
+                $emailVerificationTriggered = false;
                 if (!$user->hasVerifiedEmail()) {
                     $user->notify(new VerifyEmailNotification(config('frontend.email_verification.url.user', 'https://example.com/verify-email')));
+                    $emailVerificationTriggered = true;
                 }
+
+                // --- Log for Successful Password Reset ---
+                activity()
+                    ->inLog(ActivityLogType::ResetPassword)
+                    ->causedBy($user)
+                    ->withProperties([
+                        'user_id' => $user->id,
+                        'email' => $user->email,
+                        'ip_address' => $ipAddress,
+                        'email_verification_triggered' => $emailVerificationTriggered,
+                        'action_type' => 'Password Reset Successful'
+                    ])
+                    ->log('User password reset successfully.');
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-                ? $this->sendResetResponse($status)
-                : $this->sendResetFailedResponse($status);
+        if ($status === Password::PASSWORD_RESET) {
+            return $this->sendResetResponse($status);
+        } else {
+            // --- Log for Failed Password Reset ---
+            activity()
+                ->inLog(ActivityLogType::ResetPassword)
+                ->causedBy(null)
+                ->withProperties([
+                    'email_attempted' => $request->email,
+                    'ip_address' => $ipAddress,
+                    'status_reason' => $status, // e.g., 'passwords.token', 'passwords.user', 'passwords.password'
+                    'action_type' => 'Password Reset Failed'
+                ])
+                ->log('Password reset failed.');
+
+            return $this->sendResetFailedResponse($status);
+        }
     }
 
     /**

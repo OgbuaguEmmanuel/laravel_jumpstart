@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Actions\TwoFactorAuthAction;
+use App\Enums\ActivityLogType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Disable2FARequest;
 use App\Http\Requests\Verify2FARequest;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,6 +17,8 @@ class TwoFactorAuthenticationController extends Controller
 {
     public function setup(TwoFactorAuthAction $action)
     {
+        $user = Auth::user();
+        $ipAddress = request()->ip();
         try {
             $data = $action->handleSetup();
 
@@ -34,7 +38,18 @@ class TwoFactorAuthenticationController extends Controller
                 ->withData($e->errors())
                 ->build();
         } catch(Exception $e) {
-            logger($e->getMessage());
+            logger()->error('2FA setup unexpected error: ' . $e->getMessage(), ['exception' => $e]);
+            activity()
+                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->causedBy($user)
+                ->withProperties([
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'ip_address' => $ipAddress,
+                    'error_message' => $e->getMessage(),
+                    'action_type' => '2FA Setup Failed: Unexpected Error',
+                ])
+                ->log('2FA setup failed due to an unexpected error.');
             return ResponseBuilder::asError(500)
                 ->withHttpCode(500)
                 ->withMessage('Something went wrong. Contact support.')
@@ -44,6 +59,9 @@ class TwoFactorAuthenticationController extends Controller
 
     public function enable(Verify2FARequest $request, TwoFactorAuthAction $action)
     {
+        $user = Auth::user();
+        $ipAddress = request()->ip();
+
         try {
             $data = $action->handleEnable($request->validated());
 
@@ -61,7 +79,19 @@ class TwoFactorAuthenticationController extends Controller
                 ->withData($e->errors())
                 ->build();
         } catch(Exception $e) {
-            logger($e->getMessage());
+            logger()->error('2FA enable unexpected error: ' . $e->getMessage(), ['exception' => $e]);
+
+            activity()
+                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->causedBy($user)
+                ->withProperties([
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'ip_address' => $ipAddress,
+                    'error_message' => $e->getMessage(),
+                    'action_type' => '2FA Enable Failed: Unexpected Error',
+                ])
+                ->log('2FA enablement failed due to an unexpected error.');
             return ResponseBuilder::asError(500)
                 ->withHttpCode(500)
                 ->withMessage('Something went wrong. Contact support.')
@@ -71,6 +101,9 @@ class TwoFactorAuthenticationController extends Controller
 
     public function disable(Disable2FARequest $request, TwoFactorAuthAction $action)
     {
+        $user = Auth::user();
+        $ipAddress = request()->ip();
+
         try {
             $action->handleDisable($request->validated());
 
@@ -85,7 +118,19 @@ class TwoFactorAuthenticationController extends Controller
                 ->withData($e->errors())
                 ->build();
         } catch(Exception $e) {
-            logger($e->getMessage());
+            logger()->error('2FA disable unexpected error: ' . $e->getMessage(), ['exception' => $e]);
+
+            activity()
+                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->causedBy($user)
+                ->withProperties([
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'ip_address' => $ipAddress,
+                    'error_message' => $e->getMessage(),
+                    'action_type' => '2FA Disable Failed: Unexpected Error',
+                ])
+                ->log('2FA disablement failed due to an unexpected error.');
             return ResponseBuilder::asError(500)
                 ->withHttpCode(500)
                 ->withMessage('Something went wrong. Contact support.')
@@ -95,6 +140,9 @@ class TwoFactorAuthenticationController extends Controller
 
     public function generateNewRecoveryCodes(TwoFactorAuthAction $action)
     {
+        $user = Auth::user();
+        $ipAddress = request()->ip();
+
         try {
             $data = $action->handleRecoveryCode();
 
@@ -112,7 +160,20 @@ class TwoFactorAuthenticationController extends Controller
                 ->withData($e->errors())
                 ->build();
         } catch(Exception $e) {
-            logger($e->getMessage());
+            logger()->error('2FA recovery code generation unexpected error: ' . $e->getMessage(), ['exception' => $e]);
+
+            activity()
+                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->causedBy($user)
+                ->withProperties([
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'ip_address' => $ipAddress,
+                    'error_message' => $e->getMessage(),
+                    'action_type' => '2FA Recovery Code Generation Failed: Unexpected Error',
+                ])
+                ->log('2FA recovery code generation failed due to an unexpected error.');
+
             return ResponseBuilder::asError(500)
                 ->withHttpCode(500)
                 ->withMessage('Something went wrong. Contact support.')

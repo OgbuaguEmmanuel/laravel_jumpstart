@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\ActivityLogType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use Illuminate\Support\Facades\Password;
@@ -13,10 +14,34 @@ class ForgotPasswordController extends Controller
     public function sendResetLinkEmail(ForgotPasswordRequest $request)
     {
         $status = Password::sendResetLink($request->only('email'));
+        $requestedEmail = $request->email;
 
-        return $status === Password::RESET_LINK_SENT
-            ? $this->sendResetLinkResponse($status)
-            : $this->sendResetLinkFailedResponse($status);
+        if ($status === Password::RESET_LINK_SENT) {
+            // Log successful attempt
+            activity()
+                ->inLog(ActivityLogType::ResetPassword)
+                ->causedBy(null)
+                ->withProperties([
+                    'email_requested' => $requestedEmail,
+                    'action_type' => 'Password Reset Request'
+                ])
+                ->log('Password reset link sent.');
+
+            return $this->sendResetLinkResponse($status);
+        } else {
+            // Log failed attempt
+            activity()
+                ->inLog(ActivityLogType::ResetPassword)
+                ->causedBy(null)
+                ->withProperties([
+                    'email_requested' => $requestedEmail,
+                    'status_reason' => $status,
+                    'action_type' => 'Password Reset Request Failed'
+                ])
+                ->log('Password reset link failed to send.');
+
+            return $this->sendResetLinkFailedResponse($status);
+        }
     }
 
      /**

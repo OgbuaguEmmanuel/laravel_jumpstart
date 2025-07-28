@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\ActivityLogType;
 use App\Traits\AuthHelpers;
 use Exception;
 use Illuminate\Support\Facades\Cache;
@@ -29,12 +30,32 @@ class LoginUserAction
         $user = $this->getUserByEmail($data['email']);
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
+            activity()
+                ->inLog(ActivityLogType::Login)
+                ->causedBy(null)
+                ->withProperties([
+                    'email_attempted' => $data['email'],
+                    'reason' => 'Invalid credentials provided',
+                    'ip_address' => request()->ip()
+                ])
+                ->log('Login failed: Invalid Credentials');
             throw new Exception("Invalid Login Credential", 404);
         }
 
         if ($user->hasTwoFactorEnabled()) {
             $challengeKey = Str::uuid()->toString();
             Cache::put('2fa_challenge:' . $challengeKey, $user->id, now()->addMinutes(5));
+
+            activity()
+                ->inLog(ActivityLogType::Login)
+                ->causedBy($user)
+                ->withProperties([
+                    'email' => $user->email,
+                    '2fa_challenge_key' => $challengeKey,
+                    'reason' => 'Two-factor authentication required',
+                    'ip_address' => request()->ip()
+                ])
+                ->log('Login attempt: 2FA required');
 
             return [
                 'requires_2fa' => true,
@@ -46,11 +67,30 @@ class LoginUserAction
 
         try {
             $token = $user->createToken('UserAuthToken')->accessToken;
+            activity()
+                ->inLog(ActivityLogType::Login)
+                ->causedBy($user)
+                ->withProperties([
+                    'email' => $user->email,
+                    'ip_address' => request()->ip(),
+                    'token_created' => true
+                ])
+                ->log('User logged in successfully');
         } catch (Exception $e) {
             logger()->error('Login failed: ' . $e->getMessage(), [
                 'email' => $data['email'],
                 'code' => $e->getCode(),
             ]);
+            activity()
+                ->inLog(ActivityLogType::Login)
+                ->causedBy($user)
+                ->withProperties([
+                    'email' => $user->email,
+                    'error_message' => $e->getMessage(),
+                    'ip_address' => request()->ip(),
+                    'code' => $e->getCode(),
+                ])
+                ->log('Login failed: API Token creation error');
             throw new Exception("Something went wrong. Please contact support", 500);
         }
 

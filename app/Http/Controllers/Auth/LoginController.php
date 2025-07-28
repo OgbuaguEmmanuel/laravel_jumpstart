@@ -45,8 +45,8 @@ class LoginController extends Controller
                 ->withData($result)
                 ->build();
         } catch (ValidationException $e) {
-            return ResponseBuilder::asError(Response::HTTP_UNPROCESSABLE_ENTITY)
-                ->withHttpCode(Response::HTTP_UNPROCESSABLE_ENTITY)
+            return ResponseBuilder::asError($e->status)
+                ->withHttpCode($e->status)
                 ->withMessage($e->getMessage())
                 ->withData($e->errors())
                 ->build();
