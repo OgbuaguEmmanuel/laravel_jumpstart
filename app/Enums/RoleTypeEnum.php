@@ -5,9 +5,9 @@ namespace App\Enums;
 use BenSampo\Enum\Enum;
 
 /**
- * @method static static Admin()
- * @method static static SuperAdmin()
- * @method static static User()
+ * @method  static Admin()
+ * @method  static SuperAdmin()
+ * @method  static User()
  */
 final class RoleTypeEnum extends Enum
 {

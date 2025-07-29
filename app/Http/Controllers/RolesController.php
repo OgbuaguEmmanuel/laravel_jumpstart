@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Roles\GivePermissionToRoleRequest;
 use App\Http\Requests\Roles\RevokePermissionFromRoleRequest;
 use App\Http\Requests\Roles\StoreRoleRequest;
+use App\Http\Requests\Roles\UpdateRoleRequest;
 use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
@@ -17,6 +19,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RolesController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * List  all roles
      *
@@ -24,15 +28,28 @@ class RolesController extends Controller
      */
     public function index(Request $request): Response
     {
+        $this->authorize('viewAny', Role::class);
+
         $roles = QueryBuilder::for(Role::query())
             ->defaultSort('-created_at')
+            ->allowedFilters('name')
             ->paginate($request->get('per_page'));
 
         return ResponseBuilder::asSuccess()
-            ->withMessage('Roles fetched successfully!!!')
+            ->withMessage('Roles fetched successfully')
             ->withData([
                 'roles' => $roles,
             ])
+            ->build();
+    }
+
+    public function show(Role $role): Response
+    {
+        $this->authorize('view', Role::class);
+
+        return ResponseBuilder::asSuccess()
+            ->withData($role)
+            ->withMessage('Role fetched successfully')
             ->build();
     }
 
@@ -45,6 +62,8 @@ class RolesController extends Controller
     public function store(StoreRoleRequest $request): Response
     {
         $user = Auth::user();
+        $this->authorize('create', Role::class);
+
         $ipAddress = request()->ip();
 
         $role = Role::create([
@@ -61,7 +80,7 @@ class RolesController extends Controller
                 'name' => $role->name,
                 'ip_address' => $ipAddress,
             ])
-            ->log("Role with name: {{$role->name}} created");
+            ->log("Role with name: {$role->name} created");
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
@@ -69,6 +88,33 @@ class RolesController extends Controller
             ->withData([
                 'role' => $role
             ])
+            ->build();
+    }
+
+    public function update(UpdateRoleRequest $request, Role $role): Response
+    {
+        $this->authorize('update', Role::class);
+        $ipAddress = request()->ip();
+        $oldRoleName = $role->name;
+
+        $role->name = $request->validated('name');
+        $role->save();
+        $role->refresh();
+
+        activity()
+            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->performedOn($role)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'old_name' => $oldRoleName,
+                'new_name' => $role->name,
+                'ip_address' => $ipAddress,
+            ])
+            ->log("Role name updated from '{$oldRoleName}' to '{$role->name}'.");
+
+        return ResponseBuilder::asSuccess()
+            ->withData($role)
+            ->withMessage('Role updated successfully')
             ->build();
     }
 
@@ -81,6 +127,8 @@ class RolesController extends Controller
      */
     public function givePermissions(GivePermissionToRoleRequest $request, Role $role): Response
     {
+        $this->authorize('assignPermissionToRole', Role::class);
+
         $ipAddress = request()->ip();
         $user = Auth::user();
 
@@ -140,6 +188,8 @@ class RolesController extends Controller
      */
     public function revokePermissions(RevokePermissionFromRoleRequest $request, Role $role): Response
     {
+        $this->authorize('revokePermissionFromRole', Role::class);
+
         $ipAddress = request()->ip();
         $user = Auth::user();
 
@@ -194,6 +244,8 @@ class RolesController extends Controller
      */
     public function assignRole(User $user, Role $role): Response
     {
+        $this->authorize('assignRoleToUser', Role::class);
+
         $ipAddress = request()->ip();
 
         if ($user->hasRole($role)) {
@@ -205,7 +257,7 @@ class RolesController extends Controller
                     'name' => $role->name,
                     'ip_address' => $ipAddress,
                 ])
-                ->log("Role with name: {{$role->name}} already assigned to user");
+                ->log("Role with name: {$role->name} already assigned to user");
 
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
                 ->withMessage('User already has this role!!!')
@@ -223,7 +275,7 @@ class RolesController extends Controller
                 'name' => $role->name,
                 'ip_address' => $ipAddress,
             ])
-            ->log("Role with name: {{$role->name}} assigned to user");
+            ->log("Role with name: {$role->name} assigned to user");
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
@@ -243,6 +295,8 @@ class RolesController extends Controller
      */
     public function removeRole(User $user, Role $role): Response
     {
+        $this->authorize('removeRoleFromUser', Role::class);
+
         $ipAddress = request()->ip();
 
         if ($user->hasRole($role)) {
@@ -257,7 +311,7 @@ class RolesController extends Controller
                     'name' => $role->name,
                     'ip_address' => $ipAddress,
                 ])
-                ->log("Role with name: {{$role->name}} revoked from user");
+                ->log("Role with name: {$role->name} revoked from user");
 
             return ResponseBuilder::asSuccess()
                 ->withMessage('Role successfully removed from user!!!')
@@ -275,10 +329,11 @@ class RolesController extends Controller
                 'name' => $role->name,
                 'ip_address' => $ipAddress,
             ])
-            ->log("Role with name: {{$role->name}} hasn't been assigned to this user");
+            ->log("Role with name: {$role->name} hasn't been assigned to this user");
 
         return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
             ->withMessage("This role hasn't been assigned to this user!!!")
             ->build();
     }
+
 }
