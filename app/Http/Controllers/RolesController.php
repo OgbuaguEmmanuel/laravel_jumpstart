@@ -33,6 +33,7 @@ class RolesController extends Controller
         $roles = QueryBuilder::for(Role::query())
             ->defaultSort('-created_at')
             ->allowedFilters('name')
+            ->allowedSorts(['name'])
             ->paginate($request->get('per_page'));
 
         return ResponseBuilder::asSuccess()

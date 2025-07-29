@@ -8,6 +8,7 @@ use App\Http\Requests\Permission\AssignPermissionToUserRequest;
 use App\Http\Requests\Permission\RevokePermissionFromUserRequest;
 use App\Http\Requests\Permission\StorePermissionRequest;
 use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
@@ -17,10 +18,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PermissionsController extends Controller
 {
+    use AuthorizesRequests;
 
     public function index(Request $request): Response
     {
+        $this->authorize('viewAny', Permission::class);
+
         $permissions = QueryBuilder::for(Permission::query())
+            ->defaultSort('-created_at')
+            ->allowedSorts(['name'])
+            ->allowedFilters(['name'])
             ->paginate($request->get('per_page'));
 
         return ResponseBuilder::asSuccess()
@@ -33,6 +40,8 @@ class PermissionsController extends Controller
 
     public function store(StorePermissionRequest $request): Response
     {
+        $this->authorize('create', Permission::class);
+
         $user = Auth::user();
         $ipAddress = request()->ip();
 
@@ -50,7 +59,7 @@ class PermissionsController extends Controller
                 'name' => $permission->name,
                 'ip_address' => $ipAddress,
             ])
-            ->log("Permission with name: {{$permission->name}} created");
+            ->log("Permission with name: {$permission->name} created");
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
@@ -63,6 +72,8 @@ class PermissionsController extends Controller
 
     public function assignPermissionsToUser(AssignPermissionToUserRequest $request, User $user)
     {
+        $this->authorize('assignPermissionToRole', Permission::class);
+
         $ipAddress = request()->ip();
 
         $permissionNames = $request->validated('permissions');
@@ -107,6 +118,8 @@ class PermissionsController extends Controller
 
     public function removePermissionsToUser(RevokePermissionFromUserRequest $request, User $user)
     {
+        $this->authorize('revokePermissionFromRole', Permission::class);
+
         $ipAddress = request()->ip();
 
         $permissionNames = $request->validated('permissions');

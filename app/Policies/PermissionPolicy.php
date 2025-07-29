@@ -5,18 +5,17 @@ namespace App\Policies;
 use App\Enums\PermissionTypeEnum;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
-use Spatie\Permission\Models\Role;
 
-class RolePolicy
+class PermissionPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): Response
     {
-        return $user->hasPermissionTo(PermissionTypeEnum::viewRoles)
+        return $user->hasPermissionTo(PermissionTypeEnum::viewPermissions)
             ? Response::allow()
-            : Response::deny('Unauthorized to view list of roles.', 403);
+            : Response::deny('Unauthorized to view list of permissions.', 403);
     }
 
     /**
@@ -24,9 +23,9 @@ class RolePolicy
      */
     public function view(User $user): Response
     {
-        return $user->hasPermissionTo(PermissionTypeEnum::viewRoles)
+        return $user->hasPermissionTo(PermissionTypeEnum::viewPermissions)
             ? Response::allow()
-            : Response::deny('Unauthorized to view a role .', 403);
+            : Response::deny('Unauthorized to view a permission.', 403);
     }
 
     /**
@@ -34,9 +33,9 @@ class RolePolicy
      */
     public function create(User $user): Response
     {
-        return $user->hasPermissionTo(PermissionTypeEnum::createRole)
+        return $user->hasPermissionTo(PermissionTypeEnum::createPermission)
             ? Response::allow()
-            : Response::deny('Unauthorized to add a role.', 403);
+            : Response::deny('Unauthorized to add a permission.', 403);
     }
 
     /**
@@ -44,9 +43,9 @@ class RolePolicy
      */
     public function update(User $user): Response
     {
-        return $user->hasPermissionTo(PermissionTypeEnum::updateRole)
+        return $user->hasPermissionTo(PermissionTypeEnum::updatePermission)
             ? Response::allow()
-            : Response::deny('Unauthorized to update a role.', 403);
+            : Response::deny('Unauthorized to update a permission.', 403);
     }
 
     /**
@@ -56,7 +55,7 @@ class RolePolicy
     {
         return $user->hasPermissionTo(PermissionTypeEnum::grantPermission)
             ? Response::allow()
-            : Response::deny('Unauthorized to assign permissions to a role.', 403);
+            : Response::deny('Unauthorized to assign permissions to a user.', 403);
     }
 
     /**
@@ -66,38 +65,17 @@ class RolePolicy
     {
         return $user->hasPermissionTo(PermissionTypeEnum::revokePermission)
             ? Response::allow()
-            : Response::deny('Unauthorized to revoke permissions from a role.', 403);
+            : Response::deny('Unauthorized to revoke permissions from a user.', 403);
     }
-
-    /**
-     * Determine whether the user can assign a role to a user.
-     */
-    public function assignRoleToUser(User $user): Response
-    {
-        return $user->hasPermissionTo(PermissionTypeEnum::assignRole)
-            ? Response::allow()
-            : Response::deny('Unauthorized to assign roles to users.', 403);
-    }
-
-    /**
-     * Determine whether the user can remove a role from a user.
-     */
-    public function removeRoleFromUser(User $user): Response
-    {
-        return $user->hasPermissionTo(PermissionTypeEnum::removeRole)
-            ? Response::allow()
-            : Response::deny('Unauthorized to remove roles from users.', 403);
-    }
-
 
     /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user): Response
     {
-        return $user->hasPermissionTo(PermissionTypeEnum::deleteRole)
+        return $user->hasPermissionTo(PermissionTypeEnum::deletePermission)
             ? Response::allow()
-            : Response::deny('Unauthorized to delete a role.', 403);
+            : Response::deny('Unauthorized to delete a permission.', 403);
     }
 
     /**
@@ -105,7 +83,7 @@ class RolePolicy
      */
     public function restore(User $user): Response
     {
-        return Response::deny('Restoring roles is not supported.', 403);
+        return Response::deny('Restoring permission is not supported.', 403);
     }
 
     /**
@@ -113,6 +91,6 @@ class RolePolicy
      */
     public function forceDelete(User $user): Response
     {
-        return Response::deny('Force deleting roles is not supported.', 403);
+        return Response::deny('Force deleting permission is not supported.', 403);
     }
 }

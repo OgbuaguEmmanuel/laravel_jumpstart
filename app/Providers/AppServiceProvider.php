@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Twitter\Provider;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(Permission::class, PermissionPolicy::class);
+
 
     }
 }
