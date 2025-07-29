@@ -83,7 +83,7 @@ Route::middleware(['auth:api'])->group( function() {
     Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser']);
     Route::post('users/{user}/revoke-permissions', [PermissionsController::class, 'revokePermissionsToUser']);
 
-    Route::apiResource('/roles', RolesController::class)->only('index', 'store');
+    Route::apiResource('/roles', RolesController::class)->except('destroy');
     Route::post('/roles/{role}/give-permission', [RolesController::class, 'givePermissions']);
     Route::post('/roles/{role}/revoke-permission', [RolesController::class, 'revokePermissions']);
     Route::post('/users/{user}/assignRole/roles/{role}', [RolesController::class,'assignRole']);
