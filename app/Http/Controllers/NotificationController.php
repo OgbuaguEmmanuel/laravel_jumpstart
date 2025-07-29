@@ -15,57 +15,67 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        return NotificationResource::collection(
-            $user->notifications()
-                ->when($request->get('start_date', null), function (Builder $query) {
-                    return $query->where('created_at', '>', Carbon::parse(request()->get('start_date')));
-                })
-                ->when($request->get('end_date'), function (Builder $query) {
-                    return $query->where('created_at', '<', Carbon::parse(request()->get('end_date')));
-                })
-                ->when($request->get('type'), function (Builder $query) {
-                    return $query->where('data->type', request()->get('type'));
-                })
-                ->paginate(15)
-            )->additional(['unread' => $user->unreadNotifications()->count()]);
+        return
+            NotificationResource::collection(
+                $user->notifications()
+                    ->when($request->get('start_date', null), function (Builder $query) {
+                        return $query->where('created_at', '>', Carbon::parse(request()->get('start_date')));
+                    })
+                    ->when($request->get('end_date'), function (Builder $query) {
+                        return $query->where('created_at', '<', Carbon::parse(request()->get('end_date')));
+                    })
+                    ->when($request->get('type'), function (Builder $query) {
+                        return $query->where('data->type', request()->get('type'));
+                    })
+                    ->paginate(15)
+            )
+            ->additional(['unread' => $user->unreadNotifications()->count()]);
     }
 
     public function read(Request $request)
     {
-        $user =  auth()->user();
+        $user = $request->user();
 
-        return NotificationResource::collection(
-            $user->readNotifications()
-                ->when($request->get('start_date', null), function (Builder $query) {
-                    return $query->where('created_at', '>', Carbon::parse(request()->get('start_date')));
-                })
-                ->when($request->get('end_date'), function (Builder $query) {
-                    return $query->where('created_at', '<', Carbon::parse(request()->get('end_date')));
-                })
-                ->when($request->get('type'), function (Builder $query) {
-                    return $query->where('data->type', request()->get('type'));
-                })
-                ->paginate(15)
-        );
+        return
+            NotificationResource::collection(
+                $user->readNotifications()
+                    ->when($request->get('start_date', null), function (Builder $query) {
+                        return $query
+                            ->where('created_at', '>', Carbon::parse(request()->get('start_date')));
+                    })
+                    ->when($request->get('end_date'), function (Builder $query) {
+                        return $query
+                            ->where('created_at', '<', Carbon::parse(request()->get('end_date')));
+                    })
+                    ->when($request->get('type'), function (Builder $query) {
+                        return $query
+                            ->where('data->type', request()->get('type'));
+                    })
+                    ->paginate(15)
+            );
     }
 
     public function unread(Request $request)
     {
-        $user =  auth()->user();
+        $user = $request->user();
 
-        return NotificationResource::collection(
-            $user->unreadNotifications()
-                ->when($request->get('start_date', null), function (Builder $query) {
-                    return $query->where('created_at', '>', Carbon::parse(request()->get('start_date')));
-                })
-                ->when($request->get('end_date'), function (Builder $query) {
-                    return $query->where('created_at', '<', Carbon::parse(request()->get('end_date')));
-                })
-                ->when($request->get('type'), function (Builder $query) {
-                    return $query->where('data->type', request()->get('type'));
-                })
-                ->paginate(15)
-        );
+        return
+            NotificationResource::collection(
+                $user->unreadNotifications()
+                    ->when($request->get('start_date', null), function (Builder $query) {
+                        return $query
+                            ->where('created_at', '>', Carbon::parse(request()->get('start_date')));
+                    })
+                    ->when($request->get('end_date'), function (Builder $query) {
+                        return $query
+                            ->where('created_at', '<', Carbon::parse(request()->get('end_date')));
+                    })
+                    ->when($request->get('type'), function (Builder $query) {
+                        return $query
+                            ->where('data->type', request()->get('type'));
+                    })
+                    ->paginate(15)
+            );
     }
 
     public function markRead(Request $request)
