@@ -127,7 +127,7 @@ class PermissionsController extends Controller
             ->pluck('name')->toArray();
 
         $notAssigned = array_diff($permissionNames, $userActuallyHas);
-        $msg = 'User does not have the following permissions: ' . implode(', ', $notAssigned);
+        $message = 'User does not have the following permissions: ' . implode(', ', $notAssigned);
 
         if (!empty($notAssigned)) {
             activity()
@@ -137,10 +137,10 @@ class PermissionsController extends Controller
                     'notAssignedPermission' => $notAssigned,
                     'ip_address' => $ipAddress,
                 ])
-                ->log($msg);
+                ->log($message);
 
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
-                ->withMessage($msg)
+                ->withMessage($message)
                 ->build();
         }
 
