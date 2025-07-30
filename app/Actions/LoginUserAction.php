@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Traits\AuthHelpers;
 use Exception;
 use Illuminate\Support\Facades\Cache;
@@ -31,7 +31,7 @@ class LoginUserAction
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy(null)
                 ->withProperties([
                     'email_attempted' => $data['email'],
@@ -47,7 +47,7 @@ class LoginUserAction
             Cache::put('2fa_challenge:' . $challengeKey, $user->id, now()->addMinutes(5));
 
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'email' => $user->email,
@@ -68,7 +68,7 @@ class LoginUserAction
         try {
             $token = $user->createToken('UserAuthToken')->accessToken;
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'email' => $user->email,
@@ -82,7 +82,7 @@ class LoginUserAction
                 'code' => $e->getCode(),
             ]);
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'email' => $user->email,

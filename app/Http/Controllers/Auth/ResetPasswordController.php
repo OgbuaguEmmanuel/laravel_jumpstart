@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Notifications\VerifyEmailNotification;
@@ -77,7 +77,7 @@ class ResetPasswordController extends Controller
 
                 // --- Log for Successful Password Reset ---
                 activity()
-                    ->inLog(ActivityLogType::ResetPassword)
+                    ->inLog(ActivityLogTypeEnum::ResetPassword)
                     ->causedBy($user)
                     ->withProperties([
                         'user_id' => $user->id,
@@ -95,7 +95,7 @@ class ResetPasswordController extends Controller
         } else {
             // --- Log for Failed Password Reset ---
             activity()
-                ->inLog(ActivityLogType::ResetPassword)
+                ->inLog(ActivityLogTypeEnum::ResetPassword)
                 ->causedBy(null)
                 ->withProperties([
                     'email_attempted' => $request->email,

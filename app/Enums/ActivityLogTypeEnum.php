@@ -16,7 +16,7 @@ use BenSampo\Enum\Enum;
  * @method static RolesAndPermissions()
  * @method static User()
  */
-final class ActivityLogType extends Enum
+final class ActivityLogTypeEnum extends Enum
 {
     const Login = 'Login';
     const Register = 'Register';

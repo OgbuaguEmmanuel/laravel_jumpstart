@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResendVerificationRequest;
 use App\Notifications\VerifyEmailNotification;
@@ -27,7 +27,7 @@ class VerificationController extends Controller
 
         if (!hash_equals((string) $request->id, (string) $user->getKey())) {
             activity()
-                ->inLog(ActivityLogType::VerifyEmail)
+                ->inLog(ActivityLogTypeEnum::VerifyEmail)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -43,7 +43,7 @@ class VerificationController extends Controller
 
         if (!hash_equals((string) $request->hash, sha1($user->getEmailForVerification()))) {
             activity()
-                ->inLog(ActivityLogType::VerifyEmail)
+                ->inLog(ActivityLogTypeEnum::VerifyEmail)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -59,7 +59,7 @@ class VerificationController extends Controller
 
         if ($user->hasVerifiedEmail()) {
             activity()
-                ->inLog(ActivityLogType::VerifyEmail)
+                ->inLog(ActivityLogTypeEnum::VerifyEmail)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -79,7 +79,7 @@ class VerificationController extends Controller
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
             activity()
-                ->inLog(ActivityLogType::VerifyEmail)
+                ->inLog(ActivityLogTypeEnum::VerifyEmail)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -109,7 +109,7 @@ class VerificationController extends Controller
 
         if ($user->hasVerifiedEmail()) {
             activity()
-                ->inLog(ActivityLogType::VerifyEmail)
+                ->inLog(ActivityLogTypeEnum::VerifyEmail)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -131,7 +131,7 @@ class VerificationController extends Controller
         $user->notify(new VerifyEmailNotification($callbackUrl));
 
         activity()
-            ->inLog(ActivityLogType::VerifyEmail)
+            ->inLog(ActivityLogTypeEnum::VerifyEmail)
             ->causedBy($user)
             ->withProperties([
                 'user_id' => $user->id,

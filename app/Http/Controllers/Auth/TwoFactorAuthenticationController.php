@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Actions\TwoFactorAuthAction;
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TwoFactor\Disable2FARequest;
 use App\Http\Requests\TwoFactor\Verify2FARequest;
@@ -40,7 +40,7 @@ class TwoFactorAuthenticationController extends Controller
         } catch(Exception $e) {
             logger()->error('2FA setup unexpected error: ' . $e->getMessage(), ['exception' => $e]);
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -82,7 +82,7 @@ class TwoFactorAuthenticationController extends Controller
             logger()->error('2FA enable unexpected error: ' . $e->getMessage(), ['exception' => $e]);
 
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -121,7 +121,7 @@ class TwoFactorAuthenticationController extends Controller
             logger()->error('2FA disable unexpected error: ' . $e->getMessage(), ['exception' => $e]);
 
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -163,7 +163,7 @@ class TwoFactorAuthenticationController extends Controller
             logger()->error('2FA recovery code generation unexpected error: ' . $e->getMessage(), ['exception' => $e]);
 
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,

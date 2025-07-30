@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +27,7 @@ class TwoFactorAuthAction
 
         if ($user->hasTwoFactorEnabled()) {
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -65,7 +65,7 @@ class TwoFactorAuthAction
         );
 
         activity()
-            ->inLog(ActivityLogType::TwoFactorAuth)
+            ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
             ->causedBy($user)
             ->withProperties([
                 'user_id' => $user->id,
@@ -89,7 +89,7 @@ class TwoFactorAuthAction
 
         if (!$user->two_factor_secret || $user->hasTwoFactorEnabled()) {
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -108,7 +108,7 @@ class TwoFactorAuthAction
 
         if (!$valid) {
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -131,7 +131,7 @@ class TwoFactorAuthAction
         $user->save();
 
         activity()
-            ->inLog(ActivityLogType::TwoFactorAuth)
+            ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
             ->causedBy($user)
             ->withProperties([
                 'user_id' => $user->id,
@@ -153,7 +153,7 @@ class TwoFactorAuthAction
 
         if (!Hash::check($data['password'], $user->password)) {
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -170,7 +170,7 @@ class TwoFactorAuthAction
 
         if (!$user->hasTwoFactorEnabled()) {
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -193,7 +193,7 @@ class TwoFactorAuthAction
         $user->save();
 
         activity()
-            ->inLog(ActivityLogType::TwoFactorAuth)
+            ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
             ->causedBy($user)
             ->withProperties([
                 'user_id' => $user->id,
@@ -212,7 +212,7 @@ class TwoFactorAuthAction
 
         if (!$user->hasTwoFactorEnabled()) {
             activity()
-                ->inLog(ActivityLogType::TwoFactorAuth)
+                ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -233,7 +233,7 @@ class TwoFactorAuthAction
         $user->save();
 
         activity()
-            ->inLog(ActivityLogType::TwoFactorAuth)
+            ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
             ->causedBy($user)
             ->withProperties([
                 'user_id' => $user->id,

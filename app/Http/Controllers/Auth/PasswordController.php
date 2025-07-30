@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +16,7 @@ class PasswordController extends Controller
 
         if (!Hash::check($request->validated('current_password'), $user->password)) {
             activity()
-                ->inLog(ActivityLogType::ChangePassword)
+                ->inLog(ActivityLogTypeEnum::ChangePassword)
                 ->causedBy($user)
                 ->log('Current password is incorrect');
 
@@ -30,7 +30,7 @@ class PasswordController extends Controller
         $user->save();
 
         activity()
-            ->inLog(ActivityLogType::ChangePassword)
+            ->inLog(ActivityLogTypeEnum::ChangePassword)
             ->causedBy($user)
             ->log('Password changed successfully');
         return ResponseBuilder::asSuccess()

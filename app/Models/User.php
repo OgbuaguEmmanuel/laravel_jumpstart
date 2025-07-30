@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Builder;
@@ -121,7 +121,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             // Only log attributes that actually changed (default, good for updates)
             ->logOnlyDirty()
             // Use the User model's class name as the log name for organization
-            ->useLogName(ActivityLogType::UserModel)
+            ->useLogName(ActivityLogTypeEnum::UserModel)
             // Don't log if only these attributes change
             ->dontLogIfAttributesChangedOnly([
                 'updated_at',

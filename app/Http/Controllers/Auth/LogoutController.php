@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +18,7 @@ class LogoutController extends Controller
         Auth::forgetUser();
 
         activity()
-            ->inLog(ActivityLogType::Logout)
+            ->inLog(ActivityLogTypeEnum::Logout)
             ->causedBy($user)
             ->withProperties([
                 'user_id' => $user->id,

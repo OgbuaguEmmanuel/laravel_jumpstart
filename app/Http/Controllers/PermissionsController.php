@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Permission\AssignPermissionToUserRequest;
 use App\Http\Requests\Permission\RevokePermissionFromUserRequest;
@@ -52,7 +52,7 @@ class PermissionsController extends Controller
         $permission->refresh();
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->performedOn($permission)
             ->causedBy($user)
             ->withProperties([
@@ -82,7 +82,7 @@ class PermissionsController extends Controller
 
         if (!empty($alreadyAssignedPermissions)) {
             activity()
-                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->causedBy($user)
                 ->withProperties([
                     'alreadyAssignedPermissions' => $alreadyAssignedPermissions,
@@ -99,7 +99,7 @@ class PermissionsController extends Controller
         $user->refresh();
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->causedBy($user)
             ->withProperties([
                 'permissions' => $permissionNames,
@@ -131,7 +131,7 @@ class PermissionsController extends Controller
 
         if (!empty($notAssigned)) {
             activity()
-                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->causedBy($user)
                 ->withProperties([
                     'notAssignedPermission' => $notAssigned,
@@ -148,7 +148,7 @@ class PermissionsController extends Controller
         $user->refresh();
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->causedBy($user)
             ->withProperties([
                 'permissions' => $permissionNames,

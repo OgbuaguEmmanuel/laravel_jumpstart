@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Hash;
@@ -20,7 +20,7 @@ class SocialAuthAction
 
         if (!$this->isValidProvider($provider)) {
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider_attempted' => $provider,
@@ -58,7 +58,7 @@ class SocialAuthAction
 
         if (!$this->isValidProvider($provider)) {
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider_attempted' => $provider,
@@ -77,7 +77,7 @@ class SocialAuthAction
             $errorMessage = $request->input('error_description') ?? $request->input('error') ?? 'User denied access.';
             Log::warning("Socialite callback error from {$provider}: " . $errorMessage);
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider' => $provider,
@@ -105,7 +105,7 @@ class SocialAuthAction
         if ($validator->fails()) {
             Log::warning("Essential data missing from {$provider} user: " . json_encode($validator->errors()->toArray()));
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider' => $provider,
@@ -138,7 +138,7 @@ class SocialAuthAction
                 Log::info("Linked {$provider} account to existing user: {$user->email}");
 
                 activity()
-                    ->inLog(ActivityLogType::SocialAuth)
+                    ->inLog(ActivityLogTypeEnum::SocialAuth)
                     ->causedBy($user)
                     ->withProperties([
                         'provider' => $provider,
@@ -165,7 +165,7 @@ class SocialAuthAction
                 ]);
                 Log::info("Created new user via {$provider}: {$user->email}");
                 activity()
-                    ->inLog(ActivityLogType::SocialAuth)
+                    ->inLog(ActivityLogTypeEnum::SocialAuth)
                     ->causedBy($user)
                     ->withProperties([
                         'provider' => $provider,
@@ -179,7 +179,7 @@ class SocialAuthAction
             }
         } else {
             activity()
-                    ->inLog(ActivityLogType::SocialAuth)
+                    ->inLog(ActivityLogTypeEnum::SocialAuth)
                     ->causedBy($user)
                     ->withProperties([
                         'provider' => $provider,
@@ -195,7 +195,7 @@ class SocialAuthAction
         try {
             $token = $user->createToken('SocialAuthToken')->accessToken;
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'email' => $user->email,
@@ -209,7 +209,7 @@ class SocialAuthAction
                 'code' => $e->getCode(),
             ]);
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'email' => $user->email,

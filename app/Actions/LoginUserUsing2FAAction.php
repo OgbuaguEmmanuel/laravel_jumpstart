@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Traits\AuthHelpers;
 use Exception;
 use Illuminate\Support\Facades\Cache;
@@ -31,7 +31,7 @@ class LoginUserUsing2FAAction
 
         if (!$userId || !($user = $this->getUserByID($userId))) {
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy(null)
                 ->withProperties([
                     'challenge_key_attempted' => $challengeKey,
@@ -48,7 +48,7 @@ class LoginUserUsing2FAAction
         if (!$user->hasTwoFactorEnabled()) {
             Cache::forget('2fa_challenge:' . $challengeKey);
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -92,7 +92,7 @@ class LoginUserUsing2FAAction
 
         if (!$isValid) {
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -112,7 +112,7 @@ class LoginUserUsing2FAAction
         try {
             $token = $user->createToken('UserAuthToken')->accessToken;
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,
@@ -127,7 +127,7 @@ class LoginUserUsing2FAAction
                 'code' => $e->getCode(),
             ]);
             activity()
-                ->inLog(ActivityLogType::Login)
+                ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
                 ->withProperties([
                     'user_id' => $user->id,

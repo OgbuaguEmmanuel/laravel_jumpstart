@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use Illuminate\Support\Facades\Password;
@@ -19,7 +19,7 @@ class ForgotPasswordController extends Controller
         if ($status === Password::RESET_LINK_SENT) {
             // Log successful attempt
             activity()
-                ->inLog(ActivityLogType::ResetPassword)
+                ->inLog(ActivityLogTypeEnum::ResetPassword)
                 ->causedBy(null)
                 ->withProperties([
                     'email_requested' => $requestedEmail,
@@ -31,7 +31,7 @@ class ForgotPasswordController extends Controller
         } else {
             // Log failed attempt
             activity()
-                ->inLog(ActivityLogType::ResetPassword)
+                ->inLog(ActivityLogTypeEnum::ResetPassword)
                 ->causedBy(null)
                 ->withProperties([
                     'email_requested' => $requestedEmail,

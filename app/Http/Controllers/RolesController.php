@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Roles\GivePermissionToRoleRequest;
 use App\Http\Requests\Roles\RevokePermissionFromRoleRequest;
@@ -74,7 +74,7 @@ class RolesController extends Controller
         $role->refresh();
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->performedOn($role)
             ->causedBy($user)
             ->withProperties([
@@ -103,7 +103,7 @@ class RolesController extends Controller
         $role->refresh();
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->performedOn($role)
             ->causedBy(Auth::user())
             ->withProperties([
@@ -141,7 +141,7 @@ class RolesController extends Controller
 
         if (!empty($alreadyAssignedPermissions)) {
             activity()
-                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->performedOn($role)
                 ->causedBy($user)
                 ->withProperties([
@@ -161,7 +161,7 @@ class RolesController extends Controller
         $role->refresh();
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->performedOn($role)
             ->causedBy($user)
             ->withProperties([
@@ -203,7 +203,7 @@ class RolesController extends Controller
         $msg = 'Role does not have the following permissions: ' . implode(', ', $notAssigned);
         if (!empty($notAssigned)) {
             activity()
-                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->causedBy($user)
                 ->withProperties([
                     'notAssignedPermission' => $notAssigned,
@@ -220,7 +220,7 @@ class RolesController extends Controller
         $role->refresh();
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->causedBy($user)
             ->withProperties([
                 'permissions' => $permissionNames,
@@ -251,7 +251,7 @@ class RolesController extends Controller
 
         if ($user->hasRole($role)) {
             activity()
-                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->performedOn($role)
                 ->causedBy($user)
                 ->withProperties([
@@ -269,7 +269,7 @@ class RolesController extends Controller
         $user->refresh();
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->performedOn($role)
             ->causedBy($user)
             ->withProperties([
@@ -305,7 +305,7 @@ class RolesController extends Controller
             $user->refresh();
 
             activity()
-                ->inLog(ActivityLogType::RolesAndPermissions)
+                ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->performedOn($role)
                 ->causedBy($user)
                 ->withProperties([
@@ -323,7 +323,7 @@ class RolesController extends Controller
         }
 
         activity()
-            ->inLog(ActivityLogType::RolesAndPermissions)
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
             ->performedOn($role)
             ->causedBy($user)
             ->withProperties([

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Actions\SocialAuthAction;
-use App\Enums\ActivityLogType;
+use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
@@ -28,7 +28,7 @@ class SocialAuthController extends Controller
             $url = $action->handleRedirect($provider);
 
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider' => $provider,
@@ -44,7 +44,7 @@ class SocialAuthController extends Controller
                 ->build();
         } catch (ValidationException $e) {
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider' => $provider,
@@ -62,7 +62,7 @@ class SocialAuthController extends Controller
         } catch (Exception $e) {
             Log::error("Socialite redirect failed for {$provider}: " . $e->getMessage());
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider' => $provider,
@@ -93,7 +93,7 @@ class SocialAuthController extends Controller
             $data = $action->handleCallback($provider, $request);
 
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy($data['user'])
                 ->withProperties([
                     'provider' => $provider,
@@ -113,7 +113,7 @@ class SocialAuthController extends Controller
                 ->build();
         } catch (ValidationException $e) {
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider' => $provider,
@@ -138,7 +138,7 @@ class SocialAuthController extends Controller
             Log::warning("Socialite InvalidStateException for {$provider}: " . $e->getMessage());
 
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider' => $provider,
@@ -155,7 +155,7 @@ class SocialAuthController extends Controller
         } catch (Exception $e) {
             Log::error("Socialite callback failed for {$provider}: " . $e->getMessage());
             activity()
-                ->inLog(ActivityLogType::SocialAuth)
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
                 ->withProperties([
                     'provider' => $provider,
@@ -164,7 +164,7 @@ class SocialAuthController extends Controller
                     'action_type' => 'Social Login Callback Failed: Invalid State',
                 ])
                 ->log("Social login callback from {$provider} failed due to invalid state.");
-                
+
             return ResponseBuilder::asError(500)
                 ->withHttpCode(Response::HTTP_INTERNAL_SERVER_ERROR)
                 ->withMessage("An unexpected error occurred during {$provider} authentication.")
