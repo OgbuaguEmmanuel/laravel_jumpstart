@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ActivityLogType;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -57,6 +58,9 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_enabled_at' => 'datetime',
+            'is_active' => 'boolean',
+            'activated_at' => 'datetime',
+            'deactivated_at' => 'datetime',
         ];
     }
 
@@ -137,4 +141,39 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     {
         return $this->hasMany(Activity::class, 'causer_id')->where('causer_type', User::class);
     }
+
+        /**
+     * Scope a query to filter users by active status.
+     *
+     * @param Builder $query
+     * @param bool $isActive
+     * @return Builder
+     */
+    public function scopeIsActive(Builder $query, bool $isActive = true): Builder
+    {
+        return $query->where('is_active', $isActive);
+    }
+
+    /**
+     * Scope a query to only include active users.
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeActiveUsers(Builder $query): Builder
+    {
+        return $query->isActive(true);
+    }
+
+    /**
+     * Scope a query to only include deactivated users.
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeDeactivatedUsers(Builder $query): Builder
+    {
+        return $query->isActive(false);
+    }
+
 }
