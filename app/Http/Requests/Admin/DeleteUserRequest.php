@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\PermissionTypeEnum;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DeleteUserRequest extends FormRequest
@@ -11,7 +13,7 @@ class DeleteUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->hasPermission(PermissionTypeEnum::deleteUsers);
     }
 
     /**
@@ -25,5 +27,18 @@ class DeleteUserRequest extends FormRequest
             'ids' => 'required|array',
             'ids.*' => 'required|exists:users,id'
         ];
+    }
+
+    /**
+     * Handle a failed authorization attempt.
+     * Override this method to customize the response for unauthorized requests.
+     *
+     * @return void
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    protected function failedAuthorization()
+    {
+        throw new AuthorizationException('Unauthorized to delete users.', 403);
     }
 }

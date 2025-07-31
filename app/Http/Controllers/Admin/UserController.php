@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\DeleteUserRequest;
+use App\Http\Requests\Admin\ToggleUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
@@ -19,7 +20,7 @@ class UserController extends Controller
     {
         $users = QueryBuilder::for(User::query())
             ->defaultSort('-created_at')
-            ->allowedFilters('first_name','last_name','email')
+            ->allowedFilters('first_name','last_name','email','is_active')
             ->allowedSorts(['first_name','last_name'])
             ->paginate($request->get('per_page'));
 
@@ -45,7 +46,7 @@ class UserController extends Controller
      */
     public function destroy(DeleteUserRequest $request)
     {
-        $deletedCount = User::whereIn('id', $request->ids)->delete();
+        $deletedCount = User::whereIn('id', $request->validated('ids'))->delete();
 
         $message = $deletedCount === 1 ? 'User deleted successfully.'
             : ($deletedCount > 1 ? 'Users deleted successfully.' : 'No users were deleted.');
@@ -57,7 +58,7 @@ class UserController extends Controller
 
     }
 
-    public function toggleUserStatus(User $user)
+    public function toggleUserStatus(User $user, ToggleUserRequest $request)
     {
         $user->is_active = !$user->is_active;
 
@@ -71,6 +72,97 @@ class UserController extends Controller
         return ResponseBuilder::asSuccess()
             ->withMessage("User {$statusText} successfully.")
             ->withHttpCode(204)
+            ->build();
+    }
+
+    /**
+     * Unlock a user account.
+     *
+     * @param User $user The user to unlock (route model bound)
+     * @param UnlockUserAccountRequest $request The request for validation and authorization
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function unlockUser(User $user, UnlockUserAccountRequest $request): Response
+    {
+        // Authorization handled by UnlockUserAccountRequest's authorize() method
+        // You can also add a policy check here if you prefer:
+        // $this->authorize('unlockAccount', $user);
+
+        if (!$user->isLocked()) {
+            return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
+                ->withMessage('User account is not currently locked.')
+                ->build();
+        }
+
+        $reason = $request->validated('reason') ?? ToggleStatusReasonEnum::ADMIN_ACTIVATION->value;
+        $user->unlockAccount($reason);
+
+        activity()
+            ->inLog(ActivityLogType::UserManagement)
+            ->performedOn($user)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'unlocked_by' => Auth::user()->email,
+                'reason' => $reason,
+                'ip_address' => request()->ip(),
+            ])
+            ->log("User '{$user->email}' account unlocked by admin. Reason: {$reason}");
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage("User account unlocked successfully.")
+            ->withHttpCode(Response::HTTP_NO_CONTENT)
+            ->build();
+    }
+
+    /**
+     * Store a newly created user in storage by an admin.
+     *
+     * @param CreateUserRequest $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function store(CreateUserRequest $request): Response
+    {
+        // Authorization handled by CreateUserRequest's authorize() method
+        // You can also add a policy check here if you prefer:
+        // $this->authorize('create', User::class);
+
+        $userData = $request->validated();
+
+        // Create the user
+        $user = User::create([
+            'first_name' => $userData['first_name'],
+            'last_name' => $userData['last_name'],
+            'email' => $userData['email'],
+            'password' => Hash::make($userData['password']),
+            'is_active' => $userData['is_active'] ?? true, // Default to active if not provided
+            'email_verified_at' => now(), // Assume verified if admin creates
+        ]);
+
+        // Assign roles if provided
+        if (isset($userData['roles']) && is_array($userData['roles'])) {
+            $roles = Role::whereIn('name', $userData['roles'])->get();
+            $user->syncRoles($roles); // Sync roles to avoid duplicates and remove unlisted ones
+        }
+
+        activity()
+            ->inLog(ActivityLogType::UserManagement)
+            ->performedOn($user)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'created_by' => Auth::user()->email,
+                'assigned_roles' => $user->roles->pluck('name')->toArray(),
+                'ip_address' => request()->ip(),
+            ])
+            ->log("New user '{$user->email}' created by admin.");
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage('User created successfully.')
+            ->withHttpCode(Response::HTTP_CREATED)
+            ->withData(['user' => $user->load('roles')]) // Load roles for the response
             ->build();
     }
 
