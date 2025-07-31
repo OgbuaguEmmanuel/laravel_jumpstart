@@ -128,8 +128,6 @@ class RolesController extends Controller
      */
     public function givePermissions(GivePermissionToRoleRequest $request, Role $role): Response
     {
-        $this->authorize('assignPermissionToRole', Role::class);
-
         $ipAddress = request()->ip();
         $user = Auth::user();
 
@@ -189,8 +187,6 @@ class RolesController extends Controller
      */
     public function revokePermissions(RevokePermissionFromRoleRequest $request, Role $role): Response
     {
-        $this->authorize('revokePermissionFromRole', Role::class);
-
         $ipAddress = request()->ip();
         $user = Auth::user();
 

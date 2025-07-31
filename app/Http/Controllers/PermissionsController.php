@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Permission\AssignPermissionToUserRequest;
 use App\Http\Requests\Permission\RevokePermissionFromUserRequest;
 use App\Http\Requests\Permission\StorePermissionRequest;
+use App\Http\Requests\Permission\UpdatePermissionRequest;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -70,10 +71,36 @@ class PermissionsController extends Controller
             ->build();
     }
 
+    public function update(UpdatePermissionRequest $request, Permission $permission): Response
+    {
+        $this->authorize('update', Permission::class);
+        $ipAddress = request()->ip();
+        $oldPermissionName = $permission->name;
+
+        $permission->name = $request->validated('name');
+        $permission->save();
+        $permission->refresh();
+
+        activity()
+            ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
+            ->performedOn($permission)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'old_name' => $oldPermissionName,
+                'new_name' => $permission->name,
+                'ip_address' => $ipAddress,
+            ])
+            ->log("Permission name updated from '{$oldPermissionName}' to '{$permission->name}'.");
+
+        return ResponseBuilder::asSuccess()
+            ->withData($permission)
+            ->withMessage('Permission updated successfully')
+            ->build();
+    }
+
+
     public function assignPermissionsToUser(AssignPermissionToUserRequest $request, User $user)
     {
-        $this->authorize('assignPermissionToRole', Permission::class);
-
         $ipAddress = request()->ip();
 
         $permissionNames = $request->validated('permissions');
@@ -118,8 +145,6 @@ class PermissionsController extends Controller
 
     public function removePermissionsToUser(RevokePermissionFromUserRequest $request, User $user)
     {
-        $this->authorize('revokePermissionFromRole', Permission::class);
-
         $ipAddress = request()->ip();
 
         $permissionNames = $request->validated('permissions');

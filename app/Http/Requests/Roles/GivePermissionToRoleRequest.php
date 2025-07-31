@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Roles;
 
+use App\Enums\PermissionTypeEnum;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GivePermissionToRoleRequest extends FormRequest
@@ -11,7 +13,7 @@ class GivePermissionToRoleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->hasPermissionTo(PermissionTypeEnum::grantPermission);
     }
 
     /**
@@ -25,5 +27,18 @@ class GivePermissionToRoleRequest extends FormRequest
             'permissions' => 'required|array',
             'permissions.*' => ['required', 'exists:permissions,name']
         ];
+    }
+
+    /**
+     * Handle a failed authorization attempt.
+     * Override this method to customize the response for unauthorized requests.
+     *
+     * @return void
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    protected function failedAuthorization()
+    {
+        throw new AuthorizationException('Unauthorized to grant permission to role.', 403);
     }
 }

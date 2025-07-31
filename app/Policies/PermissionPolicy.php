@@ -49,26 +49,6 @@ class PermissionPolicy
     }
 
     /**
-     * Determine whether the user can assign permissions to a role.
-     */
-    public function assignPermissionToRole(User $user): Response
-    {
-        return $user->hasPermissionTo(PermissionTypeEnum::grantPermission)
-            ? Response::allow()
-            : Response::deny('Unauthorized to assign permissions to a user.', 403);
-    }
-
-    /**
-     * Determine whether the user can revoke permissions from a role.
-     */
-    public function revokePermissionFromRole(User $user): Response
-    {
-        return $user->hasPermissionTo(PermissionTypeEnum::revokePermission)
-            ? Response::allow()
-            : Response::deny('Unauthorized to revoke permissions from a user.', 403);
-    }
-
-    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user): Response
