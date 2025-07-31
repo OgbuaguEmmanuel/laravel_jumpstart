@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
             'guest' => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
             'isLocked' => App\Http\Middleware\IsUserLockedMiddleware::class,
+            'isActive' => App\Http\Middleware\IsUserActiveMiddleware::class,
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

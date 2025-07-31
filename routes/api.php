@@ -10,7 +10,7 @@ use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:api','verified','isLocked')->get('/user', function (Request $request) {
+Route::middleware('auth:api','verified','isLocked','isActive')->get('/user', function (Request $request) {
     return $request->user();
 });
 
