@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('is_locked')->default(false);
             $table->integer('failed_attempts')->default(0);
             $table->string('status_reason')->nullable();
+            $table->boolean('force_password_reset')->default(false);
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('activated_at')->nullable();

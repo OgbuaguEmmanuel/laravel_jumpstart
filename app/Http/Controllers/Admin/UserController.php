@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\CreateUserAction;
 use App\Enums\ActivityLogTypeEnum;
 use App\Enums\ToggleStatusReasonEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\CreateUserRequest;
 use App\Http\Requests\Admin\DeleteUserRequest;
 use App\Http\Requests\Admin\ToggleUserRequest;
 use App\Http\Requests\Admin\UnlockUserAccountRequest;
 use App\Models\User;
+use App\Traits\AuthHelpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
+use Spatie\Permission\Models\Role;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
+    use AuthHelpers;
+
     /**
      * Display a listing of the resource.
      */
@@ -158,27 +164,25 @@ class UserController extends Controller
      * @param CreateUserRequest $request
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function store(CreateUserRequest $request): Response
+    public function store(CreateUserRequest $request, CreateUserAction $action): Response
     {
+        $password = $this->generateRandomPassword();
         $userData = $request->validated();
+        $userData['password'] = $password;
 
-        // Create the user
-        $user = User::create([
-            'first_name' => $userData['first_name'],
-            'last_name' => $userData['last_name'],
-            'email' => $userData['email'],
-            'password' => Hash::make($userData['password']),
-            'is_active' => $userData['is_active'],
-        ]);
+        $user = $action->handle($userData);
 
-        // Assign roles if provided
-        if (isset($userData['roles']) && is_array($userData['roles'])) {
+        if (!empty($userData['roles'])) {
             $roles = Role::whereIn('name', $userData['roles'])->get();
-            $user->syncRoles($roles); // Sync roles to avoid duplicates and remove unlisted ones
+            $user->syncRoles($roles);
         }
 
+        $user->forcePasswordReset();
+        
+        // send welcome email
+
         activity()
-            ->inLog(ActivityLogType::UserManagement)
+            ->inLog(ActivityLogTypeEnum::UserManagement)
             ->performedOn($user)
             ->causedBy(Auth::user())
             ->withProperties([

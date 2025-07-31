@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'guest' => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
             'isLocked' => App\Http\Middleware\IsUserLockedMiddleware::class,
             'isActive' => App\Http\Middleware\IsUserActiveMiddleware::class,
+            'passwordResetNeeded' => App\Http\Middleware\ForcePasswordResetMiddleware::class,
 
         ]);
     })

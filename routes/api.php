@@ -11,7 +11,7 @@ use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:api','verified','isLocked','isActive')
+Route::middleware('auth:api','verified','isLocked','isActive','passwordResetNeeded')
     ->get('/user', function (Request $request) {
         return $request->user();
 });
@@ -47,7 +47,7 @@ Route::prefix('auth')->middleware('auth:api')
             ->middleware('throttle:6,1')->name('auth.verification.resend');
         Route::post('/change-password', [App\Http\Controllers\Auth\PasswordController::class, 'changePassword'])
             ->middleware('isActive','verified','isLocked')->name('auth.change-password');
-        Route::prefix('2fa')->middleware(['verified','isActive','isLocked'])->group(function () {
+        Route::prefix('2fa')->middleware(['verified','isActive','isLocked','passwordResetNeeded'])->group(function () {
             Route::post('/setup', [TwoFactorAuthenticationController::class, 'setup'])
                 ->name('auth.2fa.setup');
             Route::post('/enable', [TwoFactorAuthenticationController::class, 'enable'])
@@ -59,7 +59,7 @@ Route::prefix('auth')->middleware('auth:api')
         });
     });
 
-Route::prefix('/notifications')->middleware('auth:api', 'isActive','isLocked', 'verified')
+Route::prefix('/notifications')->middleware('auth:api', 'isActive','isLocked', 'verified','passwordResetNeeded')
     ->group(function (): void {
         Route::get('/all', [NotificationController::class, 'index'])
             ->name('notification.all');
@@ -77,7 +77,7 @@ Route::prefix('/notifications')->middleware('auth:api', 'isActive','isLocked', '
             ->name('notification.delete');
     });
 
-Route::middleware(['auth:api','verified', 'isActive','isLocked'])->prefix('admin')
+Route::middleware(['auth:api','verified', 'isActive','isLocked','passwordResetNeeded'])->prefix('admin')
     ->group( function() {
         Route::apiResource('/permissions', PermissionsController::class)->only('index', 'store');
         Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser'])
@@ -97,7 +97,7 @@ Route::middleware(['auth:api','verified', 'isActive','isLocked'])->prefix('admin
 
         Route::get('/activities', [App\Http\Controllers\ActivityLogController::class, 'listActivities'])
             ->name('activity.list');
-            
+
         Route::apiResource('users',UserController::class)->except('update');
         Route::post('users/{user}/unlock', [UserController::class, 'unlockUser'])
             ->name('user.unlock');

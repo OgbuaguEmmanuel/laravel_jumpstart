@@ -67,6 +67,24 @@ class LoginUserAction
             ])->status(404);
         }
 
+        if ($user && $user->force_password_reset) {
+            activity()
+                ->inLog(ActivityLogTypeEnum::Login)
+                ->causedBy($user)
+                ->withProperties([
+                    'email_attempted' => $data['email'],
+                    'reason' => 'Login failed: You must reset password to continue',
+                    'ip_address' => $ipAddress
+                ])
+                ->log('Login failed: Reset password to continue');
+
+            throw ValidationException::withMessages([
+                'email' => [
+                    'You must reset password to continue. Reset your password.',
+                ],
+            ])->status(403);
+        }
+
         if ($user->hasTwoFactorEnabled()) {
             $challengeKey = Str::uuid()->toString();
             Cache::put('2fa_challenge:' . $challengeKey, $user->id, now()->addMinutes(5));

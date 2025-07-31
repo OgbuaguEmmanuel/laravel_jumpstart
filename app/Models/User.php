@@ -32,7 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
      */
     protected $fillable = [
         'first_name','last_name',
-        'email','phone_number',
+        'email','phone_number','force_password_reset',
         'password','provider_name', 'locked_until',
         'provider_id', 'avatar', 'failed_attempts',
     ];
@@ -63,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             'activated_at' => 'datetime',
             'deactivated_at' => 'datetime',
             'locked_until' => 'datetime',
+            'force_password_reset' => 'boolean'
         ];
     }
 
@@ -248,6 +249,12 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     {
         $this->resetFailedAttempts();
         $this->status_reason = $reason;
+        $this->save();
+    }
+
+    public function forcePasswordReset()
+    {
+        $this->force_password_reset = true;
         $this->save();
     }
 }
