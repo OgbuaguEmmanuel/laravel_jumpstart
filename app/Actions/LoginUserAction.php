@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\ActivityLogTypeEnum;
+use App\Notifications\VerifyEmailNotification;
 use App\Traits\AuthHelpers;
 use Exception;
 use Illuminate\Support\Facades\Cache;
@@ -30,6 +31,7 @@ class LoginUserAction
     public function handle(array $data)
     {
         $user = $this->getUserByEmail($data['email']);
+        $ipAddress = request()->ip();
 
         if ($user && $user->isLocked()) {
             activity()
@@ -38,7 +40,7 @@ class LoginUserAction
                 ->withProperties([
                     'email_attempted' => $data['email'],
                     'reason' => 'Login failed: Account is locked',
-                    'ip_address' => request()->ip()
+                    'ip_address' => $ipAddress
                 ])
                 ->log('Login failed: Account locked');
 
@@ -57,7 +59,7 @@ class LoginUserAction
                 ->withProperties([
                     'email_attempted' => $data['email'],
                     'reason' => 'Invalid credentials provided',
-                    'ip_address' => request()->ip()
+                    'ip_address' => $ipAddress
                 ])
                 ->log('Login failed: Invalid Credentials');
             throw ValidationException::withMessages([
@@ -76,7 +78,7 @@ class LoginUserAction
                     'email' => $user->email,
                     '2fa_challenge_key' => $challengeKey,
                     'reason' => 'Two-factor authentication required',
-                    'ip_address' => request()->ip()
+                    'ip_address' => $ipAddress
                 ])
                 ->log('Login attempt: 2FA required');
 
@@ -91,6 +93,23 @@ class LoginUserAction
         try {
             $token = $user->createToken('UserAuthToken')->accessToken;
 
+            if (! $user->hasVerifiedEmail()) {
+                $callbackUrl = request('callbackUrl', config('frontend.user.url'));
+                $user->notify(new VerifyEmailNotification($callbackUrl));
+
+                activity()
+                    ->inLog(ActivityLogTypeEnum::VerifyEmail)
+                    ->causedBy($user)
+                    ->withProperties([
+                        'user_id' => $user->id,
+                        'email' => $user->email,
+                        'ip_address' => $ipAddress,
+                        'callback_url' => $callbackUrl,
+                        'action_type' => 'Email Verification Link Resent',
+                    ])
+                    ->log('Email verification link resent successfully.');
+            }
+
             $user->resetFailedAttempts();
 
             activity()
@@ -98,7 +117,7 @@ class LoginUserAction
                 ->causedBy($user)
                 ->withProperties([
                     'email' => $user->email,
-                    'ip_address' => request()->ip(),
+                    'ip_address' => $ipAddress,
                     'token_created' => true
                 ])
                 ->log('User logged in successfully');
@@ -113,20 +132,30 @@ class LoginUserAction
                 ->withProperties([
                     'email' => $user->email,
                     'error_message' => $e->getMessage(),
-                    'ip_address' => request()->ip(),
+                    'ip_address' => $ipAddress,
                     'code' => $e->getCode(),
                 ])
                 ->log('Login failed: API Token creation error');
+
             throw new Exception("Something went wrong. Please contact support", 500);
         }
 
         $userDetails = $user->only('id', 'first_name', 'last_name', 'email');
 
-        return [
-            'token' => $token,
-            'user' => $userDetails,
-            'message' => 'Login successful',
-            'status' => Response::HTTP_OK
-        ];
+        if (! $user->hasVerifiedEmail()) {
+            return [
+                'token' => $token,
+                'user' => $userDetails,
+                'message' => 'Check your email and verify your email address',
+                'status' => Response::HTTP_PARTIAL_CONTENT
+            ];
+        } else {
+            return [
+                'token' => $token,
+                'user' => $userDetails,
+                'message' => 'Login successful',
+                'status' => Response::HTTP_OK
+            ];
+        }
     }
 }

@@ -23,7 +23,8 @@ class LoginUserRequest extends FormRequest
     {
         return [
             'email'=> 'required|email|exists:users',
-            'password' => 'required|string'
+            'password' => 'required|string',
+            'callbackUrl' => 'required|url'
         ];
     }
 }

@@ -31,7 +31,6 @@ class LoginController extends Controller
                 ->withData($e->errors())
                 ->build();
         } catch (Exception $e) {
-
             return ResponseBuilder::asError(500)
                 ->withHttpCode(500)
                 ->withMessage('Something went wrong. Please contact support')
