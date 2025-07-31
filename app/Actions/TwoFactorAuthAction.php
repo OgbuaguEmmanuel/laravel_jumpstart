@@ -37,6 +37,7 @@ class TwoFactorAuthAction
                     'action_type' => '2FA Setup Attempt: Already Enabled',
                 ])
                 ->log('2FA setup attempted but already enabled for user.');
+
             throw ValidationException::withMessages([
                 '2fa' => "Two-factor authentication is already enabled for this account."
             ])->status(400);
@@ -99,6 +100,7 @@ class TwoFactorAuthAction
                     'action_type' => '2FA Enable Attempt: Invalid State',
                 ])
                 ->log('2FA enable attempted but user is in invalid state.');
+
             throw ValidationException::withMessages([
                 '2fa' => "2FA setup not initiated or already enabled."
             ])->status(400);
@@ -119,6 +121,7 @@ class TwoFactorAuthAction
                     'action_type' => '2FA Enable Failed: Invalid Code',
                 ])
                 ->log('2FA enable failed: Invalid verification code.');
+
             throw ValidationException::withMessages([
                 'code' => 'Invalid 2FA code. Please try again.'
             ])->status(400);
@@ -163,6 +166,7 @@ class TwoFactorAuthAction
                     'action_type' => '2FA Disable Failed: Invalid Password',
                 ])
                 ->log('2FA disable failed: Invalid password.');
+
             throw ValidationException::withMessages([
                 'password' => 'Invalid password.'
             ])->status(422);
@@ -180,6 +184,7 @@ class TwoFactorAuthAction
                     'action_type' => '2FA Disable Attempt: Not Enabled',
                 ])
                 ->log('2FA disable attempted but not enabled for user.');
+                
             throw ValidationException::withMessages([
                 '2fa' => 'Two-factor authentication is not enabled for this account.'
             ])->status(400);

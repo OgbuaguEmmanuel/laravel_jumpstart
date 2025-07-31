@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone_number')->nullable()->unique();
             $table->string('password');
-            $table->boolean('is_active')->default(true);
-            $table->boolean('is_locked')->default(true);
+            $table->boolean('is_active')->default(false);
+            $table->boolean('is_locked')->default(false);
             $table->integer('failed_attempts')->default(0);
             $table->string('status_reason')->nullable();
             $table->rememberToken();

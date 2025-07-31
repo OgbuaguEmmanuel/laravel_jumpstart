@@ -98,7 +98,6 @@ class PermissionsController extends Controller
             ->build();
     }
 
-
     public function assignPermissionsToUser(AssignPermissionToUserRequest $request, User $user)
     {
         $ipAddress = request()->ip();

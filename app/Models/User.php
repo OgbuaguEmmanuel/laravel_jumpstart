@@ -178,6 +178,13 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return $query->isActive(false);
     }
 
+    public function activateAccount()
+    {
+        $this->is_active = true;
+        $this->activated_at = now();
+        $this->save();
+    }
+
     /**
      * Scope a query to only include locked users.
      *

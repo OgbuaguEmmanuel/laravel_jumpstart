@@ -163,6 +163,7 @@ class SocialAuthAction
                     'avatar' => $socialUser->getAvatar(),
                     'email_verified_at' => now(), // Assume email is verified by social provider
                 ]);
+
                 Log::info("Created new user via {$provider}: {$user->email}");
                 activity()
                     ->inLog(ActivityLogTypeEnum::SocialAuth)
@@ -179,17 +180,17 @@ class SocialAuthAction
             }
         } else {
             activity()
-                    ->inLog(ActivityLogTypeEnum::SocialAuth)
-                    ->causedBy($user)
-                    ->withProperties([
-                        'provider' => $provider,
-                        'user_id' => $user->id,
-                        'email' => $user->email,
-                        'social_user_id' => $socialUser->getId(),
-                        'ip_address' => $ipAddress,
-                        'action_type' => 'Existing User Social Login',
-                    ])
-                    ->log("Existing user logged in via {$provider}.");
+                ->inLog(ActivityLogTypeEnum::SocialAuth)
+                ->causedBy($user)
+                ->withProperties([
+                    'provider' => $provider,
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'social_user_id' => $socialUser->getId(),
+                    'ip_address' => $ipAddress,
+                    'action_type' => 'Existing User Social Login',
+                ])
+                ->log("Existing user logged in via {$provider}.");
         }
 
         try {

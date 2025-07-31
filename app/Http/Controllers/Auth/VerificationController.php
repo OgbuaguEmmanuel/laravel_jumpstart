@@ -78,6 +78,9 @@ class VerificationController extends Controller
 
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
+
+            $user->activateAccount();
+            
             activity()
                 ->inLog(ActivityLogTypeEnum::VerifyEmail)
                 ->causedBy($user)
