@@ -186,7 +186,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
      */
     public function scopeLockedUsers(Builder $query): Builder
     {
-        return $query->isLocked(true);
+        return $query->whereNotNull('locked_until')->where('locked_until', '>', now());
     }
 
     /**

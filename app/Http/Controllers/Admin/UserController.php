@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ActivityLogTypeEnum;
+use App\Enums\ToggleStatusReasonEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\DeleteUserRequest;
 use App\Http\Requests\Admin\ToggleUserRequest;
+use App\Http\Requests\Admin\UnlockUserAccountRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpFoundation\Response;
@@ -53,7 +57,7 @@ class UserController extends Controller
 
         return ResponseBuilder::asSuccess()
             ->withMessage($message)
-            ->withHttpCode(204)
+            ->withHttpCode(Response::HTTP_NO_CONTENT)
             ->build();
 
     }
@@ -78,27 +82,23 @@ class UserController extends Controller
     /**
      * Unlock a user account.
      *
-     * @param User $user The user to unlock (route model bound)
+     * @param User $user The user to unlock
      * @param UnlockUserAccountRequest $request The request for validation and authorization
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function unlockUser(User $user, UnlockUserAccountRequest $request): Response
     {
-        // Authorization handled by UnlockUserAccountRequest's authorize() method
-        // You can also add a policy check here if you prefer:
-        // $this->authorize('unlockAccount', $user);
-
         if (!$user->isLocked()) {
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
                 ->withMessage('User account is not currently locked.')
                 ->build();
         }
 
-        $reason = $request->validated('reason') ?? ToggleStatusReasonEnum::ADMIN_ACTIVATION->value;
+        $reason = $request->validated('reason') ?? ToggleStatusReasonEnum::ADMIN_ACTIVATION;
         $user->unlockAccount($reason);
 
         activity()
-            ->inLog(ActivityLogType::UserManagement)
+            ->inLog(ActivityLogTypeEnum::UserManagement)
             ->performedOn($user)
             ->causedBy(Auth::user())
             ->withProperties([
@@ -112,7 +112,7 @@ class UserController extends Controller
 
         return ResponseBuilder::asSuccess()
             ->withMessage("User account unlocked successfully.")
-            ->withHttpCode(Response::HTTP_NO_CONTENT)
+            ->withHttpCode(Response::HTTP_OK)
             ->build();
     }
 

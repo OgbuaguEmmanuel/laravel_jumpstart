@@ -51,7 +51,6 @@ class LoginUserAction
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
             event(new Failed('api', $user, ['email' => $data['email'], 'password' => $data['password']]));
-
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy(null)

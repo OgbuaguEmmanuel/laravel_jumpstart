@@ -15,6 +15,7 @@ use BenSampo\Enum\Enum;
  * @method static SocialAuth()
  * @method static RolesAndPermissions()
  * @method static User()
+ * @method static UserManagement()
  */
 final class ActivityLogTypeEnum extends Enum
 {
@@ -28,4 +29,5 @@ final class ActivityLogTypeEnum extends Enum
     const SocialAuth = 'SocialAuth';
     const RolesAndPermissions = 'RolesAndPermissions';
     const UserModel = 'User';
+    const UserManagement = 'user_management';
 }

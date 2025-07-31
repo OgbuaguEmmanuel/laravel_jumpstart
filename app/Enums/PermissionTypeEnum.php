@@ -20,6 +20,7 @@ use BenSampo\Enum\Enum;
  * @method static deleteRole()
  * @method static toggleUserStatus()
  * @method static deleteUsers()
+ * @method static unlockUsers()
  */
 final class PermissionTypeEnum extends Enum
 {
@@ -40,4 +41,5 @@ final class PermissionTypeEnum extends Enum
     const deleteRole = 'delete_role';
     const toggleUserStatus = 'toggle_user_status';
     const deleteUsers = 'delete_users';
+    const unlockUsers = 'unlock_users';
 }

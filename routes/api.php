@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
@@ -78,16 +79,26 @@ Route::prefix('/notifications')->middleware('auth:api')
 Route::get('/activities', [App\Http\Controllers\ActivityLogController::class, 'listActivities'])
     ->withoutMiddleware('auth:api')->name('activity.list');
 
-Route::middleware(['auth:api'])->group( function() {
-    Route::apiResource('/permissions', PermissionsController::class)->only('index', 'store');
-    Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser']);
-    Route::post('users/{user}/revoke-permissions', [PermissionsController::class, 'revokePermissionsToUser']);
+Route::middleware(['auth:api','isActive','isLocked'])->prefix('admin')
+    ->group( function() {
+        Route::apiResource('/permissions', PermissionsController::class)->only('index', 'store');
+        Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser'])
+            ->name('permission.user.assign');
+        Route::post('users/{user}/revoke-permissions', [PermissionsController::class, 'revokePermissionsToUser'])
+            ->name('permission.user.revoke');
 
-    Route::apiResource('/roles', RolesController::class)->except('destroy');
-    Route::post('/roles/{role}/give-permission', [RolesController::class, 'givePermissions']);
-    Route::post('/roles/{role}/revoke-permission', [RolesController::class, 'revokePermissions']);
-    Route::post('/users/{user}/assignRole/roles/{role}', [RolesController::class,'assignRole']);
-    Route::post('/users/{user}/removeRole/roles/{role}', [RolesController::class,'removeRole']);
-});
+        Route::apiResource('/roles', RolesController::class)->except('destroy');
+        Route::post('/roles/{role}/give-permission', [RolesController::class, 'givePermissions'])
+            ->name('permission.role.assign');
+        Route::post('/roles/{role}/revoke-permission', [RolesController::class, 'revokePermissions'])
+            ->name('permission.role.revoke');
+        Route::post('/users/{user}/assignRole/roles/{role}', [RolesController::class,'assignRole'])
+            ->name('role.assign');
+        Route::post('/users/{user}/removeRole/roles/{role}', [RolesController::class,'removeRole'])
+            ->name('role.revoke');
+
+        Route::post('users/{user}/unlock', [UserController::class, 'unlockUser'])
+            ->name('user.unlock');
+    });
 
 

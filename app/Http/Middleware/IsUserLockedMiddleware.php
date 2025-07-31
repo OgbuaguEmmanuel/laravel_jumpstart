@@ -22,7 +22,7 @@ class IsUserLockedMiddleware
             abort(Response::HTTP_FORBIDDEN, 'User not authenticated');
         }
 
-        if ($user->isLocked) {
+        if ($user->isLocked()) {
             abort(Response::HTTP_FORBIDDEN, 'Your account is on locked. Try again later or contact support');
         }
 

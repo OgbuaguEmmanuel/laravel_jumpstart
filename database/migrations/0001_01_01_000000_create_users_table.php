@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('is_locked')->default(true);
             $table->integer('failed_attempts')->default(0);
-
+            $table->string('status_reason')->nullable();
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('activated_at')->nullable();

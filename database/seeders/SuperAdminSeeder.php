@@ -24,7 +24,7 @@ class SuperAdminSeeder extends Seeder
         $superAdminData = [
             'first_name' => 'Super Admin',
             'last_name' => 'User',
-            'email' => 'superadmin@example.com',
+            'email' => 'superadmin@laraveljumpstart.com',
             'email_verified_at' => now(),
             'password' => Hash::make('Super@!Admin&25'), // Strong password for super admin
         ];
