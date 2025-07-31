@@ -13,7 +13,7 @@ class UpdateUserProfile extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->id === $this->route('user');
+        return true;
     }
 
     /**
@@ -61,18 +61,5 @@ class UpdateUserProfile extends FormRequest
                 }
             }
         ];
-    }
-
-    /**
-     * Handle a failed authorization attempt.
-     * Override this method to customize the response for unauthorized requests.
-     *
-     * @return void
-     *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
-     */
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Unauthorized to update someone else\'s profile.', 403);
     }
 }

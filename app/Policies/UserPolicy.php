@@ -62,9 +62,11 @@ class UserPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $user, User $model): Response
     {
-        return $user->id == $model->id;
+        return $user->id == $model->id
+            ? Response::allow()
+            : Response::deny('Unauthorized to update someone else\'s profile.', 403);
     }
 
     /**

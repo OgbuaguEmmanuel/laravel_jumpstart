@@ -23,20 +23,10 @@ class ProfileController extends Controller
         $user->refresh();
 
         return ResponseBuilder::asSuccess()
-            ->withMessage('Profile updated succesfully')
+            ->withMessage('Profile updated successfully')
             ->withData($user)
             ->build();
 
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(User $user)
-    {
-        $this->authorize('destroy', [User::class, $user]);
-
-        //
     }
 
     public function uploadProfilePicture()
