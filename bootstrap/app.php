@@ -15,9 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
             'guest' => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
-            // ... other aliases
+            'isLocked' => App\Http\Middleware\IsUserLockedMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->withEvents([
+        Illuminate\Auth\Events\Failed::class => [
+            App\Listeners\LogFailedLoginAttempt::class,
+        ],
+    ])
+    ->create();

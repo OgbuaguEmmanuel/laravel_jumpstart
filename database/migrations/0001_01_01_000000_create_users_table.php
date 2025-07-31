@@ -19,10 +19,14 @@ return new class extends Migration
             $table->string('phone_number')->nullable()->unique();
             $table->string('password');
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_locked')->default(true);
+            $table->integer('failed_attempts')->default(0);
+
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('activated_at')->nullable();
             $table->timestamp('deactivated_at')->nullable();
+            $table->timestamp('locked_until')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

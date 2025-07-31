@@ -24,12 +24,17 @@ class LoginController extends Controller
                 ->withData(collect($result)->except(['message', 'status'])->all())
                 ->withMessage($result['message'])
                 ->build();
-        } catch (Exception $e) {
-            $statusCode = $e->getCode() >= 100 && $e->getCode() < 600 ? $e->getCode() : Response::HTTP_INTERNAL_SERVER_ERROR;
-
-            return ResponseBuilder::asError($statusCode)
-                ->withHttpCode($statusCode)
+        } catch (ValidationException $e) {
+            return ResponseBuilder::asError($e->status)
+                ->withHttpCode($e->status)
                 ->withMessage($e->getMessage())
+                ->withData($e->errors())
+                ->build();
+        } catch (Exception $e) {
+
+            return ResponseBuilder::asError(500)
+                ->withHttpCode(500)
+                ->withMessage('Something went wrong. Please contact support')
                 ->build();
         }
     }

@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use PragmaRX\Google2FALaravel\Google2FA;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Auth\Events\Failed;
 
 class LoginUserAction
 {
@@ -29,7 +31,27 @@ class LoginUserAction
     {
         $user = $this->getUserByEmail($data['email']);
 
+        if ($user && $user->isLocked()) {
+            activity()
+                ->inLog(ActivityLogTypeEnum::Login)
+                ->causedBy($user)
+                ->withProperties([
+                    'email_attempted' => $data['email'],
+                    'reason' => 'Login failed: Account is locked',
+                    'ip_address' => request()->ip()
+                ])
+                ->log('Login failed: Account locked');
+
+            throw ValidationException::withMessages([
+                'email' => [
+                    'Your account has been locked. Please try again later or contact support.',
+                ],
+            ])->status(423); // 423 Locked status code
+        }
+
         if (!$user || !Hash::check($data['password'], $user->password)) {
+            event(new Failed('api', $user, ['email' => $data['email'], 'password' => $data['password']]));
+
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy(null)
@@ -39,7 +61,9 @@ class LoginUserAction
                     'ip_address' => request()->ip()
                 ])
                 ->log('Login failed: Invalid Credentials');
-            throw new Exception("Invalid Login Credential", 404);
+            throw ValidationException::withMessages([
+                'email' => ["Invalid Login Credential"],
+            ])->status(404);
         }
 
         if ($user->hasTwoFactorEnabled()) {
@@ -67,6 +91,9 @@ class LoginUserAction
 
         try {
             $token = $user->createToken('UserAuthToken')->accessToken;
+
+            $user->resetFailedAttempts();
+
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)

@@ -33,8 +33,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     protected $fillable = [
         'first_name','last_name',
         'email','phone_number',
-        'password','provider_name',
-        'provider_id', 'avatar',
+        'password','provider_name', 'locked_until',
+        'provider_id', 'avatar', 'failed_attempts',
     ];
 
     /**
@@ -59,8 +59,10 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             'password' => 'hashed',
             'two_factor_enabled_at' => 'datetime',
             'is_active' => 'boolean',
+            'is_locked' => 'boolean',
             'activated_at' => 'datetime',
             'deactivated_at' => 'datetime',
+            'locked_until' => 'datetime',
         ];
     }
 
@@ -176,4 +178,69 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return $query->isActive(false);
     }
 
+    /**
+     * Scope a query to only include locked users.
+     *
+     * @param Builder $query
+     * @return Builder
+     */
+    public function scopeLockedUsers(Builder $query): Builder
+    {
+        return $query->isLocked(true);
+    }
+
+    /**
+     * Check if the user account is currently locked.
+     */
+    public function isLocked(): bool
+    {
+        return $this->locked_until && $this->locked_until->isFuture();
+    }
+
+    /**
+     * Increment failed login attempts.
+     */
+    public function incrementFailedAttempts(): void
+    {
+        $this->increment('failed_attempts');
+    }
+
+    /**
+     * Reset failed login attempts and unlock the account.
+     */
+    public function resetFailedAttempts(): void
+    {
+        $this->failed_attempts = 0;
+        $this->locked_until = null;
+        $this->is_Locked = false;
+        $this->status_reason = null;
+        $this->save();
+    }
+
+    /**
+     * Lock the user account for a specified duration.
+     *
+     * @param int $durationMinutes The duration in minutes to lock the account.
+     * @param string|null $reason The reason for locking.
+     */
+    public function lockAccount(int $durationMinutes, ?string $reason = null): void
+    {
+        $this->locked_until = now()->addMinutes($durationMinutes);
+        $this->failed_attempts = 0; // Reset attempts after locking
+        $this->is_Locked = true;
+        $this->status_reason = $reason;
+        $this->save();
+    }
+
+    /**
+     * Unlock the user account immediately.
+     *
+     * @param string|null $reason The reason for unlocking.
+     */
+    public function unlockAccount(?string $reason = null): void
+    {
+        $this->resetFailedAttempts();
+        $this->status_reason = $reason;
+        $this->save();
+    }
 }
