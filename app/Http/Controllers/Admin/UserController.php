@@ -34,6 +34,20 @@ class UserController extends Controller
             ->build();
     }
 
+    public function lockedUsers(Request $request): Response
+    {
+        $users = QueryBuilder::for(User::query()->isLocked())
+            ->defaultSort('-created_at')
+            ->allowedFilters('first_name','last_name','email')
+            ->allowedSorts(['first_name','last_name'])
+            ->paginate($request->get('per_page'));
+
+        return ResponseBuilder::asSuccess()
+            ->withData(['users' => $users])
+            ->withMessage('Locked users successfully fetched')
+            ->build();
+    }
+
     /**
      * Display the specified resource.
      */
@@ -55,9 +69,19 @@ class UserController extends Controller
         $message = $deletedCount === 1 ? 'User deleted successfully.'
             : ($deletedCount > 1 ? 'Users deleted successfully.' : 'No users were deleted.');
 
+        activity()
+            ->inLog(ActivityLogTypeEnum::UserManagement)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'deleted_accounts' => $request->validated('ids'),
+                'deleted_by' => Auth::user()->email,
+                'ip_address' => request()->ip(),
+            ])
+            ->log($message);
+
         return ResponseBuilder::asSuccess()
             ->withMessage($message)
-            ->withHttpCode(Response::HTTP_NO_CONTENT)
+            ->withHttpCode(Response::HTTP_OK)
             ->build();
 
     }
@@ -68,10 +92,22 @@ class UserController extends Controller
 
         $timestampField = $user->is_active ? 'activated_at' : 'deactivated_at';
         $user->{$timestampField} = now();
-
+        $user->reason = $request->validated('reason');
         $user->save();
 
         $statusText = $user->is_active ? 'activated' : 'deactivated';
+
+        activity()
+            ->inLog(ActivityLogTypeEnum::UserManagement)
+            ->causedBy(Auth::user())
+            ->performedOn($user)
+            ->withProperties([
+                'status' => $statusText,
+                'toggled_by' => Auth::user()->email,
+                'ip_address' => request()->ip(),
+                'reason' => $user->reason
+            ])
+            ->log("User {$statusText} successfully.");
 
         return ResponseBuilder::asSuccess()
             ->withMessage("User {$statusText} successfully.")
@@ -124,10 +160,6 @@ class UserController extends Controller
      */
     public function store(CreateUserRequest $request): Response
     {
-        // Authorization handled by CreateUserRequest's authorize() method
-        // You can also add a policy check here if you prefer:
-        // $this->authorize('create', User::class);
-
         $userData = $request->validated();
 
         // Create the user
@@ -136,8 +168,7 @@ class UserController extends Controller
             'last_name' => $userData['last_name'],
             'email' => $userData['email'],
             'password' => Hash::make($userData['password']),
-            'is_active' => $userData['is_active'] ?? true, // Default to active if not provided
-            'email_verified_at' => now(), // Assume verified if admin creates
+            'is_active' => $userData['is_active'],
         ]);
 
         // Assign roles if provided
@@ -162,7 +193,7 @@ class UserController extends Controller
         return ResponseBuilder::asSuccess()
             ->withMessage('User created successfully.')
             ->withHttpCode(Response::HTTP_CREATED)
-            ->withData(['user' => $user->load('roles')]) // Load roles for the response
+            ->withData(['user' => $user->load('roles')])
             ->build();
     }
 
