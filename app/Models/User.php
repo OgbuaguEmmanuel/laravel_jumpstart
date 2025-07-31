@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ActivityLogTypeEnum;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Password;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Crypt;
 use Spatie\Activitylog\LogOptions;
@@ -75,7 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
      */
     public function sendPasswordResetNotification($token): void
     {
-        $callbackUrl = request('callbackUrl', config('frontend.user.url'));
+        $callbackUrl = request('callbackUrl', config('frontend.url'));
 
         $this->notify(new ResetPasswordNotification($callbackUrl, $token));
     }
@@ -256,5 +258,17 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     {
         $this->force_password_reset = true;
         $this->save();
+    }
+
+    /**
+     * Send welcome notification to new user
+     * @return void
+     */
+    public function sendWelcomeNotification(): void
+    {
+        $callbackUrl = request('callbackUrl', config('frontend.url'));
+        $token = Password::broker('users')->createToken($this);
+
+        $this->notify(new WelcomeNotification($callbackUrl, $token));
     }
 }

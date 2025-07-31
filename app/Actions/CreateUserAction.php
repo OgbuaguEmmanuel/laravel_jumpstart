@@ -12,12 +12,16 @@ class CreateUserAction
      */
     public function handle(array $data): User
     {
-        return User::create([
+        $user =  User::create([
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
             'email' => $data['email'],
             'phone_number' => $data['phone_number'] ?? null,
             'password' => Hash::make($data['password']),
         ]);
+
+        $user->sendWelcomeNotification();
+
+        return $user;
     }
 }

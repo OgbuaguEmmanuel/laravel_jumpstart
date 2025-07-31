@@ -21,7 +21,8 @@ use BenSampo\Enum\Enum;
  * @method static  toggleUserStatus()
  * @method static  deleteUsers()
  * @method static  unlockUsers()
- * @method static createuser()
+ * @method static createUser()
+ * @method static viewLock()
  */
 final class PermissionTypeEnum extends Enum
 {
@@ -45,4 +46,5 @@ final class PermissionTypeEnum extends Enum
     const unlockUsers = 'unlock_users';
     const viewUsers = 'view_users';
     const createUser = 'create_user';
+    const viewLock = 'view_lock';
 }

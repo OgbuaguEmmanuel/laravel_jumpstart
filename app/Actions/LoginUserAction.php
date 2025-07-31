@@ -112,7 +112,7 @@ class LoginUserAction
             $token = $user->createToken('UserAuthToken')->accessToken;
 
             if (! $user->hasVerifiedEmail()) {
-                $callbackUrl = request('callbackUrl', config('frontend.user.url'));
+                $callbackUrl = request('callbackUrl', config('frontend.url'));
                 $user->notify(new VerifyEmailNotification($callbackUrl));
 
                 activity()

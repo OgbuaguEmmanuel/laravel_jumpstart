@@ -71,7 +71,7 @@ class ResetPasswordController extends Controller
 
                 $emailVerificationTriggered = false;
                 if (!$user->hasVerifiedEmail()) {
-                    $user->notify(new VerifyEmailNotification(config('frontend.email_verification.url.user', 'https://example.com/verify-email')));
+                    $user->notify(new VerifyEmailNotification(config('frontend.email_verification_url')));
                     $emailVerificationTriggered = true;
                 }
 

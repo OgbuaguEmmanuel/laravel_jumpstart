@@ -80,7 +80,7 @@ class VerificationController extends Controller
             event(new Verified($user));
 
             $user->activateAccount();
-            
+
             activity()
                 ->inLog(ActivityLogTypeEnum::VerifyEmail)
                 ->causedBy($user)
@@ -129,7 +129,7 @@ class VerificationController extends Controller
                 ->build();
         }
 
-        $callbackUrl = request('callbackUrl', config('frontend.user.url'));
+        $callbackUrl = request('callbackUrl', config('frontend.url'));
 
         $user->notify(new VerifyEmailNotification($callbackUrl));
 

@@ -12,6 +12,7 @@ use App\Http\Requests\Admin\ToggleUserRequest;
 use App\Http\Requests\Admin\UnlockUserAccountRequest;
 use App\Models\User;
 use App\Traits\AuthHelpers;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
@@ -22,12 +23,15 @@ use Symfony\Component\HttpFoundation\Response;
 class UserController extends Controller
 {
     use AuthHelpers;
+    use AuthorizesRequests;
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request): Response
     {
+        $this->authorize('viewAny', User::class);
+
         $users = QueryBuilder::for(User::query())
             ->defaultSort('-created_at')
             ->allowedFilters('first_name','last_name','email','is_active')
@@ -42,6 +46,8 @@ class UserController extends Controller
 
     public function lockedUsers(Request $request): Response
     {
+        $this->authorize('viewLock', User::class);
+
         $users = QueryBuilder::for(User::query()->isLocked())
             ->defaultSort('-created_at')
             ->allowedFilters('first_name','last_name','email')
@@ -59,6 +65,8 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        $this->authorize('view', User::class);
+
         return ResponseBuilder::asSuccess()
             ->withData(['user' => $user])
             ->withMessage('User fetched')
@@ -70,6 +78,8 @@ class UserController extends Controller
      */
     public function destroy(DeleteUserRequest $request)
     {
+        $this->authorize('delete', User::class);
+
         $deletedCount = User::whereIn('id', $request->validated('ids'))->delete();
 
         $message = $deletedCount === 1 ? 'User deleted successfully.'
@@ -89,11 +99,12 @@ class UserController extends Controller
             ->withMessage($message)
             ->withHttpCode(Response::HTTP_OK)
             ->build();
-
     }
 
     public function toggleUserStatus(User $user, ToggleUserRequest $request)
     {
+        $this->authorize('toggleStatus', User::class);
+
         $user->is_active = !$user->is_active;
 
         $timestampField = $user->is_active ? 'activated_at' : 'deactivated_at';
@@ -130,6 +141,8 @@ class UserController extends Controller
      */
     public function unlockUser(User $user, UnlockUserAccountRequest $request): Response
     {
+        $this->authorize('unlockUser', User::class);
+
         if (!$user->isLocked()) {
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
                 ->withMessage('User account is not currently locked.')
@@ -166,9 +179,10 @@ class UserController extends Controller
      */
     public function store(CreateUserRequest $request, CreateUserAction $action): Response
     {
-        $password = $this->generateRandomPassword();
+        $this->authorize('create', User::class);
+
         $userData = $request->validated();
-        $userData['password'] = $password;
+        $userData['password'] = $this->generateRandomPassword();
 
         $user = $action->handle($userData);
 
@@ -178,8 +192,8 @@ class UserController extends Controller
         }
 
         $user->forcePasswordReset();
-        
-        // send welcome email
+
+        $user->sendWelcomeNotification();
 
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)

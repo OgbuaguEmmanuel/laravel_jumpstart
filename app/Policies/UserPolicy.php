@@ -28,6 +28,27 @@ class UserPolicy
             : Response::deny('Unauthorized to view user.', 403);
     }
 
+    public function viewLock(User $user): Response
+    {
+        return $user->hasPermissionTo(PermissionTypeEnum::viewLock)
+            ? Response::allow()
+            : Response::deny('Unauthorized to view list of locked users.', 403);
+    }
+
+    public function toggleUserStatus(User $user): Response
+    {
+        return $user->hasPermissionTo(PermissionTypeEnum::toggleUserStatus)
+            ? Response::allow()
+            : Response::deny('Unauthorized to toggle user status.', 403);
+    }
+
+    public function unlockUser(User $user): Response
+    {
+        return $user->hasPermissionTo(PermissionTypeEnum::toggleUserStatus)
+            ? Response::allow()
+            : Response::deny('Unauthorized to unlock user.', 403);
+    }
+
     /**
      * Determine whether the user can create models.
      */
@@ -49,9 +70,11 @@ class UserPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, User $model): bool
+    public function delete(User $user, User $model): Response
     {
-        return $user->id == $model->id;
+        return $user->hasPermissionTo(PermissionTypeEnum::deleteUsers)
+            ? Response::allow()
+            : Response::deny('Unauthorized to delete users.', 403);
     }
 
     /**
