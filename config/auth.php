@@ -120,4 +120,8 @@ return [
         'max_attempts' => env('LOGIN_MAX_ATTEMPTS', 5),
         'duration' => env('LOGIN_LOCKOUT_DURATION_MINUTES', 60), // minutes
     ],
+
+    'verification' => [
+        'expire' => env('VERIFICATION_TOKEN_TIMEOUT', 60) // minutes
+    ],
 ];

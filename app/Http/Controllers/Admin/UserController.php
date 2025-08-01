@@ -184,6 +184,12 @@ class UserController extends Controller
         $userData = $request->validated();
         $userData['password'] = $this->generateRandomPassword();
 
+        $file = null;
+        if ($request->hasFile('profile_picture')) {
+            $file = $request->file('profile_picture');
+        }
+
+        $action->handle($request->validated(), $file);
         $user = $action->handle($userData);
 
         if (!empty($userData['roles'])) {

@@ -44,7 +44,7 @@ class CreateUserRequest extends FormRequest
                     ->symbols()
                     ->uncompromised(),
             ],
-            //'profile_picture' => 'sometimes|mimes:jpeg,png|max:2048'
+            'profile_picture' => 'nullable|file|mimes:jpeg,png|max:2048'
         ];
     }
 }

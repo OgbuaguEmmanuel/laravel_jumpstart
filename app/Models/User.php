@@ -276,9 +276,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
     public function sendEmailVerificationNotification()
     {
-        $callbackUrl = request('callbackUrl', config('frontend.url'));
-
-        $this->notify(new VerifyEmailNotification($callbackUrl));
+        $this->notify(new VerifyEmailNotification(config('frontend.url')));
     }
 
     /**

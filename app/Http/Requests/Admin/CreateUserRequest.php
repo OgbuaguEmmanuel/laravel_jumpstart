@@ -32,7 +32,8 @@ class CreateUserRequest extends FormRequest
                 'regex:/^(?:\+?234|0|234)?(70|80|91|90|81|71|070|080|091|090|081|071)\d{8}$/'
             ],
             'role' => 'sometimes|array',
-            'role.*' => 'sometimes|exists:roles,name'
+            'role.*' => 'sometimes|exists:roles,name',
+            'profile_picture' => 'nullable|file|mimes:jpeg,png|max:2048'
         ];
     }
 }
