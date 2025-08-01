@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Actions\CreateUserAction;
-use App\Enums\MediaTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\CreateUserRequest;
-use Illuminate\Http\UploadedFile;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 
 class RegisterController extends Controller
@@ -19,7 +17,7 @@ class RegisterController extends Controller
         }
 
         $action->handle($request->validated(), $file);
-        
+
         return ResponseBuilder::asSuccess()
             ->withHttpCode(201)
             ->withMessage('User registered successfully.')

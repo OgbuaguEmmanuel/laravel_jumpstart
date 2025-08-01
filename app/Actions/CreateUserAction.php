@@ -12,7 +12,7 @@ class CreateUserAction
     /**
      * Create a new class instance.
      */
-    public function handle(array $data, UploadedFile $file = null): User
+    public function handle(array $data, ?UploadedFile $file = null): User
     {
         $user =  User::create([
             'first_name' => $data['first_name'],
@@ -25,9 +25,6 @@ class CreateUserAction
         if (!empty($data['profile_picture'])) {
             $user->addMedia($file)->toMediaCollection(MediaTypeEnum::ProfilePicture);
         }
-
-
-        $user->sendEmailVerificationNotification();
 
         return $user;
     }
