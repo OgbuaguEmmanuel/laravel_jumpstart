@@ -80,6 +80,16 @@ class UserPolicy
     }
 
     /**
+     * Determine whether the user can update the model.
+     */
+    public function uploadProfileImage(User $user, User $model): Response
+    {
+        return $user->id == $model->id
+            ? Response::allow()
+            : Response::deny('Unauthorized to update someone else\'s profile.', 403);
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, User $model): bool

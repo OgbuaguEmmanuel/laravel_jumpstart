@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionsController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -103,6 +104,11 @@ Route::middleware(['auth:api','verified', 'isActive','isLocked','passwordResetNe
             ->name('user.unlock');
         Route::post('users/{user}/toggleStatus', [UserController::class, 'toggleUserStatus'])
             ->name('user.toggle_status');
+
+        Route::patch('profile/update', [ProfileController::class, 'update'])
+            ->name('profile.update');
+        Route::post('profile/upload', [ProfileController::class, 'uploadProfilePicture'])
+            ->name('profile.upload');
     });
 
 

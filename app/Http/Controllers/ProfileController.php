@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MediaTypeEnum;
+use App\Http\Requests\ProfileUploadRequest;
 use App\Http\Requests\UpdateUserProfile;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Request;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 
 class ProfileController extends Controller
@@ -29,8 +30,16 @@ class ProfileController extends Controller
 
     }
 
-    public function uploadProfilePicture()
+    public function uploadProfilePicture(ProfileUploadRequest $request, User $user)
     {
+        $this->authorize('uploadProfileImage', [User::class, $user]);
 
+        $user->addMedia($request->validated([MediaTypeEnum::ProfilePicture]))
+            ->toMediaCollection(MediaTypeEnum::ProfilePicture);
+
+        return ResponseBuilder::asSuccess()
+            ->withData($user->media())
+            ->withMessage('Profile uploaded successfully')
+            ->build();
     }
 }

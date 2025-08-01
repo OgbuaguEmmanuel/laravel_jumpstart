@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\MediaTypeEnum;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -20,7 +21,12 @@ class CreateUserAction
             'password' => Hash::make($data['password']),
         ]);
 
-        $user->sendWelcomeNotification();
+        // if (! empty($data[MediaTypeEnum::ProfilePicture])) {
+        //     $user->addMedia($data[MediaTypeEnum::ProfilePicture])
+        //         ->toMediaCollection(MediaTypeEnum::ProfilePicture);
+        // }
+
+        $user->sendEmailVerificationNotification();
 
         return $user;
     }

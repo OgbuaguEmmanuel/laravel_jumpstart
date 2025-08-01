@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\ActivityLogTypeEnum;
+use App\Enums\MediaTypeEnum;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -270,5 +272,24 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         $token = Password::broker('users')->createToken($this);
 
         $this->notify(new WelcomeNotification($callbackUrl, $token));
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        $callbackUrl = request('callbackUrl', config('frontend.url'));
+
+        $this->notify(new VerifyEmailNotification($callbackUrl));
+    }
+
+    /**
+     * Register media collections.
+     *
+     * @return void
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection(MediaTypeEnum::ProfilePicture)
+            ->acceptsMimeTypes(['image/png', 'image/jpeg'])
+            ->singleFile();
     }
 }
