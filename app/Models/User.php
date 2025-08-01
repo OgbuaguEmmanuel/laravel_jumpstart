@@ -290,4 +290,10 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             ->acceptsMimeTypes(['image/png', 'image/jpeg'])
             ->singleFile();
     }
+
+    public function profilePicture()
+    {
+        return $this->getFirstMediaUrl(MediaTypeEnum::ProfilePicture);
+    }
+
 }

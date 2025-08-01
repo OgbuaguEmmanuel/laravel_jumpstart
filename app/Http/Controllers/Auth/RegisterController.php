@@ -19,7 +19,7 @@ class RegisterController extends Controller
         }
 
         $action->handle($request->validated(), $file);
-
+        
         return ResponseBuilder::asSuccess()
             ->withHttpCode(201)
             ->withMessage('User registered successfully.')

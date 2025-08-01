@@ -34,11 +34,13 @@ class ProfileController extends Controller
     {
         $this->authorize('uploadProfileImage', [User::class, $user]);
 
-        $user->addMedia($request->validated([MediaTypeEnum::ProfilePicture]))
+        $user->addMedia($request->file('image'))
             ->toMediaCollection(MediaTypeEnum::ProfilePicture);
 
+        $user->profilePicture = $user->profilePicture();
+        
         return ResponseBuilder::asSuccess()
-            ->withData($user->media())
+            ->withData($user)
             ->withMessage('Profile uploaded successfully')
             ->build();
     }

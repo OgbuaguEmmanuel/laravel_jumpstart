@@ -159,7 +159,8 @@ class LoginUserAction
         }
 
         $userDetails = $user->only('id', 'first_name', 'last_name', 'email');
-
+        $userDetails['profile_picture_url'] = $user->profilePicture();
+        
         if (! $user->hasVerifiedEmail()) {
             return [
                 'token' => $token,
