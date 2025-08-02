@@ -32,7 +32,6 @@ class PaystackService implements PaymentGatewayInterface
         try {
             $response = Http::withToken($this->secret)
                 ->post("{$this->baseUrl}/transaction/initialize", [
-                    'reference' => $payload->metadata['reference'],
                     'email' => $payload->email,
                     'amount' => $payload->amount,
                     'currency' => $payload->currency ?? PaymentCurrencyEnum::NARIA,
@@ -68,16 +67,16 @@ class PaystackService implements PaymentGatewayInterface
 
             $metaData = $data['metadata'];
             Transaction::updateOrCreate(
-                ['reference' => Str::uuid()],
+                ['gateway_reference' => $reference],
                 [
-                    'amount' => $data['amount'],
+                    'amount' => (float) ($data['amount'] / 100),
                     'payment_status' => $data['status'], // failed, abandoned, ongoing, pending, processing, queued, reversed
                     'payment_gateway' => 'paystack',
                     'transactionable_id' => $metaData['transactionable_id'],
                     'transactionable_type' => $metaData['transactionable_type'],
                     'payment_method' => $data['channel'],
                     'payment_purpose' => $metaData['purpose'],
-                    'gateway_reference' => $reference,
+                    'reference' => Str::uuid(),
                     'currency' => $data['currency'],
                     'metadata' => json_encode($metaData),
                     'user_id' => $metaData['user_id'],

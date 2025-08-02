@@ -114,6 +114,7 @@ Route::prefix('V1')->group(function () {
                 ->name('profile.upload');
         });
 
+        // add activity log for payment and send out emails on success or failure
     Route::middleware('auth:api')->prefix('payment')->group(function () {
         Route::post('init', [PaymentController::class, 'initialize'])->name('payment.init');
         Route::post('confirm', [PaymentController::class, 'confirm'])->name('payment.verify');
