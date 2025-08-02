@@ -269,17 +269,22 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
      * Send welcome notification to new user
      * @return void
      */
-    public function sendWelcomeNotification(): void
+    public function sendWelcomeNotification($callbackUrl): void
     {
-        $callbackUrl = request('callbackUrl', config('frontend.url'));
+        if ($callbackUrl === null) {
+            $callbackUrl = config('frontend.url');
+        }
         $token = Password::broker('users')->createToken($this);
 
         $this->notify(new WelcomeNotification($callbackUrl, $token));
     }
 
-    public function sendEmailVerificationNotification()
+    public function sendEmailVerificationNotification($callbackUrl = null)
     {
-        $this->notify(new VerifyEmailNotification(config('frontend.url')));
+        if ($callbackUrl === null) {
+            $callbackUrl = config('frontend.url');
+        }
+        $this->notify(new VerifyEmailNotification($callbackUrl));
     }
 
     /**
