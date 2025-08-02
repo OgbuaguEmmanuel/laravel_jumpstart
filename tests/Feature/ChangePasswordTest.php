@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
-$url = '/api/auth/change-password';
+$url = '/api/V1/auth/change-password';
 
 test('route exists', function () use ($url) {
     $response = $this->get($url);

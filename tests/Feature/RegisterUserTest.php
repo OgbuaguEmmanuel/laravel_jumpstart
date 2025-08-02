@@ -7,7 +7,7 @@ $lastName = 'Doe';
 $email = 'test@example.com';
 $password = '@LaravPel1!@231';
 $phoneNumber = '+2347012345678';
-$url = '/api/auth/register';
+$url = '/api/V1/auth/register';
 
 test('register route exists and is a POST method', function () use ($url) {
 

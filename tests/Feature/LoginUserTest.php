@@ -4,7 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
-$url = '/api/auth/login';
+$url = '/api/V1/auth/login';
 
 test('login route exists and it is a post', function () use ($url) {
     $response = $this->get($url);
@@ -41,7 +41,9 @@ test('email must exist in users table', function () use ($url){
 
     $response = $this->postJson($url,[
         'email' => $user->email,
-        'password' => 'wrongpassword'
+        'password' => 'wrongpassword',
+        'callbackUrl' => 'https://example.test.com'
+
     ]);
 
     expect($response->status())->not()->toBe(422);
@@ -74,11 +76,14 @@ test('user cannot login with invalid credentials', function () use ($url) {
     $user = User::factory()->create([
         'email' => 'jumpstart@test.com',
         'password' => Hash::make('password123')
+
     ]);
 
     $response = $this->postJson($url, [
         'email' => $user->email,
-        'password' => 'password'
+        'password' => 'password',
+        'callbackUrl' => 'https://example.test.com'
+
     ]);
 
     $response->assertStatus(404);
@@ -103,7 +108,9 @@ test('user can login with valid credentials', function () use ($url) {
 
     $response = $this->postJson($url, [
         'email' => $user->email,
-        'password' => 'password123'
+        'password' => 'password123',
+        'callbackUrl' => 'https://example.test.com'
+
     ]);
 
     logger()->info('Login response', [

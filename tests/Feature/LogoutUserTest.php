@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Artisan;
 
-$url = '/api/auth/logout';
+$url = '/api/V1/auth/logout';
 
 test('logout route exists', function () use ($url) {
     $response = $this->get($url);
@@ -43,7 +43,7 @@ test('user can logout successfully', function () use ($url) {
     $protectedRouteResponse = $this->withHeaders([
         'Authorization' => 'Bearer ' . $rawToken,
         'Accept' => 'application/json',
-    ])->getJson('/api/user');
+    ])->getJson('/api/V1/user');
 
     $protectedRouteResponse->assertStatus(401)
         ->assertJson([

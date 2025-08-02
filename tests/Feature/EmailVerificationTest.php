@@ -2,14 +2,15 @@
 
 use Illuminate\Support\Facades\Artisan;
 
-test('route to send email verification exists', function () {
-    $response = $this->get('api/auth/email/resend-verification');
+$url = 'api/V1/auth/email/resend-verification';
+test('route to send email verification exists', function () use ($url){
+    $response = $this->get($url);
 
     $response->assertStatus(405);
 });
 
-test('must be logged in to request email verification', function () {
-    $this->postJson('api/auth/email/resend-verification')
+test('must be logged in to request email verification', function () use ($url) {
+    $this->postJson($url)
         ->assertStatus(401)
         ->assertSeeText('Unauthenticated.');
 
@@ -23,7 +24,7 @@ beforeEach(function () {
     ]);
 });
 
-test('ensure callback url is present and valid', function () {
+test('ensure callback url is present and valid', function () use ($url) {
     $data = createUserAndGenerateToken();
     $token = $data['token'];
 
@@ -32,7 +33,7 @@ test('ensure callback url is present and valid', function () {
         'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json'
         ])
-        ->postJson('/api/auth/email/resend-verification',[])
+        ->postJson($url,[])
         ->assertStatus(422)
         ->assertSeeText('The callback url field is required');
 
@@ -41,7 +42,7 @@ test('ensure callback url is present and valid', function () {
             'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json'
         ])
-        ->postJson('/api/auth/email/resend-verification',[
+        ->postJson($url,[
             'callbackUrl' => 'invalid-url'
         ])
         ->assertStatus(422)
@@ -49,7 +50,7 @@ test('ensure callback url is present and valid', function () {
 
 });
 
-test('only unverified user can request verification email', function () {
+test('only unverified user can request verification email', function () use($url) {
     $data = createUserAndGenerateToken();
     $token = $data['token'];
     $this
@@ -57,7 +58,7 @@ test('only unverified user can request verification email', function () {
             'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json'
         ])
-        ->postJson('/api/auth/email/resend-verification',[
+        ->postJson($url,[
             'callbackUrl' => 'https://example.test.com'
         ])
         ->assertStatus(400)
@@ -66,7 +67,7 @@ test('only unverified user can request verification email', function () {
 });
 
 
-test('unverified user can request verification email', function () {
+test('unverified user can request verification email', function () use ($url) {
     $data = createUnverifiedUserAndGenerateToken();
     $token = $data['token'];
     $this
@@ -74,7 +75,7 @@ test('unverified user can request verification email', function () {
             'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json'
         ])
-        ->postJson('/api/auth/email/resend-verification',[
+        ->postJson($url,[
             'callbackUrl' => 'https://example.test.com'
         ])
         ->assertStatus(200)
@@ -83,7 +84,7 @@ test('unverified user can request verification email', function () {
 });
 
 test('ensure verify email route exists and requires authentication' , function() {
-    $this->getJson('api/auth/email/verify')
+    $this->getJson('api/V1/auth/email/verify')
         ->assertStatus(401)
         ->assertSeeText('Unauthenticated.');
 
@@ -92,7 +93,7 @@ test('ensure verify email route exists and requires authentication' , function()
 test('ensure email verification link is valid', function () {
     $data = createUnverifiedUserAndGenerateToken();
     $token = $data['token'];
-    $url = 'api/auth/email/verify?expires=1753440231&hash=d9485ba98d22eaf58bc6247b142f948d5947772b&id=4&signature=692e8a71fe3660a9834722eec981fc45d8fe8b5172091c23df8da681a04ae0e7';
+    $url = 'api/V1/auth/email/verify?expires=1753440231&hash=d9485ba98d22eaf58bc6247b142f948d5947772b&id=4&signature=692e8a71fe3660a9834722eec981fc45d8fe8b5172091c23df8da681a04ae0e7';
 
     $this->withHeaders([
         'Authorization' => 'Bearer '. $token
@@ -108,7 +109,7 @@ test('verify user email', function () {
     $user = $data['user'];
 
     $param = verificationUrlParam($user);
-    $url = 'api/auth/email/verify?'. $param;
+    $url = 'api/V1/auth/email/verify?'. $param;
 
     $this->withHeaders([
         'Authorization' => 'Bearer '. $token

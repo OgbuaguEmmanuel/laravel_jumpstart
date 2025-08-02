@@ -3,7 +3,7 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Config;
 
-$url = '/api/auth/forgot-password';
+$url = '/api/V1/auth/forgot-password';
 
 test('forgot passowrd request api exists', function () use ($url){
     $response = $this->get($url);

@@ -1,6 +1,6 @@
 <?php
 
-$url = '/api/auth/password-reset';
+$url = '/api/V1/auth/password-reset';
 $password = '@LaravPel1!@231';
 
 test('reset password exists', function () use ($url) {
