@@ -16,7 +16,7 @@ class WebhookEventObserver
         if (isset($event->data->reference, $event->data->authorization)) {
             ProcessWebhookJob::dispatch(
                 $event->data->reference, $event->data->authorization,
-                ucwords($webhookEvent->payment_gateway)
+                $webhookEvent->payment_gateway
             );
         }
     }
