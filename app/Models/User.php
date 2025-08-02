@@ -269,7 +269,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
      * Send welcome notification to new user
      * @return void
      */
-    public function sendWelcomeNotification($callbackUrl): void
+    public function sendWelcomeNotification($callbackUrl = null): void
     {
         if ($callbackUrl === null) {
             $callbackUrl = config('frontend.url');

@@ -14,8 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Support\Str;
 
-class PaymentTestController extends Controller
+class PaymentController extends Controller
 {
     public function __construct(public PaymentGatewayInterface $gateway) {}
 
@@ -30,6 +31,8 @@ class PaymentTestController extends Controller
                 $request->validated('callbackUrl'),
                 [
                     'user_id' => $user->id,
+                    'transactionable_id' => $user->id,
+                    'transactionable_type' => get_class($user),
                     'email' => $user->email,
                     'first_name' =>$user->first_name,
                     'last_name' => $user->last_name,
@@ -68,7 +71,6 @@ class PaymentTestController extends Controller
 
     public function paystackWebhook(Request $request)
     {
-
         $payload = $request->getContent();
 
         if (! PaystackService::verifyWebhook($request, $payload)) {

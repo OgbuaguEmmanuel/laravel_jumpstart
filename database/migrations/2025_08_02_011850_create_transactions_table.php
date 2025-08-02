@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('payment_method')->nullable();
             $table->string('payment_purpose');
             $table->string('gateway_reference');
+            $table->string('gateway_response')->nullable();
             $table->string('currency')->nullable();
             $table->string('amount');
             $table->float('discount')->nullable()->comment('This column is in percentage');

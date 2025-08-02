@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Enums\PaymentGatewayServiceEnum;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 

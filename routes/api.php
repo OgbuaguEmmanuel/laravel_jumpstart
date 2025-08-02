@@ -6,7 +6,7 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\PaymentTestController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolesController;
@@ -115,11 +115,11 @@ Route::prefix('V1')->group(function () {
         });
 
     Route::middleware('auth:api')->prefix('payment')->group(function () {
-        Route::post('init', [PaymentTestController::class, 'initialize'])->name('payment.init');
-        Route::post('confirm', [PaymentTestController::class, 'confirm'])->name('payment.verify');
+        Route::post('init', [PaymentController::class, 'initialize'])->name('payment.init');
+        Route::post('confirm', [PaymentController::class, 'confirm'])->name('payment.verify');
     });
 
-    Route::post('/payment/paystack/webhook', [PaymentTestController::class, 'paystackWebhook'])
+    Route::post('/payment/paystack/webhook', [PaymentController::class, 'paystackWebhook'])
         ->middleware('guest')->name('payment.paystack.webhook');
 
 });

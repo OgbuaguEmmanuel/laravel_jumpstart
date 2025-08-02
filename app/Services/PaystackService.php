@@ -5,16 +5,21 @@ namespace App\Services;
 use App\DTOs\PaymentPayload;
 use App\Enums\PaymentCurrencyEnum;
 use App\Interfaces\PaymentGatewayInterface;
+use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Support\Str;
 
 class PaystackService implements PaymentGatewayInterface
 {
     protected string $baseUrl;
     protected string $secret;
+    public const SUCCESS = 'success';
 
     public function __construct()
     {
@@ -27,6 +32,7 @@ class PaystackService implements PaymentGatewayInterface
         try {
             $response = Http::withToken($this->secret)
                 ->post("{$this->baseUrl}/transaction/initialize", [
+                    'reference' => $payload->metadata['reference'],
                     'email' => $payload->email,
                     'amount' => $payload->amount,
                     'currency' => $payload->currency ?? PaymentCurrencyEnum::NARIA,
@@ -58,12 +64,50 @@ class PaystackService implements PaymentGatewayInterface
         try {
             $response = Http::withToken($this->secret)
                 ->get("{$this->baseUrl}/transaction/verify/{$reference}");
+            $data = $response->throw()->json('data');
 
-                // do db insertion on success if not yet inserted by webhook, if inserted, update status
+            $metaData = $data['metadata'];
+            Transaction::updateOrCreate(
+                ['reference' => Str::uuid()],
+                [
+                    'amount' => $data['amount'],
+                    'payment_status' => $data['status'], // failed, abandoned, ongoing, pending, processing, queued, reversed
+                    'payment_gateway' => 'paystack',
+                    'transactionable_id' => $metaData['transactionable_id'],
+                    'transactionable_type' => $metaData['transactionable_type'],
+                    'payment_method' => $data['channel'],
+                    'payment_purpose' => $metaData['purpose'],
+                    'gateway_reference' => $reference,
+                    'currency' => $data['currency'],
+                    'metadata' => json_encode($metaData),
+                    'user_id' => $metaData['user_id'],
+                    'gateway_response' => $data['gateway_response']
+                ]
+            );
 
-            return $response->throw()->json('data');
+            if ($data['status'] !== self::SUCCESS) {
+                $message = "Payment not successful: {$data['gateway_response']}";
+                $status = 400;
+                throw new HttpException($status, $message);
+            }
+
+            return [
+                'amount' => $data['amount'],
+                'currency' => $data['currency'],
+                'status' => $data['status'],
+                'channel' => $data['channel'],
+                'reference' => $data['reference'],
+                'gateway_response' => $data['gateway_response'],
+                'paid_at' => $data['paid_at'],
+                'metadata' => $metaData,
+            ];
+        } catch (HttpException $e) {
+            throw new HttpException($e->getStatusCode(), $e->getMessage());
         } catch (RequestException $e) {
-            report($e);
+            Log::error('Paystack Verification Error', [
+                'response' => $e->response?->json(),
+                'exception' => $e,
+            ]);
             $message = $e->response?->json('message') ?? 'Unable to verify payment.';
             $status = $e->response?->status() ?? 400;
             throw new HttpException($status, $message);
@@ -90,24 +134,4 @@ class PaystackService implements PaymentGatewayInterface
         return true;
     }
 
-    protected function process()
-    {
-        logger('continue from here later');
-
-         // Verify the transaction
-        // $transaction = $this->getFactory()->transaction->verify([
-        //     'reference' => $reference,
-        // ]);
-
-        // // Verify that the transaction was successfully registered in our Paystack account
-        // if ($transaction->status === false) {
-        //     exit();
-        // }
-
-        // // Verify that our metadata was built into the transaction.
-        // if (!isset($transaction->data->metadata)) {
-        //     exit();
-        // }
-
-    }
 }
