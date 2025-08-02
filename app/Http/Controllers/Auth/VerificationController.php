@@ -129,7 +129,8 @@ class VerificationController extends Controller
                 ->build();
         }
 
-        $user->sendEmailVerificationNotification();
+        $callbackUrl = request('callbackUrl', config('frontend.url'));
+        $user->sendEmailVerificationNotification($callbackUrl);
 
         activity()
             ->inLog(ActivityLogTypeEnum::VerifyEmail)
