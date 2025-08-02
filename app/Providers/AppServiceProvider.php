@@ -2,8 +2,13 @@
 
 namespace App\Providers;
 
+use App\Enums\PaymentGatewayEnum;
+use App\Interfaces\PaymentGatewayInterface;
 use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
+use App\Services\PaypalService;
+use App\Services\PaystackService;
+use App\Services\StripeService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -20,7 +25,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PaymentGatewayInterface::class, function () {
+            return match (config('payment.driver')) {
+                PaymentGatewayEnum::PAYSTACK => new PaystackService(),
+                PaymentGatewayEnum::STRIPE => new StripeService(),
+                PaymentGatewayEnum::PAYPAL => new PaypalService(),
+            };
+        });
     }
 
     /**
