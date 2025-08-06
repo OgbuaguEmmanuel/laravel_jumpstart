@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 
 class SocialAuthAction
 {
+    protected array $validProviders;
+
     public function handleRedirect($provider)
     {
         $ipAddress = request()->ip();
@@ -31,7 +33,7 @@ class SocialAuthAction
                 ->log("Attempted social login with invalid provider: {$provider}.");
 
             throw ValidationException::withMessages([
-                'provider' => "Invalid social provider: {$provider}"
+                'provider' => "Invalid social provider. Allowed are: " . implode(', ', $this->validProviders)
             ])->status(400);
         }
 
@@ -67,8 +69,9 @@ class SocialAuthAction
                     'action_type' => 'Invalid Social Provider Callback',
                 ])
                 ->log("Callback received for invalid social provider: {$provider}.");
+
             throw ValidationException::withMessages([
-                'provider' => "Invalid social provider: {$provider}"
+                'provider' => "Invalid social provider. Allowed are: " . implode(', ', $this->validProviders)
             ])->status(400);
         }
 
@@ -236,10 +239,10 @@ class SocialAuthAction
      */
     protected function isValidProvider(string $provider): bool
     {
-        $validProviders = [
+        $this->validProviders = [
             'facebook', 'google', 'github', 'linkedin-openid',
             'gitlab', 'bitbucket', 'slack','twitter-oauth-2'
         ];
-        return in_array($provider, $validProviders);
+        return in_array($provider, $this->validProviders);
     }
 }

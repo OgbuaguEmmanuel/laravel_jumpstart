@@ -10,16 +10,9 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolesController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('V1')->group(function () {
-
-    Route::middleware('auth:api','verified','isLocked','isActive','passwordResetNeeded')
-        ->get('/user', function (Request $request) {
-            return $request->user();
-    });
-
     Route::prefix('auth')->middleware('guest')
         ->group(function () {
             Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])
@@ -33,7 +26,7 @@ Route::prefix('V1')->group(function () {
             Route::post('/login/2fa-challenge', [LoginController::class, 'challenge'])
                 ->name('auth.login.2fa-challenge');
 
-            Route::middleware('web')->group(function () {
+            Route::middleware('web')->prefix('social')->group(function () {
                 Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])
                     ->name('auth.social.redirect');
                 Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])
