@@ -27,7 +27,7 @@ class PermissionsController extends Controller
 
         $permissions = QueryBuilder::for(Permission::query())
             ->defaultSort('-created_at')
-            ->allowedSorts(['name'])
+            ->allowedSorts(['name','created_at'])
             ->allowedFilters(['name'])
             ->paginate($request->get('per_page'));
 

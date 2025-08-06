@@ -28,12 +28,12 @@ class RolesController extends Controller
      */
     public function index(Request $request): Response
     {
-        $this->authorize('viewAny', Role::class);
+        $this->authorize('view', Role::class);
 
         $roles = QueryBuilder::for(Role::query())
             ->defaultSort('-created_at')
             ->allowedFilters('name')
-            ->allowedSorts(['name'])
+            ->allowedSorts(['name','created_at'])
             ->paginate($request->get('per_page'));
 
         return ResponseBuilder::asSuccess()
@@ -46,7 +46,7 @@ class RolesController extends Controller
 
     public function show(Role $role): Response
     {
-        $this->authorize('view', Role::class);
+        $this->authorize('viewAny', Role::class);
 
         return ResponseBuilder::asSuccess()
             ->withData($role)
