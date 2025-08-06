@@ -38,10 +38,10 @@ Route::prefix('V1')->group(function () {
         ->group(function () {
             Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])
                 ->name('auth.logout');
-            Route::get('/email/verify', [VerificationController::class, 'verify'])
-                ->middleware('signed','throttle:6,1')->name('auth.verification.verify');
             Route::post('/email/resend-verification', [VerificationController::class, 'resend'])
                 ->middleware('throttle:6,1')->name('auth.verification.resend');
+            Route::get('/email/verify', [VerificationController::class, 'verify'])
+                ->middleware('signed','throttle:6,1')->name('auth.verification.verify');
             Route::post('/change-password', [App\Http\Controllers\Auth\PasswordController::class, 'changePassword'])
                 ->middleware('isActive','verified','isLocked')->name('auth.change-password');
             Route::prefix('2fa')->middleware(['verified','isActive','isLocked','passwordResetNeeded'])->group(function () {
