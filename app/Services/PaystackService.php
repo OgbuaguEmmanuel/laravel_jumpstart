@@ -9,11 +9,11 @@ use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Models\Activity;
 
 class PaystackService implements PaymentGatewayInterface
 {
@@ -27,7 +27,7 @@ class PaystackService implements PaymentGatewayInterface
         $this->secret = config('payment.paystack.secret');
     }
 
-    public function initialize(PaymentPayload $payload): array
+    public function initialize(PaymentPayload $payload, User $user): array
     {
         try {
             $response = Http::withToken($this->secret)
@@ -51,9 +51,30 @@ class PaystackService implements PaymentGatewayInterface
 
             $message = $e->response?->json('message') ?? 'Unable to initialize payment.';
             $status = $e->response?->status() ?? 400;
+
+            activity()->causedBy($user)
+                ->withProperties([
+                    'ip' => request()->ip(),
+                    'email' => $user->email,
+                    'amount' => $payload->amount,
+                    'currency' => $payload->currency ?? PaymentCurrencyEnum::NARIA,
+                    'url' => "{$this->baseUrl}/transaction/initialize",
+                ])
+                ->log($message);
+
             throw new HttpException($status, $message);
         } catch (\Throwable $e) {
             Log::critical('Unexpected payment init error', ['error' => $e]);
+            activity()->causedBy($user)
+                ->withProperties([
+                    'ip' => request()->ip(),
+                    'email' => $user->email,
+                    'amount' => $payload->amount,
+                    'currency' => $payload->currency ?? PaymentCurrencyEnum::NARIA,
+                    'url' => "{$this->baseUrl}/transaction/initialize",
+                    'exception' => $e
+                ])
+                ->log($e->getMessage());
             throw new HttpException(500, 'Something went wrong while initializing the payment.');
         }
     }
@@ -66,7 +87,7 @@ class PaystackService implements PaymentGatewayInterface
             $data = $response->throw()->json('data');
 
             $metaData = $data['metadata'];
-            Transaction::updateOrCreate(
+            $transaction = Transaction::updateOrCreate(
                 ['gateway_reference' => $reference],
                 [
                     'amount' => (float) ($data['amount'] / 100),
@@ -83,6 +104,16 @@ class PaystackService implements PaymentGatewayInterface
                     'gateway_response' => $data['gateway_response']
                 ]
             );
+
+            Activity::withProperties([
+                'reference' => $reference,
+                'status' => $data['status'],
+                'amount' => $data['amount'],
+                'user_id' => $metaData['user_id'],
+                'channel' => $data['channel'],
+                'gateway_response' => $data['gateway_response']
+            ])->performedOn($transaction)
+            ->log('Paystack payment verified successfully');
 
             if ($data['status'] !== self::SUCCESS) {
                 $message = "Payment not successful: {$data['gateway_response']}";
@@ -101,6 +132,12 @@ class PaystackService implements PaymentGatewayInterface
                 'metadata' => $metaData,
             ];
         } catch (HttpException $e) {
+            Activity::withProperties([
+                'reference' => $reference,
+                'message' => $e->getMessage(),
+                'status_code' => $e->getStatusCode()
+            ])->log('Payment verification failed (HttpException)');
+
             throw new HttpException($e->getStatusCode(), $e->getMessage());
         } catch (RequestException $e) {
             Log::error('Paystack Verification Error', [
@@ -109,9 +146,21 @@ class PaystackService implements PaymentGatewayInterface
             ]);
             $message = $e->response?->json('message') ?? 'Unable to verify payment.';
             $status = $e->response?->status() ?? 400;
+
+            Activity::withProperties([
+                'reference' => $reference,
+                'error' => $e->response?->json(),
+                'status_code' => $e->response?->status()
+            ])->log('Payment verification failed (RequestException)');
+
             throw new HttpException($status, $message);
         } catch (\Throwable $e) {
             Log::critical('Unexpected verify payment error', ['error' => $e]);
+            Activity::withProperties([
+                'reference' => $reference,
+                'exception' => $e->getMessage(),
+            ])->log('Unexpected error during payment verification');
+
             throw new HttpException(500, 'Something went wrong while veriying payment.');
         }
     }

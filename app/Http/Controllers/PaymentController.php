@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Illuminate\Support\Str;
+use Spatie\Activitylog\Facades\Activity;
 
 class PaymentController extends Controller
 {
@@ -40,7 +40,18 @@ class PaymentController extends Controller
                 ]
             );
 
-            $data = $this->gateway->initialize($dto);
+            $data = $this->gateway->initialize($dto, $user);
+
+            Activity::causedBy($user)
+                ->withProperties([
+                    'amount' => $request->validatedAmount(),
+                    'currency' => $request->validated('currency', PaymentCurrencyEnum::NARIA),
+                    'callback_url' => $request->validated('callbackUrl'),
+                    'reference' => $data['reference'],
+                    'authorization_url' => $data['authorization_url'],
+                    'access_code' => $data['access_code']
+                ])
+                ->log('Initialized a payment');
 
             return ResponseBuilder::asSuccess()
                 ->withMessage('Payment initialized')
@@ -58,6 +69,14 @@ class PaymentController extends Controller
         try {
             $data = $this->gateway->verify($request->validated('reference'));
 
+            Activity::causedBy(Auth::user())
+                ->withProperties([
+                    'reference' => $request->validated('reference'),
+                    'status' => $data['status'],
+                    'channel' => $data['channel']
+                ])
+                ->log('Verified a payment');
+
             return ResponseBuilder::asSuccess()
                 ->withMessage('Payment verified successfully')
                 ->withData($data)
@@ -74,6 +93,11 @@ class PaymentController extends Controller
         $payload = $request->getContent();
 
         if (! PaystackService::verifyWebhook($request, $payload)) {
+            Activity::withProperties([
+                'ip' => $request->ip(),
+                'payload' => $payload,
+            ])->log('Rejected webhook due to invalid Paystack signature');
+
             return response('Invalid signature', 403);
         }
 
@@ -86,6 +110,12 @@ class PaymentController extends Controller
             'payment_gateway' => $gateway,
             'log' => $payload,
         ]);
+
+        Activity::withProperties([
+            'gateway' => $gateway,
+            'payload' => json_decode($payload, true),
+            'ip' => request()->ip(),
+        ])->log("Received webhook from {$gateway}");
 
         return response('Webhook received and processed.', 200);
     }
