@@ -102,6 +102,14 @@ class ActivityLogController extends Controller
                 ->withMessage($e->getMessage())
                 ->withData($e->errors())
                 ->build();
+        } catch (AuthorizationException $e) {
+            Log::error('Error fetching activity logs: ' . $e->getMessage(), ['exception' => $e, 'user_id' => $user->id ?? 'guest']);
+
+            return ResponseBuilder::asError(Response::HTTP_FORBIDDEN)
+                ->withHttpCode(Response::HTTP_FORBIDDEN)
+                ->withMessage($e->getMessage())
+                ->build();
+
         } catch (\Exception $e) {
             Log::error('Error fetching activity logs: ' . $e->getMessage(), ['exception' => $e, 'user_id' => $user->id ?? 'guest']);
 
