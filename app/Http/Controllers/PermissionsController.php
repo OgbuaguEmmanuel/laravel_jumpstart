@@ -23,7 +23,7 @@ class PermissionsController extends Controller
 
     public function index(Request $request): Response
     {
-        $this->authorize('viewAny', Permission::class);
+        $this->authorize('view', Permission::class);
 
         $permissions = QueryBuilder::for(Permission::query())
             ->defaultSort('-created_at')
@@ -68,6 +68,16 @@ class PermissionsController extends Controller
             ->withData([
                 'permission' => $permission
             ])
+            ->build();
+    }
+
+    public function show(Permission $permission)
+    {
+        $this->authorize('viewAny', Permission::class);
+
+        return ResponseBuilder::asSuccess()
+            ->withData($permission)
+            ->withMessage('Permission retrived')
             ->build();
     }
 
@@ -137,12 +147,12 @@ class PermissionsController extends Controller
             ->withHttpCode(Response::HTTP_CREATED)
             ->withMessage('Permission successfully assigned to user!!!')
             ->withData([
-                'user' => $user->permissions->pluck('name')->toArray()
+                'user_permission(s)' => $user->permissions->pluck('name')->toArray()
             ])
             ->build();
     }
 
-    public function removePermissionsToUser(RevokePermissionFromUserRequest $request, User $user)
+    public function revokePermissionsToUser(RevokePermissionFromUserRequest $request, User $user)
     {
         $ipAddress = request()->ip();
 

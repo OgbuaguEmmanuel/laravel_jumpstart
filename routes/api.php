@@ -56,27 +56,10 @@ Route::prefix('V1')->group(function () {
             });
         });
 
-    Route::prefix('/notifications')->middleware('auth:api', 'isActive','isLocked', 'verified','passwordResetNeeded')
-        ->group(function (): void {
-            Route::get('/all', [NotificationController::class, 'index'])
-                ->name('notification.all');
-            Route::get('/read', [NotificationController::class, 'read'])
-                ->name('notification.read');
-            Route::get('/unread', [NotificationController::class, 'unread'])
-                ->name('notification.unread');
-            Route::get('/{notification}/view', [NotificationController::class, 'view'])
-                ->name('notification.view');
-            Route::post('/{notification}/unread', [NotificationController::class, 'markUnread'])
-                ->name('notification.markunread');
-            Route::post('/{notification}/read', [NotificationController::class, 'markRead'])
-                ->name('notification.markread');
-            Route::post('/{notification}/delete', [NotificationController::class, 'destroy'])
-                ->name('notification.delete');
-        });
 
     Route::middleware(['auth:api','verified', 'isActive','isLocked','passwordResetNeeded'])->prefix('admin')
         ->group( function() {
-            Route::apiResource('/permissions', PermissionsController::class)->only('index', 'store');
+            Route::apiResource('/permissions', PermissionsController::class)->except('destroy');
             Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser'])
                 ->name('permission.user.assign');
             Route::post('users/{user}/revoke-permissions', [PermissionsController::class, 'revokePermissionsToUser'])
@@ -107,6 +90,7 @@ Route::prefix('V1')->group(function () {
                 ->name('profile.upload');
         });
 
+
     Route::middleware('auth:api')->prefix('payment')->group(function () {
         Route::post('init', [PaymentController::class, 'initialize'])->name('payment.init');
         Route::post('confirm', [PaymentController::class, 'confirm'])->name('payment.verify');
@@ -114,5 +98,23 @@ Route::prefix('V1')->group(function () {
 
     Route::post('/payment/paystack/webhook', [PaymentController::class, 'paystackWebhook'])
         ->middleware('guest')->name('payment.paystack.webhook');
+
+    Route::prefix('/notifications')->middleware('auth:api', 'isActive','isLocked', 'verified','passwordResetNeeded')
+        ->group(function (): void {
+            Route::get('/all', [NotificationController::class, 'index'])
+                ->name('notification.all');
+            Route::get('/read', [NotificationController::class, 'read'])
+                ->name('notification.read');
+            Route::get('/unread', [NotificationController::class, 'unread'])
+                ->name('notification.unread');
+            Route::get('/{notification}/view', [NotificationController::class, 'view'])
+                ->name('notification.view');
+            Route::post('/{notification}/unread', [NotificationController::class, 'markUnread'])
+                ->name('notification.markunread');
+            Route::post('/{notification}/read', [NotificationController::class, 'markRead'])
+                ->name('notification.markread');
+            Route::post('/{notification}/delete', [NotificationController::class, 'destroy'])
+                ->name('notification.delete');
+        });
 
 });
