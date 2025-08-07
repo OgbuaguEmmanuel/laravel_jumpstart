@@ -24,17 +24,20 @@ class PaymentController extends Controller
     {
         try {
             $user = Auth::user();
+            $email = $user->email;
+            $userId = $user->id;
+            $amount = $request->validatedAmount();
+            $callbackUrl = $request->validated('callbackUrl');
+            $currency = $request->validated('currency') ?? PaymentCurrencyEnum::NARIA;
+
             $dto = new PaymentPayload(
-                $user->email,
-                $request->validatedAmount(),
-                $request->validated('currency', PaymentCurrencyEnum::NARIA),
-                $request->validated('callbackUrl'),
+                $email, $amount, $currency, $callbackUrl,
                 [
-                    'user_id' => $user->id,
-                    'transactionable_id' => $user->id,
+                    'user_id' => $userId,
+                    'transactionable_id' => $userId,
                     'transactionable_type' => get_class($user),
-                    'email' => $user->email,
-                    'first_name' =>$user->first_name,
+                    'email' => $email,
+                    'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
                     'purpose' => PaymentPurposeEnum::Registration
                 ]
@@ -44,9 +47,9 @@ class PaymentController extends Controller
 
             Activity::causedBy($user)
                 ->withProperties([
-                    'amount' => $request->validatedAmount(),
-                    'currency' => $request->validated('currency', PaymentCurrencyEnum::NARIA),
-                    'callback_url' => $request->validated('callbackUrl'),
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'callback_url' => $callbackUrl,
                     'reference' => $data['reference'],
                     'authorization_url' => $data['authorization_url'],
                     'access_code' => $data['access_code']
@@ -66,12 +69,13 @@ class PaymentController extends Controller
 
     public function confirm(VerifyPaymentRequest $request)
     {
+        $reference = $request->validated('reference');
         try {
-            $data = $this->gateway->verify($request->validated('reference'));
+            $data = $this->gateway->verify($reference);
 
             Activity::causedBy(Auth::user())
                 ->withProperties([
-                    'reference' => $request->validated('reference'),
+                    'reference' => $reference,
                     'status' => $data['status'],
                     'channel' => $data['channel']
                 ])
@@ -91,13 +95,17 @@ class PaymentController extends Controller
     public function paystackWebhook(Request $request)
     {
         $payload = $request->getContent();
-
+        logger($payload);
         if (! PaystackService::verifyWebhook($request, $payload)) {
             Activity::withProperties([
                 'ip' => $request->ip(),
                 'payload' => $payload,
             ])->log('Rejected webhook due to invalid Paystack signature');
 
+            return ResponseBuilder::asError(403)
+                ->withMessage('Invalid signature')
+                ->withHttpCode(403)
+                ->build();
             return response('Invalid signature', 403);
         }
 

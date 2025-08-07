@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Support\Str;
-use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Facades\Activity;
 
 class PaystackService implements PaymentGatewayInterface
 {

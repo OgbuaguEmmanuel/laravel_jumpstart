@@ -94,10 +94,10 @@ Route::prefix('V1')->group(function () {
     Route::middleware('auth:api')->prefix('payment')->group(function () {
         Route::post('init', [PaymentController::class, 'initialize'])->name('payment.init');
         Route::post('confirm', [PaymentController::class, 'confirm'])->name('payment.verify');
+        Route::post('paystack/webhook', [PaymentController::class, 'paystackWebhook'])
+            ->withoutMiddleware(['auth:api','verified', 'isActive','isLocked','passwordResetNeeded'])
+            ->middleware('guest')->name('payment.paystack.webhook');
     });
-
-    Route::post('/payment/paystack/webhook', [PaymentController::class, 'paystackWebhook'])
-        ->middleware('guest')->name('payment.paystack.webhook');
 
     Route::prefix('/notifications')->middleware('auth:api', 'isActive','isLocked', 'verified','passwordResetNeeded')
         ->group(function (): void {
