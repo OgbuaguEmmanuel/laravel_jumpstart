@@ -106,10 +106,9 @@ class PaymentController extends Controller
                 ->withMessage('Invalid signature')
                 ->withHttpCode(403)
                 ->build();
-            return response('Invalid signature', 403);
         }
 
-        $this->webhook($payload, 'paystack');
+        return $this->webhook($payload, 'paystack');
     }
 
     protected function webhook($payload, $gateway)
@@ -125,6 +124,9 @@ class PaymentController extends Controller
             'ip' => request()->ip(),
         ])->log("Received webhook from {$gateway}");
 
-        return response('Webhook received and processed.', 200);
+        return ResponseBuilder::asSuccess()
+            ->withHttpCode(200)
+            ->withMessage('Webhook received and processed.')
+            ->build();
     }
 }
