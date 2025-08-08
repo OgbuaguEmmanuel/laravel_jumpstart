@@ -30,12 +30,12 @@ class UserController extends Controller
      */
     public function index(Request $request): Response
     {
-        $this->authorize('viewAny', User::class);
+        $this->authorize('viewAny', [User::class, $request->user()]);
 
         $users = QueryBuilder::for(User::query())
             ->defaultSort('-created_at')
             ->allowedFilters('first_name','last_name','email','is_active')
-            ->allowedSorts(['first_name','last_name'])
+            ->allowedSorts(['first_name','last_name','created_at'])
             ->paginate($request->get('per_page'));
 
         return ResponseBuilder::asSuccess()
@@ -44,130 +44,16 @@ class UserController extends Controller
             ->build();
     }
 
-    public function lockedUsers(Request $request): Response
-    {
-        $this->authorize('viewLock', User::class);
-
-        $users = QueryBuilder::for(User::query()->isLocked())
-            ->defaultSort('-created_at')
-            ->allowedFilters('first_name','last_name','email')
-            ->allowedSorts(['first_name','last_name'])
-            ->paginate($request->get('per_page'));
-
-        return ResponseBuilder::asSuccess()
-            ->withData(['users' => $users])
-            ->withMessage('Locked users successfully fetched')
-            ->build();
-    }
-
     /**
      * Display the specified resource.
      */
     public function show(User $user)
     {
-        $this->authorize('view', User::class);
+        $this->authorize('viewAny', [User::class, $user]);
 
         return ResponseBuilder::asSuccess()
             ->withData(['user' => $user])
             ->withMessage('User fetched')
-            ->build();
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(DeleteUserRequest $request)
-    {
-        $this->authorize('delete', User::class);
-
-        $deletedCount = User::whereIn('id', $request->validated('ids'))->delete();
-
-        $message = $deletedCount === 1 ? 'User deleted successfully.'
-            : ($deletedCount > 1 ? 'Users deleted successfully.' : 'No users were deleted.');
-
-        activity()
-            ->inLog(ActivityLogTypeEnum::UserManagement)
-            ->causedBy(Auth::user())
-            ->withProperties([
-                'deleted_accounts' => $request->validated('ids'),
-                'deleted_by' => Auth::user()->email,
-                'ip_address' => request()->ip(),
-            ])
-            ->log($message);
-
-        return ResponseBuilder::asSuccess()
-            ->withMessage($message)
-            ->withHttpCode(Response::HTTP_OK)
-            ->build();
-    }
-
-    public function toggleUserStatus(User $user, ToggleUserRequest $request)
-    {
-        $this->authorize('toggleStatus', User::class);
-
-        $user->is_active = !$user->is_active;
-
-        $timestampField = $user->is_active ? 'activated_at' : 'deactivated_at';
-        $user->{$timestampField} = now();
-        $user->reason = $request->validated('reason');
-        $user->save();
-
-        $statusText = $user->is_active ? 'activated' : 'deactivated';
-
-        activity()
-            ->inLog(ActivityLogTypeEnum::UserManagement)
-            ->causedBy(Auth::user())
-            ->performedOn($user)
-            ->withProperties([
-                'status' => $statusText,
-                'toggled_by' => Auth::user()->email,
-                'ip_address' => request()->ip(),
-                'reason' => $user->reason
-            ])
-            ->log("User {$statusText} successfully.");
-
-        return ResponseBuilder::asSuccess()
-            ->withMessage("User {$statusText} successfully.")
-            ->withHttpCode(204)
-            ->build();
-    }
-
-    /**
-     * Unlock a user account.
-     *
-     * @param User $user The user to unlock
-     * @param UnlockUserAccountRequest $request The request for validation and authorization
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function unlockUser(User $user, UnlockUserAccountRequest $request): Response
-    {
-        $this->authorize('unlockUser', User::class);
-
-        if (!$user->isLocked()) {
-            return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
-                ->withMessage('User account is not currently locked.')
-                ->build();
-        }
-
-        $reason = $request->validated('reason') ?? ToggleStatusReasonEnum::ADMIN_ACTIVATION;
-        $user->unlockAccount($reason);
-
-        activity()
-            ->inLog(ActivityLogTypeEnum::UserManagement)
-            ->performedOn($user)
-            ->causedBy(Auth::user())
-            ->withProperties([
-                'user_id' => $user->id,
-                'user_email' => $user->email,
-                'unlocked_by' => Auth::user()->email,
-                'reason' => $reason,
-                'ip_address' => request()->ip(),
-            ])
-            ->log("User '{$user->email}' account unlocked by admin. Reason: {$reason}");
-
-        return ResponseBuilder::asSuccess()
-            ->withMessage("User account unlocked successfully.")
-            ->withHttpCode(Response::HTTP_OK)
             ->build();
     }
 
@@ -179,7 +65,7 @@ class UserController extends Controller
      */
     public function store(CreateUserRequest $request, CreateUserAction $action): Response
     {
-        $this->authorize('create', User::class);
+        $this->authorize('create', [User::class, request()->user()]);
 
         $userData = $request->validated();
         $userData['password'] = $this->generateRandomPassword();
@@ -221,4 +107,113 @@ class UserController extends Controller
             ->build();
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(DeleteUserRequest $request)
+    {
+        $deletedCount = User::whereIn('id', $request->validated('ids'))->delete();
+
+        $message = $deletedCount === 1 ? 'User deleted successfully.'
+            : ($deletedCount > 1 ? 'Users deleted successfully.' : 'No users were deleted.');
+
+        activity()
+            ->inLog(ActivityLogTypeEnum::UserManagement)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'deleted_accounts' => $request->validated('ids'),
+                'deleted_by' => Auth::user()->email,
+                'ip_address' => request()->ip(),
+            ])
+            ->log($message);
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage($message)
+            ->withHttpCode(Response::HTTP_OK)
+            ->build();
+    }
+
+    public function toggleUserStatus(User $user, ToggleUserRequest $request)
+    {
+        $user->is_active = !$user->is_active;
+
+        $timestampField = $user->is_active ? 'activated_at' : 'deactivated_at';
+        $user->{$timestampField} = now();
+        $user->reason = $request->validated('reason');
+        $user->save();
+
+        $statusText = $user->is_active ? 'activated' : 'deactivated';
+
+        activity()
+            ->inLog(ActivityLogTypeEnum::UserManagement)
+            ->causedBy(Auth::user())
+            ->performedOn($user)
+            ->withProperties([
+                'status' => $statusText,
+                'toggled_by' => Auth::user()->email,
+                'ip_address' => request()->ip(),
+                'reason' => $user->reason
+            ])
+            ->log("User {$statusText} successfully.");
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage("User {$statusText} successfully.")
+            ->withHttpCode(204)
+            ->build();
+    }
+
+    public function lockedUsers(Request $request): Response
+    {
+        $this->authorize('viewLock', [User::class, request()->user()]);
+
+        $users = QueryBuilder::for(User::query()->isLocked())
+            ->defaultSort('-created_at')
+            ->allowedFilters('first_name','last_name','email')
+            ->allowedSorts(['first_name','last_name'])
+            ->paginate($request->get('per_page'));
+
+        return ResponseBuilder::asSuccess()
+            ->withData(['users' => $users])
+            ->withMessage('Locked users successfully fetched')
+            ->build();
+    }
+
+    /**
+     * Unlock a user account.
+     *
+     * @param User $user The user to unlock
+     * @param UnlockUserAccountRequest $request The request for validation and authorization
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function unlockUser(User $user, UnlockUserAccountRequest $request): Response
+    {
+        $this->authorize('unlockUser', [User::class, request()->user()]);
+
+        if (!$user->isLocked()) {
+            return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
+                ->withMessage('User account is not currently locked.')
+                ->build();
+        }
+
+        $reason = $request->validated('reason') ?? ToggleStatusReasonEnum::ADMIN_ACTIVATION;
+        $user->unlockAccount($reason);
+
+        activity()
+            ->inLog(ActivityLogTypeEnum::UserManagement)
+            ->performedOn($user)
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'unlocked_by' => Auth::user()->email,
+                'reason' => $reason,
+                'ip_address' => request()->ip(),
+            ])
+            ->log("User '{$user->email}' account unlocked by admin. Reason: {$reason}");
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage("User account unlocked successfully.")
+            ->withHttpCode(Response::HTTP_OK)
+            ->build();
+    }
 }
