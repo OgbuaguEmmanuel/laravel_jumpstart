@@ -28,7 +28,7 @@ class RolesController extends Controller
      */
     public function index(Request $request): Response
     {
-        $this->authorize('view', Role::class);
+        $this->authorize('viewAny', [Role::class, $request->user()]);
 
         $roles = QueryBuilder::for(Role::query())
             ->defaultSort('-created_at')
@@ -46,7 +46,7 @@ class RolesController extends Controller
 
     public function show(Role $role): Response
     {
-        $this->authorize('viewAny', Role::class);
+        $this->authorize('view', [Role::class, request()->user()]);
 
         return ResponseBuilder::asSuccess()
             ->withData($role)
@@ -63,7 +63,7 @@ class RolesController extends Controller
     public function store(StoreRoleRequest $request): Response
     {
         $user = Auth::user();
-        $this->authorize('create', Role::class);
+        $this->authorize('create', [Role::class, $user]);
 
         $ipAddress = request()->ip();
 
@@ -94,7 +94,7 @@ class RolesController extends Controller
 
     public function update(UpdateRoleRequest $request, Role $role): Response
     {
-        $this->authorize('update', Role::class);
+        $this->authorize('update', [Role::class, request()->user()]);
         $ipAddress = request()->ip();
         $oldRoleName = $role->name;
 
@@ -241,7 +241,7 @@ class RolesController extends Controller
      */
     public function assignRole(User $user, Role $role): Response
     {
-        $this->authorize('assignRoleToUser', Role::class);
+        $this->authorize('assignRoleToUser', [Role::class, $user]);
 
         $ipAddress = request()->ip();
 
@@ -292,7 +292,7 @@ class RolesController extends Controller
      */
     public function removeRole(User $user, Role $role): Response
     {
-        $this->authorize('removeRoleFromUser', Role::class);
+        $this->authorize('removeRoleFromUser', [Role::class, $user]);
 
         $ipAddress = request()->ip();
 

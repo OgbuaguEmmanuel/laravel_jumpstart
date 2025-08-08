@@ -23,7 +23,7 @@ class PermissionsController extends Controller
 
     public function index(Request $request): Response
     {
-        $this->authorize('view', Permission::class);
+        $this->authorize('viewAny', [Permission::class, $request->user()]);
 
         $permissions = QueryBuilder::for(Permission::query())
             ->defaultSort('-created_at')
@@ -41,7 +41,7 @@ class PermissionsController extends Controller
 
     public function store(StorePermissionRequest $request): Response
     {
-        $this->authorize('create', Permission::class);
+        $this->authorize('create', [Permission::class, request()->user()]);
 
         $user = Auth::user();
         $ipAddress = request()->ip();
@@ -73,7 +73,7 @@ class PermissionsController extends Controller
 
     public function show(Permission $permission)
     {
-        $this->authorize('viewAny', Permission::class);
+        $this->authorize('view', [Permission::class, request()->user()]);
 
         return ResponseBuilder::asSuccess()
             ->withData($permission)
@@ -83,7 +83,8 @@ class PermissionsController extends Controller
 
     public function update(UpdatePermissionRequest $request, Permission $permission): Response
     {
-        $this->authorize('update', Permission::class);
+        $this->authorize('update', [Permission::class, request()->user()]);
+
         $ipAddress = request()->ip();
         $oldPermissionName = $permission->name;
 
