@@ -78,7 +78,10 @@ Route::prefix('V1')->group(function () {
             Route::get('/activities', [App\Http\Controllers\ActivityLogController::class, 'listActivities'])
                 ->name('activity.list');
 
-            Route::apiResource('users',UserController::class)->except('update');
+            Route::apiResource('users',UserController::class)->except('update','destroy');
+            Route::delete('users', [UserController::class, 'destroy'])
+                ->name('user.destroy');
+
             Route::post('users/{user}/unlock', [UserController::class, 'unlockUser'])
                 ->name('user.unlock');
             Route::post('users/{user}/toggleStatus', [UserController::class, 'toggleUserStatus'])

@@ -75,8 +75,7 @@ class UserController extends Controller
             $file = $request->file('profile_picture');
         }
 
-        $action->handle($request->validated(), $file);
-        $user = $action->handle($userData);
+        $user = $action->handle($userData, $file);
 
         if (!empty($userData['roles'])) {
             $roles = Role::whereIn('name', $userData['roles'])->get();
@@ -112,6 +111,8 @@ class UserController extends Controller
      */
     public function destroy(DeleteUserRequest $request)
     {
+        $this->authorize('delete', [User::class, request()->user()]);
+
         $deletedCount = User::whereIn('id', $request->validated('ids'))->delete();
 
         $message = $deletedCount === 1 ? 'User deleted successfully.'

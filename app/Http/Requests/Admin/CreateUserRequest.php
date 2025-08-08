@@ -22,7 +22,7 @@ class CreateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-             'first_name' => 'required|string|max:100|min:2',
+            'first_name' => 'required|string|max:100|min:2',
             'last_name' => 'required|string|max:100|min:2',
             'email' => 'required|string|email|max:255|unique:users',
             'phone_number' => [
@@ -31,8 +31,8 @@ class CreateUserRequest extends FormRequest
                 'unique:users',
                 'regex:/^(?:\+?234|0|234)?(70|80|91|90|81|71|070|080|091|090|081|071)\d{8}$/'
             ],
-            'role' => 'sometimes|array',
-            'role.*' => 'sometimes|exists:roles,name',
+            'roles' => 'sometimes|array',
+            'roles.*' => 'sometimes|exists:roles,name',
             'profile_picture' => 'nullable|file|mimes:jpeg,png|max:2048'
         ];
     }
