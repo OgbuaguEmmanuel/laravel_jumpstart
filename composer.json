@@ -10,7 +10,7 @@
         "bacon/bacon-qr-code": "^3.0",
         "bensampo/laravel-enum": "^6.12",
         "laravel/framework": "^12.0",
-        "laravel/passport": "*",
+        "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
         "marcin-orlowski/laravel-api-response-builder": "^12.1",
