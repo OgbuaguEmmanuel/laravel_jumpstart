@@ -91,14 +91,6 @@ test('user cannot login with invalid credentials', function () use ($url) {
 
 });
 
-beforeEach(function () {
-    Artisan::call('passport:client', [
-        '--personal' => true,
-        '--name' => 'Test Personal Access Client',
-        '--provider' => 'users',
-    ]);
-});
-
 test('user can login with valid credentials', function () use ($url) {
 
     $user = User::factory()->create([

@@ -10,7 +10,12 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolesController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::get('V1/user', function(Request $request ) {
+    return $request->user();
+})->middleware('auth:user');
 
 Route::prefix('V1')->group(function () {
     Route::prefix('auth')->middleware('guest')
@@ -34,7 +39,7 @@ Route::prefix('V1')->group(function () {
             });
         });
 
-    Route::prefix('auth')->middleware('auth:api')
+    Route::prefix('auth')->middleware('auth:user')
         ->group(function () {
             Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])
                 ->name('auth.logout');
@@ -57,7 +62,7 @@ Route::prefix('V1')->group(function () {
         });
 
 
-    Route::middleware(['auth:api','verified', 'isActive','isLocked','passwordResetNeeded'])->prefix('admin')
+    Route::middleware(['auth:user','verified', 'isActive','isLocked','passwordResetNeeded'])->prefix('admin')
         ->group( function() {
             Route::apiResource('/permissions', PermissionsController::class)->except('destroy');
             Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser'])
@@ -94,15 +99,15 @@ Route::prefix('V1')->group(function () {
         });
 
 
-    Route::middleware('auth:api')->prefix('payment')->group(function () {
+    Route::middleware('auth:user')->prefix('payment')->group(function () {
         Route::post('init', [PaymentController::class, 'initialize'])->name('payment.init');
         Route::post('confirm', [PaymentController::class, 'confirm'])->name('payment.verify');
         Route::post('paystack/webhook', [PaymentController::class, 'paystackWebhook'])
-            ->withoutMiddleware(['auth:api','verified', 'isActive','isLocked','passwordResetNeeded'])
+            ->withoutMiddleware(['auth:user','verified', 'isActive','isLocked','passwordResetNeeded'])
             ->middleware('guest')->name('payment.paystack.webhook');
     });
 
-    Route::prefix('/notifications')->middleware('auth:api', 'isActive','isLocked', 'verified','passwordResetNeeded')
+    Route::prefix('/notifications')->middleware('auth:user', 'isActive','isLocked', 'verified','passwordResetNeeded')
         ->group(function (): void {
             Route::get('/all', [NotificationController::class, 'index'])
                 ->name('notification.all');

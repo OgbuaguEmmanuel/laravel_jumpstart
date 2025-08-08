@@ -15,9 +15,7 @@ class IsUserActiveMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-
-        $user = auth('api')->user();
-
+        $user = auth('user')->user();
         if (!$user) {
             abort(Response::HTTP_FORBIDDEN, 'User not authenticated');
         }

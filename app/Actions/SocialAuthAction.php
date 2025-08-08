@@ -197,7 +197,7 @@ class SocialAuthAction
         }
 
         try {
-            $token = $user->createToken('SocialAuthToken')->accessToken;
+            $token = $user->createToken('SocialAuthToken')->plainTextToken;
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)

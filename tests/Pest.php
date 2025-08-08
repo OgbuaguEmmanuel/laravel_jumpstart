@@ -55,7 +55,7 @@ function createUserAndGenerateToken()
 
     $personalAccessTokenResult = $user->createToken('TestToken');
     return [
-        'token' => $personalAccessTokenResult->accessToken,
+        'token' => $personalAccessTokenResult->plainTextToken,
         'user' => $user
     ];
 }
@@ -69,7 +69,7 @@ function createUnverifiedUserAndGenerateToken()
 
     $personalAccessTokenResult = $user->createToken('TestToken');
     return [
-        'token' => $personalAccessTokenResult->accessToken,
+        'token' => $personalAccessTokenResult->plainTextToken,
         'user' => $user
     ];
 }

@@ -21,14 +21,6 @@ test('ensure user is authenticated', function () use ($url) {
     $response->assertStatus(401);
 });
 
-beforeEach(function () {
-    Artisan::call('passport:client', [
-        '--personal' => true,
-        '--name' => 'Test Personal Access Client',
-        '--provider' => 'users',
-    ]);
-});
-
 test('ensure current password is required', function () use ($url) {
     $rawToken = createUserAndGenerateToken()['token'];
 

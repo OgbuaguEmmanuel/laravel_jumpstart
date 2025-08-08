@@ -110,7 +110,7 @@ class LoginUserUsing2FAAction
         Cache::forget('2fa_challenge:' . $challengeKey);
 
         try {
-            $token = $user->createToken('UserAuthToken')->accessToken;
+            $token = $user->createToken('UserAuthToken')->plainTextToken;
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)

@@ -16,14 +16,6 @@ test('must be logged in to request email verification', function () use ($url) {
 
 });
 
-beforeEach(function () {
-    Artisan::call('passport:client', [
-        '--personal' => true,
-        '--name' => 'Test Personal Access Client',
-        '--provider' => 'users',
-    ]);
-});
-
 test('ensure callback url is present and valid', function () use ($url) {
     $data = createUserAndGenerateToken();
     $token = $data['token'];
