@@ -19,14 +19,6 @@ test('user must be logged in to logout', function () use ($url) {
     ]);
 });
 
-beforeEach(function () {
-    Artisan::call('passport:client', [
-        '--personal' => true,
-        '--name' => 'Test Personal Access Client',
-        '--provider' => 'users',
-    ]);
-});
-
 test('user can logout successfully', function () use ($url) {
     $rawToken = createUserAndGenerateToken()['token'];
     $response = $this->withHeaders([
