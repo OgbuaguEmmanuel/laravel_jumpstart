@@ -86,6 +86,8 @@ class UserController extends Controller
 
         $user->sendWelcomeNotification();
 
+        $user->profile_picture_url = $user->profilePicture();
+
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)
             ->performedOn($user)
