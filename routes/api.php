@@ -93,9 +93,9 @@ Route::prefix('V1')->group(function () {
             Route::post('users/{user}/toggleStatus', [UserController::class, 'toggleUserStatus'])
                 ->name('user.toggle_status');
 
-            Route::patch('profile/update', [ProfileController::class, 'update'])
+            Route::patch('profile/{user}/update', [ProfileController::class, 'update'])
                 ->name('profile.update');
-            Route::post('profile/upload', [ProfileController::class, 'uploadProfilePicture'])
+            Route::post('profile/{user}/upload', [ProfileController::class, 'uploadProfilePicture'])
                 ->name('profile.upload');
         });
 

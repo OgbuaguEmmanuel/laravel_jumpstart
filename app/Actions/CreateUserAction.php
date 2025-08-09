@@ -23,7 +23,18 @@ class CreateUserAction
         ]);
 
         if (!empty($data['profile_picture'])) {
-            $user->addMedia($file)->toMediaCollection(MediaTypeEnum::ProfilePicture);
+            $media = $user->addMedia($file)->toMediaCollection(MediaTypeEnum::ProfilePicture);
+
+            activity()
+                ->causedBy($user)
+                ->performedOn($media)
+                ->withProperties([
+                    'media_id' => $media->id,
+                    'file_name' => $media->file_name,
+                    'collection_name' => $media->collection_name,
+                    'mime_type' => $media->mime_type,
+                ])
+                ->log('Profile picture uploaded');
         }
 
         return $user;
