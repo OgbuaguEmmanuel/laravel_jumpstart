@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
 
             SuperAdminSeeder::class,
-            GeneratePassportClientForUserProvider::class
         ]);
     }
 }

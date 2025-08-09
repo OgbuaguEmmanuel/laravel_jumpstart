@@ -142,7 +142,12 @@ class LoginUserUsing2FAAction
         }
 
         $userDetails = $user->only('id', 'first_name', 'last_name', 'email');
+        $userDetails['profile_picture_url'] = $user->profilePicture();
+        $userDetails['roles'] = $user->roles()->select('id', 'name')
+            ->with(['permissions:id,name'])->get();
 
+        $userDetails['directPermissions'] = $user->permissions()->select('id', 'name')->get();
+        
         return [
             'token' => $token,
             'user' => $userDetails,
