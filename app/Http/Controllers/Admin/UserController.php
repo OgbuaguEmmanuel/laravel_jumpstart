@@ -138,11 +138,28 @@ class UserController extends Controller
 
     public function toggleUserStatus(User $user, ToggleUserRequest $request)
     {
+        if ($request->validated('action') === 'activate' && $user->is_active) {
+            return ResponseBuilder::asError(421)
+                ->withMessage('User is already active')
+                ->build();
+        }
+
+        if ($request->validated('action') === 'deactivate' && !$user->is_active) {
+            return ResponseBuilder::asError(421)
+                ->withMessage('User is already not active')
+                ->build();
+        }
+
         $user->is_active = !$user->is_active;
 
-        $timestampField = $user->is_active ? 'activated_at' : 'deactivated_at';
-        $user->{$timestampField} = now();
-        $user->reason = $request->validated('reason');
+        if ($user->is_active) {
+            $user->activated_at = now();
+            $user->deactivated_at = null;
+        } else {
+            $user->activated_at = null;
+            $user->deactivated_at = now();
+        } 
+        $user->status_reason = $request->validated('reason');
         $user->save();
 
         $statusText = $user->is_active ? 'activated' : 'deactivated';
@@ -155,13 +172,16 @@ class UserController extends Controller
                 'status' => $statusText,
                 'toggled_by' => Auth::user()->email,
                 'ip_address' => request()->ip(),
-                'reason' => $user->reason
+                'reason' => $user->status_reason
             ])
             ->log("User {$statusText} successfully.");
 
+        $user->refresh();
+
         return ResponseBuilder::asSuccess()
             ->withMessage("User {$statusText} successfully.")
-            ->withHttpCode(204)
+            ->withData($user)
+            ->withHttpCode(200)
             ->build();
     }
 
@@ -172,7 +192,7 @@ class UserController extends Controller
         $users = QueryBuilder::for(User::query()->isLocked())
             ->defaultSort('-created_at')
             ->allowedFilters('first_name','last_name','email')
-            ->allowedSorts(['first_name','last_name'])
+            ->allowedSorts(['first_name','last_name','created_at'])
             ->paginate($request->get('per_page'));
 
         return ResponseBuilder::asSuccess()

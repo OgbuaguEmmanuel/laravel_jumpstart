@@ -86,7 +86,8 @@ Route::prefix('V1')->group(function () {
             Route::apiResource('users',UserController::class)->except('update','destroy');
             Route::delete('users', [UserController::class, 'destroy'])
                 ->name('user.destroy');
-
+            Route::get('locked/users', [UserController::class, 'lockedUsers'])
+                ->name('users.locked');
             Route::post('users/{user}/unlock', [UserController::class, 'unlockUser'])
                 ->name('user.unlock');
             Route::post('users/{user}/toggleStatus', [UserController::class, 'toggleUserStatus'])
@@ -97,7 +98,6 @@ Route::prefix('V1')->group(function () {
             Route::post('profile/upload', [ProfileController::class, 'uploadProfilePicture'])
                 ->name('profile.upload');
         });
-
 
     Route::middleware('auth:user')->prefix('payment')->group(function () {
         Route::post('init', [PaymentController::class, 'initialize'])->name('payment.init');

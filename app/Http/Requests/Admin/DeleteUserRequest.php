@@ -28,17 +28,4 @@ class DeleteUserRequest extends FormRequest
             'ids.*' => 'required|exists:users,id'
         ];
     }
-
-    /**
-     * Handle a failed authorization attempt.
-     * Override this method to customize the response for unauthorized requests.
-     *
-     * @return void
-     *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
-     */
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Unauthorized to delete users.', 403);
-    }
 }

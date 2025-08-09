@@ -13,7 +13,7 @@ class UnlockUserAccountRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->hasPermissionTo(PermissionTypeEnum::unlockUsers);
+        return true;
 
     }
 
@@ -27,15 +27,5 @@ class UnlockUserAccountRequest extends FormRequest
         return [
             'reason' => 'nullable|string|max:255',
         ];
-    }
-
-    /**
-     * Handle a failed authorization attempt.
-     *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
-     */
-    protected function failedAuthorization()
-    {
-        throw new AuthorizationException('Unauthorized to unlock user accounts.', 403);
     }
 }
