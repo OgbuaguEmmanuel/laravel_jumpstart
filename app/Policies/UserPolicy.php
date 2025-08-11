@@ -72,7 +72,7 @@ class UserPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, User $model): Response
+    public function delete(User $user): Response
     {
         return $user->hasPermissionTo(PermissionTypeEnum::deleteUsers)
             ? Response::allow()
@@ -86,7 +86,7 @@ class UserPolicy
     {
         return $user->id == $model->id
             ? Response::allow()
-            : Response::deny('Unauthorized to update someone else\'s profile.', 403);
+            : Response::deny('Unauthorized to upload profile image for someone.', 403);
     }
 
     /**

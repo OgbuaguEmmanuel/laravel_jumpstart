@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Actions\CreateUserAction;
 use App\Enums\ActivityLogTypeEnum;
+use App\Enums\NotificationTypeEnum;
 use App\Enums\ToggleStatusReasonEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreateUserRequest;
@@ -12,6 +13,7 @@ use App\Http\Requests\Admin\ToggleUserRequest;
 use App\Http\Requests\Admin\UnlockUserAccountRequest;
 use App\Models\User;
 use App\Traits\AuthHelpers;
+use App\Traits\Helper;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
-    use AuthHelpers;
+    use AuthHelpers, Helper;
     use AuthorizesRequests;
 
     /**
@@ -30,7 +32,7 @@ class UserController extends Controller
      */
     public function index(Request $request): Response
     {
-        $this->authorize('viewAny', [User::class, $request->user()]);
+        $this->authorize('viewAny', User::class);
 
         $users = QueryBuilder::for(User::query())
             ->defaultSort('-created_at')
@@ -49,7 +51,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $this->authorize('viewAny', [User::class, $user]);
+        $this->authorize('viewAny', User::class);
 
         return ResponseBuilder::asSuccess()
             ->withData(['user' => $user])
@@ -65,7 +67,7 @@ class UserController extends Controller
      */
     public function store(CreateUserRequest $request, CreateUserAction $action): Response
     {
-        $this->authorize('create', [User::class, request()->user()]);
+        $this->authorize('create', User::class);
 
         $userData = $request->validated();
         $userData['password'] = $this->generateRandomPassword();
@@ -85,6 +87,23 @@ class UserController extends Controller
         $user->forcePasswordReset();
 
         $user->sendWelcomeNotification();
+
+        $logUser = Auth::user();
+        $this->createNotification($logUser, NotificationTypeEnum::NewUserCreated,
+            'Created New User',
+            "User with email $logUser->email created a new user with email $user->email",
+            [
+                'email' => $user->email, 'first_name' => $user->first_name, 'last_name' => $user->last_name
+            ]
+        );
+
+        $this->createNotification($user, NotificationTypeEnum::NewUserCreated,
+            'You have been created',
+            "You were created by admin with email $logUser->email",
+            [
+                'email' => $logUser->email, 'first_name' => $logUser->first_name, 'last_name' => $logUser->last_name
+            ]
+        );
 
         $user->profile_picture_url = $user->profilePicture();
 
@@ -113,19 +132,27 @@ class UserController extends Controller
      */
     public function destroy(DeleteUserRequest $request)
     {
-        $this->authorize('delete', [User::class, request()->user()]);
-
-        $deletedCount = User::whereIn('id', $request->validated('ids'))->delete();
+        $this->authorize('delete', User::class);
+        $ids = $request->validated('ids');
+        $deletedCount = User::whereIn('id', $ids)->delete();
 
         $message = $deletedCount === 1 ? 'User deleted successfully.'
             : ($deletedCount > 1 ? 'Users deleted successfully.' : 'No users were deleted.');
 
+        $loggedInUser = Auth::user();
+        $this->createNotification($loggedInUser, NotificationTypeEnum::DeletedUserAccount,
+            'You soft deleted these accounts', "You have successfully deleted the account with the following ids: " . implode(',', $ids),
+            [
+                "ids deleted" => $ids
+            ]
+        );
+
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)
-            ->causedBy(Auth::user())
+            ->causedBy($loggedInUser)
             ->withProperties([
                 'deleted_accounts' => $request->validated('ids'),
-                'deleted_by' => Auth::user()->email,
+                'deleted_by' => $loggedInUser->email,
                 'ip_address' => request()->ip(),
             ])
             ->log($message);
@@ -158,11 +185,20 @@ class UserController extends Controller
         } else {
             $user->activated_at = null;
             $user->deactivated_at = now();
-        } 
+        }
         $user->status_reason = $request->validated('reason');
         $user->save();
 
         $statusText = $user->is_active ? 'activated' : 'deactivated';
+
+        $logUser = Auth::user();
+        $this->createNotification($logUser, NotificationTypeEnum::ToggleUserStatus,
+            'Toggle User Account Status',
+            "User with email $logUser->email toggled a user with email $user->email status to $user->is_active",
+            [
+                'email' => $user->email, 'first_name' => $user->first_name, 'last_name' => $user->last_name
+            ]
+        );
 
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)
@@ -187,7 +223,7 @@ class UserController extends Controller
 
     public function lockedUsers(Request $request): Response
     {
-        $this->authorize('viewLock', [User::class, request()->user()]);
+        $this->authorize('viewLock', User::class);
 
         $users = QueryBuilder::for(User::query()->isLocked())
             ->defaultSort('-created_at')
@@ -210,7 +246,7 @@ class UserController extends Controller
      */
     public function unlockUser(User $user, UnlockUserAccountRequest $request): Response
     {
-        $this->authorize('unlockUser', [User::class, request()->user()]);
+        $this->authorize('unlockUser', User::class);
 
         if (!$user->isLocked()) {
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
@@ -220,6 +256,15 @@ class UserController extends Controller
 
         $reason = $request->validated('reason') ?? ToggleStatusReasonEnum::ADMIN_ACTIVATION;
         $user->unlockAccount($reason);
+
+        $logUser = Auth::user();
+        $this->createNotification($logUser, NotificationTypeEnum::UnlockedUserAccount,
+            'Unlock User Account Status',
+            "User with email $logUser->email unlocked a user with email $user->email ",
+            [
+                'email' => $user->email, 'first_name' => $user->first_name, 'last_name' => $user->last_name
+            ]
+        );
 
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)

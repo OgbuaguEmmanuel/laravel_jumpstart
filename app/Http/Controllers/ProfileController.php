@@ -19,7 +19,7 @@ class ProfileController extends Controller
      */
     public function update(UpdateUserProfile $request, User $user)
     {
-        $this->authorize('update', [User::class, $user, Auth::user()]);
+        $this->authorize('update', $user);
 
         $user->update($request->validated());
         $user->refresh();
@@ -33,7 +33,7 @@ class ProfileController extends Controller
 
     public function uploadProfilePicture(ProfileUploadRequest $request, User $user)
     {
-        $this->authorize('uploadProfileImage', [User::class, $user, Auth::user()]);
+        $this->authorize('uploadProfileImage', $user);
 
         $media = $user->addMedia($request->file('profile_image'))
             ->toMediaCollection(MediaTypeEnum::ProfilePicture);

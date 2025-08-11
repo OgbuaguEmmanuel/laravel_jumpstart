@@ -5,7 +5,6 @@ namespace App\Policies;
 use App\Enums\PermissionTypeEnum;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
-use Spatie\Permission\Models\Role;
 
 class RolePolicy
 {
