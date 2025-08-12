@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Actions\CreateUserAction;
 use App\Enums\ActivityLogTypeEnum;
-use App\Enums\NotificationTypeEnum;
 use App\Enums\ToggleStatusReasonEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreateUserRequest;
@@ -13,6 +12,7 @@ use App\Http\Requests\Admin\ToggleUserRequest;
 use App\Http\Requests\Admin\UnlockUserAccountRequest;
 use App\Models\User;
 use App\Notifications\UserAccountDeletedNotification;
+use App\Notifications\UserStatusToggledNotification;
 use App\Traits\AuthHelpers;
 use App\Traits\Helper;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -175,6 +175,7 @@ class UserController extends Controller
         $user->save();
 
         $statusText = $user->is_active ? 'activated' : 'deactivated';
+        $admin = Auth::user();
 
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)
@@ -189,6 +190,9 @@ class UserController extends Controller
             ->log("User {$statusText} successfully.");
 
         $user->refresh();
+
+        $user->notify(new UserStatusToggledNotification($user, $admin, $statusText, $user->status_reason));
+        $admin->notify(new UserStatusToggledNotification($user, $admin, $statusText, $user->status_reason));
 
         return ResponseBuilder::asSuccess()
             ->withMessage("User {$statusText} successfully.")
