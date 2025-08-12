@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\ActivityLogTypeEnum;
+use App\Notifications\LoginAlertNotification;
 use App\Traits\AuthHelpers;
 use Exception;
 use Illuminate\Support\Facades\Cache;
@@ -147,7 +148,11 @@ class LoginUserUsing2FAAction
             ->with(['permissions:id,name'])->get();
 
         $userDetails['directPermissions'] = $user->permissions()->select('id', 'name')->get();
-        
+
+        $user->notify(new LoginAlertNotification(
+                request()->ip(), request()->userAgent(), now()->toDateTimeString())
+            );
+
         return [
             'token' => $token,
             'user' => $userDetails,

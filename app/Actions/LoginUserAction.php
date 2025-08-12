@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\ActivityLogTypeEnum;
+use App\Notifications\LoginAlertNotification;
 use App\Notifications\VerifyEmailNotification;
 use App\Traits\AuthHelpers;
 use Exception;
@@ -178,6 +179,10 @@ class LoginUserAction
                 'status' => Response::HTTP_PARTIAL_CONTENT
             ];
         } else {
+            $user->notify(new LoginAlertNotification(
+                request()->ip(), request()->userAgent(), now()->toDateTimeString())
+            );
+            
             return [
                 'token' => $token,
                 'user' => $userDetails,
