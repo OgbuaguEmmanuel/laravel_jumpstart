@@ -6,11 +6,10 @@ use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 
-class VerifyEmailNotification extends Notification implements ShouldQueue
+class VerifyEmailNotification extends BaseNotification implements ShouldQueue
 {
     use Queueable;
 
@@ -39,7 +38,7 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
      */
     public function via(): array
     {
-        return ['mail'];
+        return ['mail','database'];
     }
 
     /**
@@ -58,6 +57,18 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
             ->line('Please click the button below to verify your email address.')
             ->action('Verify Email Address', $verificationUrl)
             ->line('If you did not create an account, no further action is required.');
+    }
+
+      public function toDatabase($notifiable): array
+    {
+        return $this->formatData(
+            'Verify Email Address',
+            'Please verify your email address by clicking the link we sent you.',
+            [
+                'verification_url' => $this->verificationUrl($notifiable),
+                'callbackUrl' => $this->callbackUrl,
+            ]
+        );
     }
 
     /**
@@ -91,4 +102,5 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
 
         return "{$this->callbackUrl}?{$parameters}";
     }
+
 }

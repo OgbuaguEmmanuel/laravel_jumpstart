@@ -88,23 +88,6 @@ class UserController extends Controller
 
         $user->sendWelcomeNotification();
 
-        $logUser = Auth::user();
-        $this->createNotification($logUser, NotificationTypeEnum::NewUserCreated,
-            'Created New User',
-            "User with email $logUser->email created a new user with email $user->email",
-            [
-                'email' => $user->email, 'first_name' => $user->first_name, 'last_name' => $user->last_name
-            ]
-        );
-
-        $this->createNotification($user, NotificationTypeEnum::NewUserCreated,
-            'You have been created',
-            "You were created by admin with email $logUser->email",
-            [
-                'email' => $logUser->email, 'first_name' => $logUser->first_name, 'last_name' => $logUser->last_name
-            ]
-        );
-
         $user->profile_picture_url = $user->profilePicture();
 
         activity()
@@ -140,13 +123,6 @@ class UserController extends Controller
             : ($deletedCount > 1 ? 'Users deleted successfully.' : 'No users were deleted.');
 
         $loggedInUser = Auth::user();
-        $this->createNotification($loggedInUser, NotificationTypeEnum::DeletedUserAccount,
-            'You soft deleted these accounts', "You have successfully deleted the account with the following ids: " . implode(',', $ids),
-            [
-                "ids deleted" => $ids
-            ]
-        );
-
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)
             ->causedBy($loggedInUser)
@@ -190,15 +166,6 @@ class UserController extends Controller
         $user->save();
 
         $statusText = $user->is_active ? 'activated' : 'deactivated';
-
-        $logUser = Auth::user();
-        $this->createNotification($logUser, NotificationTypeEnum::ToggleUserStatus,
-            'Toggle User Account Status',
-            "User with email $logUser->email toggled a user with email $user->email status to $user->is_active",
-            [
-                'email' => $user->email, 'first_name' => $user->first_name, 'last_name' => $user->last_name
-            ]
-        );
 
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)
@@ -256,15 +223,6 @@ class UserController extends Controller
 
         $reason = $request->validated('reason') ?? ToggleStatusReasonEnum::ADMIN_ACTIVATION;
         $user->unlockAccount($reason);
-
-        $logUser = Auth::user();
-        $this->createNotification($logUser, NotificationTypeEnum::UnlockedUserAccount,
-            'Unlock User Account Status',
-            "User with email $logUser->email unlocked a user with email $user->email ",
-            [
-                'email' => $user->email, 'first_name' => $user->first_name, 'last_name' => $user->last_name
-            ]
-        );
 
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)

@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Enums\PaymentGatewayEnum;
 use App\Interfaces\PaymentGatewayInterface;
-use App\Models\Notification;
 use App\Models\User;
 use App\Policies\NotificationPolicy;
 use App\Policies\PermissionPolicy;
@@ -14,6 +13,7 @@ use App\Services\PaypalService;
 use App\Services\PaystackService;
 use App\Services\StripeService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -52,6 +52,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Permission::class, PermissionPolicy::class);
-        Gate::policy(Notification::class, NotificationPolicy::class);
+        Gate::policy(DatabaseNotification::class, NotificationPolicy::class);
     }
 }

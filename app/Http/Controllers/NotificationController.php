@@ -7,10 +7,13 @@ use App\Http\Resources\NotificationResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -18,38 +21,37 @@ class NotificationController extends Controller
         return
             NotificationResource::collection(
                 $user->notifications()
-                    ->when($request->get('start_date', null), function (Builder $query) {
-                        return $query->where('created_at', '>', Carbon::parse(request()->get('start_date')));
+                    ->when($request->filled('start_date'), function (Builder $query) use ($request) {
+                        $startDate = Carbon::parse($request->get('start_date'))->startOfDay();
+                        $query->where('created_at', '>=', $startDate);
                     })
-                    ->when($request->get('end_date'), function (Builder $query) {
-                        return $query->where('created_at', '<', Carbon::parse(request()->get('end_date')));
+                    ->when($request->filled('end_date'), function (Builder $query) use ($request) {
+                        $endDate = Carbon::parse($request->get('end_date'))->endOfDay();
+                        $query->where('created_at', '<=', $endDate);
                     })
-                    ->when($request->get('type'), function (Builder $query) {
-                        return $query->where('data->type', request()->get('type'));
+                    ->when($request->filled('type'), function (Builder $query) use ($request) {
+                        $query->where('type', $request->get('type'));
                     })
                     ->paginate(15)
-            )
-            ->additional(['unread' => $user->unreadNotifications()->count()]);
+            )->additional(['unread' => $user->unreadNotifications()->count()]);
     }
 
     public function read(Request $request)
     {
-        $user = $request->user();
-
         return
             NotificationResource::collection(
-                $user->readNotifications()
-                    ->when($request->get('start_date', null), function (Builder $query) {
-                        return $query
-                            ->where('created_at', '>', Carbon::parse(request()->get('start_date')));
+                $request->user()->readNotifications()
+                    ->when($request->filled('start_date'), function (Builder $query) use ($request) {
+                        $startDate = Carbon::parse($request->get('start_date'))->startOfDay();
+                        $query->where('created_at', '>=', $startDate);
                     })
-                    ->when($request->get('end_date'), function (Builder $query) {
-                        return $query
-                            ->where('created_at', '<', Carbon::parse(request()->get('end_date')));
+                    ->when($request->filled('end_date'), function (Builder $query) use ($request) {
+                        $endDate = Carbon::parse($request->get('end_date'))->endOfDay();
+                        $query->where('created_at', '<=', $endDate);
                     })
                     ->when($request->get('type'), function (Builder $query) {
                         return $query
-                            ->where('data->type', request()->get('type'));
+                            ->where('type', request()->get('type'));
                     })
                     ->paginate(15)
             );
@@ -57,60 +59,57 @@ class NotificationController extends Controller
 
     public function unread(Request $request)
     {
-        $user = $request->user();
-
         return
             NotificationResource::collection(
-                $user->unreadNotifications()
-                    ->when($request->get('start_date', null), function (Builder $query) {
-                        return $query
-                            ->where('created_at', '>', Carbon::parse(request()->get('start_date')));
+                $request->user()->unreadNotifications()
+                    ->when($request->filled('start_date'), function (Builder $query) use ($request) {
+                        $startDate = Carbon::parse($request->get('start_date'))->startOfDay();
+                        $query->where('created_at', '>=', $startDate);
                     })
-                    ->when($request->get('end_date'), function (Builder $query) {
-                        return $query
-                            ->where('created_at', '<', Carbon::parse(request()->get('end_date')));
+                    ->when($request->filled('end_date'), function (Builder $query) use ($request) {
+                        $endDate = Carbon::parse($request->get('end_date'))->endOfDay();
+                        $query->where('created_at', '<=', $endDate);
                     })
                     ->when($request->get('type'), function (Builder $query) {
                         return $query
-                            ->where('data->type', request()->get('type'));
+                            ->where('type', request()->get('type'));
                     })
                     ->paginate(15)
             );
     }
 
-    public function markRead(Request $request)
+    public function markRead(DatabaseNotification $notification)
     {
-        $notification = DatabaseNotification::findOrFail($request->route('notification'));
+        $this->authorize('markRead', $notification);
 
         return tap(response()->noContent(), function () use ($notification) {
             $notification->markAsRead();
-            $notification->update(['read' => true]);
         });
     }
 
-    public function markUnread(Request $request)
+    public function markUnread(DatabaseNotification $notification)
     {
-        $notification = DatabaseNotification::findOrFail($request->route('notification'));
+        $this->authorize('markUnread', $notification);
 
         return tap(response()->noContent(), function () use ($notification) {
             $notification->markAsUnread();
-            $notification->update(['read' => false]);
         });
     }
 
-    public function view(Request $request)
+    public function view(DatabaseNotification $notification)
     {
-        $notification = DatabaseNotification::findOrFail($request->route('notification'));
+        $this->authorize('view', $notification);
 
         return NotificationResource::make($notification);
     }
 
-    public function destroy(Request $request)
+    public function destroy(DatabaseNotification $notification)
     {
-        $notification = DatabaseNotification::findOrFail($request->route('notification'));
+        $this->authorize('destroy', $notification);
 
         return tap(response()->noContent(), function () use ($notification) {
             $notification->delete();
         });
     }
+
 }

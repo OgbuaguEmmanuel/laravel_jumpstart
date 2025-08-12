@@ -5,10 +5,9 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Lang;
 
-class ResetPasswordNotification extends Notification implements ShouldQueue
+class ResetPasswordNotification extends BaseNotification implements ShouldQueue
 {
     use Queueable;
 
@@ -39,7 +38,7 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
      */
     public function via(): array
     {
-        return ['mail'];
+        return ['mail','database'];
     }
 
     /**
@@ -86,5 +85,17 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
             'callbackUrl' => $this->callbackUrl,
             'token' => $this->token,
         ];
+    }
+
+    public function toDatabase($notifiable)
+    {
+        return $this->formatData(
+            'Password Reset Request',
+            'You requested a password reset. Click the link to proceed.',
+            [
+                'callbackUrl' => $this->callbackUrl,
+                'token' => $this->token,
+            ]
+        );
     }
 }

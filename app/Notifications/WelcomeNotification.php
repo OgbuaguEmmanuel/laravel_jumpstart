@@ -5,10 +5,9 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Lang;
 
-class WelcomeNotification extends Notification implements ShouldQueue
+class WelcomeNotification extends BaseNotification implements ShouldQueue
 {
     use Queueable;
 
@@ -42,7 +41,7 @@ class WelcomeNotification extends Notification implements ShouldQueue
      */
     public function via(): array
     {
-        return ['mail'];
+        return ['mail','database'];
     }
 
     /**
@@ -67,6 +66,18 @@ class WelcomeNotification extends Notification implements ShouldQueue
             ->action($appName . ' Reset Password', $this->getResetPasswordUrl());
     }
 
+    public function toDatabase($notifiable): array
+    {
+        return $this->formatData(
+            'Welcome to ' . config('app.name'),
+            'An account has been created for you. Please reset your password to start using the platform.',
+            [
+                'callbackUrl' => $this->callbackUrl,
+                'token' => $this->token,
+            ]
+        );
+    }
+    
     /**
      * Get the reset URL for the given notifiable.
      *
