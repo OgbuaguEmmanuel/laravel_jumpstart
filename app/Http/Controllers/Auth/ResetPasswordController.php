@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Notifications\PasswordResetSuccessNotification;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Contracts\Auth\Guard;
@@ -87,6 +88,8 @@ class ResetPasswordController extends Controller
                         'action_type' => 'Password Reset Successful'
                     ])
                     ->log('User password reset successfully.');
+
+                $user->notify(new PasswordResetSuccessNotification(config('frontend.login_url')));
             }
         );
 
