@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
+use App\Notifications\PasswordChangedNotification;
 use Illuminate\Support\Facades\Hash;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 
@@ -28,6 +29,8 @@ class PasswordController extends Controller
 
         $user->password = Hash::make($request->validated('new_password'));
         $user->save();
+
+        $user->notify(new PasswordChangedNotification(request()->ip(), now()->toDateTimeString()));
 
         activity()
             ->inLog(ActivityLogTypeEnum::ChangePassword)
