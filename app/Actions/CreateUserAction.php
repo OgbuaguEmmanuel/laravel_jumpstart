@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Enums\MediaTypeEnum;
 use App\Models\User;
+use App\Notifications\WelcomeUserNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 
@@ -37,6 +38,8 @@ class CreateUserAction
                 ->log('Profile picture uploaded');
         }
 
+        $user->notify(new WelcomeUserNotification(config('frontend.dashboard')));
+        
         return $user;
     }
 }
