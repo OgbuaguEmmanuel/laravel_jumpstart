@@ -12,6 +12,7 @@ use App\Http\Requests\Admin\DeleteUserRequest;
 use App\Http\Requests\Admin\ToggleUserRequest;
 use App\Http\Requests\Admin\UnlockUserAccountRequest;
 use App\Models\User;
+use App\Notifications\UserAccountDeletedNotification;
 use App\Traits\AuthHelpers;
 use App\Traits\Helper;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -116,13 +117,21 @@ class UserController extends Controller
     public function destroy(DeleteUserRequest $request)
     {
         $this->authorize('delete', User::class);
+
         $ids = $request->validated('ids');
         $deletedCount = User::whereIn('id', $ids)->delete();
 
         $message = $deletedCount === 1 ? 'User deleted successfully.'
             : ($deletedCount > 1 ? 'Users deleted successfully.' : 'No users were deleted.');
 
+        $deletedUsers = User::withTrashed()->whereIn('id', $ids)->get();
         $loggedInUser = Auth::user();
+
+        foreach ($deletedUsers as $user) {
+            $user->notify(new UserAccountDeletedNotification($user, $loggedInUser));
+            $loggedInUser->notify(new UserAccountDeletedNotification($user, $loggedInUser));
+        }
+
         activity()
             ->inLog(ActivityLogTypeEnum::UserManagement)
             ->causedBy($loggedInUser)
