@@ -24,7 +24,6 @@ class NotificationPolicy
 
     public function markUnread(User $user, DatabaseNotification $notification): Response
     {
-        logger('here   ---');
         return $user->id === $notification->notifiable_id
             ? Response::allow()
             : Response::deny('Unauthorized to mark this notification as unread.', 403);

@@ -5,6 +5,8 @@ namespace App\Listeners;
 use App\Enums\ActivityLogTypeEnum;
 use App\Enums\ToggleStatusReasonEnum;
 use App\Models\User;
+use App\Notifications\AccountLockedNotification;
+use App\Notifications\FailedLoginAttemptNotification;
 use App\Traits\AuthHelpers;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -52,6 +54,13 @@ class LogFailedLoginAttempt implements ShouldQueue
                 ])
                 ->log("Login failed for user '{$user->email}'. Attempt #{$user->failed_attempts}.");
 
+            // Send failed attempt notification
+            $user->notify(new FailedLoginAttemptNotification(
+                request()->ip(),
+                $user->failed_attempts,
+                $maxAttempts
+            ));
+
             if ($user->failed_attempts >= $maxAttempts && !$user->isLocked()) {
                 $user->lockAccount($lockoutDuration, ToggleStatusReasonEnum::FRAUDULENT_ACTIVITY);
 
@@ -66,6 +75,12 @@ class LogFailedLoginAttempt implements ShouldQueue
                         'lockout_reason' => ToggleStatusReasonEnum::FRAUDULENT_ACTIVITY,
                     ])
                     ->log("User '{$user->email}' account locked for {$lockoutDuration} minutes due to multiple failed login attempts.");
+
+                // Send lock notification
+                $user->notify(new AccountLockedNotification(
+                    $lockoutDuration,
+                    request()->ip()
+                ));
 
                 Log::warning("User '{$user->email}' account locked due to {$user->failed_attempts} failed login attempts.");
             }
