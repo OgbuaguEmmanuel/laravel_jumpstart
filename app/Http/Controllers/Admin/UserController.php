@@ -12,6 +12,7 @@ use App\Http\Requests\Admin\ToggleUserRequest;
 use App\Http\Requests\Admin\UnlockUserAccountRequest;
 use App\Models\User;
 use App\Notifications\UserAccountDeletedNotification;
+use App\Notifications\UserAccountUnlockedNotification;
 use App\Notifications\UserStatusToggledNotification;
 use App\Traits\AuthHelpers;
 use App\Traits\Helper;
@@ -249,6 +250,12 @@ class UserController extends Controller
                 'ip_address' => request()->ip(),
             ])
             ->log("User '{$user->email}' account unlocked by admin. Reason: {$reason}");
+
+        $admin = Auth::user();
+        $notification = new UserAccountUnlockedNotification($user, $admin, $reason);
+
+        $user->notify($notification);
+        $admin->notify($notification);
 
         return ResponseBuilder::asSuccess()
             ->withMessage("User account unlocked successfully.")

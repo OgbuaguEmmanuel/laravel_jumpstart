@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 abstract class BaseNotification extends Notification
@@ -22,5 +23,15 @@ abstract class BaseNotification extends Notification
             'title' => $title,
             'body'  => $body,
         ], $extra);
+    }
+
+    /**
+     * Build a standard mail message.
+     */
+    protected function buildMailMessage(string $subject, string $line): MailMessage
+    {
+        return (new MailMessage)
+            ->subject($subject)
+            ->line($line);
     }
 }
