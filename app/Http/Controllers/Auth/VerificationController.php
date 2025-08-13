@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\ResendVerificationRequest;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -25,71 +26,26 @@ class VerificationController extends Controller
         $user = $request->user();
 
         if (!hash_equals((string) $request->id, (string) $user->getKey())) {
-            activity()
-                ->inLog(ActivityLogTypeEnum::VerifyEmail)
-                ->causedBy($user)
-                ->withProperties([
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'ip_address' => $ipAddress,
-                    'reason' => 'User ID mismatch in verification link',
-                    'action_type' => 'Email Verification Failed: Unauthorized ID',
-                ])
-                ->log('Email verification failed: User ID mismatch.');
-
+            $this->logVerificationFailure($user, $ipAddress, 'User ID mismatch in verification link', 'Email Verification Failed: Unauthorized ID');
             throw new AuthorizationException('Invalid user ID in verification link.');
         }
 
         if (!hash_equals((string) $request->hash, sha1($user->getEmailForVerification()))) {
-            activity()
-                ->inLog(ActivityLogTypeEnum::VerifyEmail)
-                ->causedBy($user)
-                ->withProperties([
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'ip_address' => $ipAddress,
-                    'reason' => 'Verification hash mismatch',
-                    'action_type' => 'Email Verification Failed: Invalid Hash',
-                ])
-                ->log('Email verification failed: Invalid hash.');
-
+            $this->logVerificationFailure($user, $ipAddress, 'Verification hash mismatch', 'Email Verification Failed: Invalid Hash');
             throw new AuthorizationException('Invalid verification hash.');
         }
 
         if ($user->hasVerifiedEmail()) {
-            activity()
-                ->inLog(ActivityLogTypeEnum::VerifyEmail)
-                ->causedBy($user)
-                ->withProperties([
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'ip_address' => $ipAddress,
-                    'reason' => 'Email already verified',
-                    'action_type' => 'Email Verification Attempt: Already Verified',
-                ])
-                ->log('Email verification attempted but email already verified.');
-
-            return ResponseBuilder::asError(400)
-                ->withHttpCode(Response::HTTP_BAD_REQUEST)
-                ->withMessage('User email has previously being verified')
-                ->build();
+            $this->logVerificationFailure($user, $ipAddress, 'Email already verified', 'Email Verification Attempt: Already Verified');
+            throw ValidationException::withMessages([
+                'email' => 'User email has already been verified.'
+            ])->status(Response::HTTP_CONFLICT);
         }
 
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
-
             $user->activateAccount();
-
-            activity()
-                ->inLog(ActivityLogTypeEnum::VerifyEmail)
-                ->causedBy($user)
-                ->withProperties([
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'ip_address' => $ipAddress,
-                    'action_type' => 'Email Verified Successfully',
-                ])
-                ->log('User email verified successfully.');
+            $this->logVerificationFailure($user, $ipAddress, 'Email Verified Successfully', 'Email Verified Successfully.Login to start using the platform');
         }
 
         return ResponseBuilder::asSuccess()
@@ -110,22 +66,10 @@ class VerificationController extends Controller
         $ipAddress = $request->ip();
 
         if ($user->hasVerifiedEmail()) {
-            activity()
-                ->inLog(ActivityLogTypeEnum::VerifyEmail)
-                ->causedBy($user)
-                ->withProperties([
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'ip_address' => $ipAddress,
-                    'reason' => 'Resend attempted for already verified email',
-                    'action_type' => 'Email Verification Resend Attempt: Already Verified',
-                ])
-                ->log('Email verification resend attempted but email already verified.');
-
-            return ResponseBuilder::asError(400)
-                ->withHttpCode(Response::HTTP_BAD_REQUEST)
-                ->withMessage('User already has a verified email')
-                ->build();
+            $this->logVerificationFailure($user, $ipAddress, 'Resend attempted for already verified email', 'Email Verification Resend Attempt: Already Verified');
+            throw ValidationException::withMessages([
+                'email' => 'User already has a verified email.'
+            ])->status(Response::HTTP_CONFLICT);
         }
 
         $callbackUrl = request('callbackUrl', config('frontend.url'));
@@ -147,5 +91,20 @@ class VerificationController extends Controller
             ->withHttpCode(Response::HTTP_OK)
             ->withMessage('We have sent you another email verification link')
             ->build();
+    }
+
+    private function logVerificationFailure($user, string $ipAddress, string $reason, string $actionType): void
+    {
+        activity()
+            ->inLog(ActivityLogTypeEnum::VerifyEmail)
+            ->causedBy($user)
+            ->withProperties([
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'ip_address' => $ipAddress,
+                'reason' => $reason,
+                'action_type' => $actionType,
+            ])
+            ->log($reason);
     }
 }

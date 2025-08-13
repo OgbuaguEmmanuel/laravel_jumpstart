@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Helpers;
 
+use App\Exceptions\SocialAuthException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -15,6 +16,7 @@ use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
@@ -106,9 +108,28 @@ final class APIExceptionHandler
                 ->build();
         }
 
+        if ($throwable instanceof SocialAuthException) {
+            return ResponseBuilder::asError($throwable->getCode() ?: Response::HTTP_BAD_REQUEST)
+                ->withHttpCode($throwable->getCode() ?: Response::HTTP_BAD_REQUEST)
+                ->withMessage($throwable->getMessage())
+                ->withData($throwable->getContext())
+                ->build();
+        }
+
+        if ($throwable instanceof HttpException) {
+            $safeMessage = app()->environment('production')
+                ? __('Something went wrong. Please try again.')
+                : $throwable->getMessage(); // Show raw only in dev/test
+
+            return ResponseBuilder::asError($throwable->getStatusCode())
+                ->withMessage($safeMessage)
+                ->build();
+        }
+
         return ResponseBuilder::asError(Response::HTTP_INTERNAL_SERVER_ERROR)
             ->withHttpCode(Response::HTTP_INTERNAL_SERVER_ERROR)
             ->withMessage("An error occurred. Please try again.")
             ->build();
     }
+
 }

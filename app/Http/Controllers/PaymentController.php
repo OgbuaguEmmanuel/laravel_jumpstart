@@ -22,80 +22,68 @@ class PaymentController extends Controller
 
     public function initialize(InitiatePaymentRequest $request)
     {
-        try {
-            $user = Auth::user();
-            $email = $user->email;
-            $userId = $user->id;
-            $amount = $request->validatedAmount();
-            $callbackUrl = $request->validated('callbackUrl');
-            $currency = $request->validated('currency') ?? PaymentCurrencyEnum::NARIA;
+        $user = Auth::user();
+        $email = $user->email;
+        $userId = $user->id;
+        $amount = $request->validatedAmount();
+        $callbackUrl = $request->validated('callbackUrl');
+        $currency = $request->validated('currency') ?? PaymentCurrencyEnum::NARIA;
 
-            $dto = new PaymentPayload(
-                $email, $amount, $currency, $callbackUrl,
-                [
-                    'user_id' => $userId,
-                    'transactionable_id' => $userId,
-                    'transactionable_type' => get_class($user),
-                    'email' => $email,
-                    'first_name' => $user->first_name,
-                    'last_name' => $user->last_name,
-                    'purpose' => PaymentPurposeEnum::Registration
-                ]
-            );
+        $dto = new PaymentPayload(
+            $email, $amount, $currency, $callbackUrl,
+            [
+                'user_id' => $userId,
+                'transactionable_id' => $userId,
+                'transactionable_type' => get_class($user),
+                'email' => $email,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'purpose' => PaymentPurposeEnum::Registration
+            ]
+        );
 
-            $data = $this->gateway->initialize($dto, $user);
+        $data = $this->gateway->initialize($dto, $user);
 
-            Activity::causedBy($user)
-                ->withProperties([
-                    'amount' => $amount,
-                    'currency' => $currency,
-                    'callback_url' => $callbackUrl,
-                    'reference' => $data['reference'],
-                    'authorization_url' => $data['authorization_url'],
-                    'access_code' => $data['access_code']
-                ])
-                ->log('Initialized a payment');
+        Activity::causedBy($user)
+            ->withProperties([
+                'amount' => $amount,
+                'currency' => $currency,
+                'callback_url' => $callbackUrl,
+                'reference' => $data['reference'],
+                'authorization_url' => $data['authorization_url'],
+                'access_code' => $data['access_code']
+            ])
+            ->log('Initialized a payment');
 
-            return ResponseBuilder::asSuccess()
-                ->withMessage('Payment initialized')
-                ->withData($data)
-                ->build();
-        } catch (HttpException $e) {
-            return ResponseBuilder::asError($e->getStatusCode())
-                ->withMessage($e->getMessage())
-                ->build();
-        }
+        return ResponseBuilder::asSuccess()
+            ->withMessage('Payment initialized')
+            ->withData($data)
+            ->build();
+
     }
 
     public function confirm(VerifyPaymentRequest $request)
     {
         $reference = $request->validated('reference');
-        try {
-            $data = $this->gateway->verify($reference);
+        $data = $this->gateway->verify($reference);
 
-            Activity::causedBy(Auth::user())
-                ->withProperties([
-                    'reference' => $reference,
-                    'status' => $data['status'],
-                    'channel' => $data['channel']
-                ])
-                ->log('Verified a payment');
+        Activity::causedBy(Auth::user())
+            ->withProperties([
+                'reference' => $reference,
+                'status' => $data['status'],
+                'channel' => $data['channel']
+            ])
+            ->log('Verified a payment');
 
-            return ResponseBuilder::asSuccess()
-                ->withMessage('Payment verified successfully')
-                ->withData($data)
-                ->build();
-        } catch (HttpException $e) {
-            return ResponseBuilder::asError($e->getStatusCode())
-                ->withMessage($e->getMessage())
-                ->build();
-        }
+        return ResponseBuilder::asSuccess()
+            ->withMessage('Payment verified successfully')
+            ->withData($data)
+            ->build();
     }
 
     public function paystackWebhook(Request $request)
     {
         $payload = $request->getContent();
-        logger($payload);
         if (! PaystackService::verifyWebhook($request, $payload)) {
             Activity::withProperties([
                 'ip' => $request->ip(),

@@ -15,6 +15,7 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
@@ -122,6 +123,25 @@ class Handler extends ExceptionHandler
                 ->withHttpCode($exception->getStatusCode)
                 ->withMessage($exception->getMessage())
                 ->build();
+        }
+
+        if ($exception instanceof SocialAuthException) {
+            return ResponseBuilder::asError($exception->getCode() ?: Response::HTTP_BAD_REQUEST)
+                ->withHttpCode($exception->getCode() ?: Response::HTTP_BAD_REQUEST)
+                ->withMessage($exception->getMessage())
+                ->withData($exception->getContext())
+                ->build();
+        }
+
+        if ($exception instanceof HttpException) {
+            $safeMessage = app()->environment('production')
+                ? __('Something went wrong. Please try again.')
+                : $exception->getMessage(); // Show raw only in dev/test
+
+            return ResponseBuilder::asError($exception->getStatusCode())
+                ->withMessage($safeMessage)
+                ->build();
+
         }
 
         return ResponseBuilder::asError(Response::HTTP_INTERNAL_SERVER_ERROR)
