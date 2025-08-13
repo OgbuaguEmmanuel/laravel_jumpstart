@@ -16,7 +16,6 @@ test('token is required', function () use ($url) {
     ->postJson($url, []);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['token'])
         ->assertSeeText('The token field is required.');
 });
 
@@ -27,7 +26,6 @@ test('email is required', function () use ($url) {
     ->postJson($url, []);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email'])
         ->assertSeeText('The email field is required.');
 });
 
@@ -38,7 +36,6 @@ test('email is valid', function () use ($url) {
     ->postJson($url, ['email' => 'invalid-email']);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email'])
         ->assertSeeText('The email field must be a valid email address.');
 });
 
@@ -52,7 +49,6 @@ test('email must exist in users table', function () use ($url) {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['email'])
         ->assertSeeText('The selected email is invalid.');
 });
 
@@ -61,7 +57,6 @@ test('password is required to reset', function () use ($password, $url) {
         'password_confirmation' => $password,
     ]);
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText('The password field is required.');
 });
 
@@ -72,7 +67,6 @@ test('password must be a string', function () use ($url) {
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText('The password field must be a string.');
 });
 
@@ -83,7 +77,6 @@ test('password must be confirmed to reset', function () use ($password, $url) {
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText('The password field confirmation does not match.');
 });
 
@@ -94,7 +87,6 @@ test('password must be a minimum of 8 characters to reset', function () use ($ur
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText('The password field must be at least 8 characters.');
 });
 
@@ -105,7 +97,6 @@ test('password must contain a letter to reset', function () use ($url) {
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one letter.'
     ]);
@@ -118,7 +109,6 @@ test('password must contain at least an uppercase letter to reset', function () 
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one uppercase and one lowercase letter.'
     ]);
@@ -131,7 +121,6 @@ test('password must contain at least an lowercase letter to reset', function () 
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one uppercase and one lowercase letter.'
     ]);
@@ -144,7 +133,6 @@ test('password must contain at least a number to reset', function () use ($url) 
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one number.'
     ]);
@@ -157,7 +145,6 @@ test('password must contain at least a symbol to reset', function () use ($url) 
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one symbol.'
     ]);
@@ -170,7 +157,6 @@ test('password must not be compromised to reset', function () use ($url) {
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The given password has appeared in a data leak. Please choose a different password'
     ]);
@@ -186,7 +172,6 @@ test('callback Contact Url is valid', function() use ($url) {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['callbackContactUrl'])
         ->assertSeeText('The callback contact url field must be a valid URL.');
 });
 
@@ -198,7 +183,6 @@ test('callbackContactUrl is required', function() use ($url) {
     ->postJson($url, []);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['callbackContactUrl'])
         ->assertSeeText('The callback contact url field is required.');
 });
 

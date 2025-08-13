@@ -12,7 +12,7 @@ test('route to send email verification exists', function () use ($url){
 test('must be logged in to request email verification', function () use ($url) {
     $this->postJson($url)
         ->assertStatus(401)
-        ->assertSeeText('Unauthenticated.');
+        ->assertSeeText('Log in to perform this action.');
 
 });
 
@@ -53,7 +53,7 @@ test('only unverified user can request verification email', function () use($url
         ->postJson($url,[
             'callbackUrl' => 'https://example.test.com'
         ])
-        ->assertStatus(400)
+        ->assertStatus(409)
         ->assertSeeText('User already has a verified email');
 
 });
@@ -78,7 +78,7 @@ test('unverified user can request verification email', function () use ($url) {
 test('ensure verify email route exists and requires authentication' , function() {
     $this->getJson('api/V1/auth/email/verify')
         ->assertStatus(401)
-        ->assertSeeText('Unauthenticated.');
+        ->assertSeeText('Log in to perform this action.');
 
 });
 

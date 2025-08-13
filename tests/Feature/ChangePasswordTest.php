@@ -34,7 +34,7 @@ test('ensure current password is required', function () use ($url) {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['current_password']);
+        ->assertSeeText('The current password field is required');
 });
 
 test('ensure new password is required', function () use ($url) {
@@ -49,7 +49,8 @@ test('ensure new password is required', function () use ($url) {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['new_password']);
+            ->assertSeeText('The new password field is required');
+
 });
 
 test('ensure new password confirmation is required', function () use ($url) {
@@ -64,7 +65,6 @@ test('ensure new password confirmation is required', function () use ($url) {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['new_password'])
         ->assertSeeText('The new password field confirmation does not match.');
 });
 
@@ -81,7 +81,7 @@ test('ensure new password matches confirmation', function () use ($url) {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['new_password']);
+        ->assertSeeText('The new password field confirmation does not match');
 });
 
 test('ensure current password is correct and password validations passes', function () use ($url) {

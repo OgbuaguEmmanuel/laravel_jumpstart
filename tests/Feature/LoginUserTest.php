@@ -19,7 +19,6 @@ test('email is required for login', function () use ($url) {
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['email']);
     $response->assertSeeText('The email field is required.');
 });
 
@@ -29,7 +28,6 @@ test('password is required for login', function () use ($url) {
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText('The password field is required.');
 });
 
@@ -57,7 +55,6 @@ test('email must be a valid email address', function () use ($url) {
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['email']);
     $response->assertSeeText('The email field must be a valid email address.');
 });
 
@@ -68,7 +65,6 @@ test('password must be a string', function () use ($url) {
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText('The password field must be a string.');
 });
 

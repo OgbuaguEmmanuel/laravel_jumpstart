@@ -1,15 +1,15 @@
 <?php
 
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\SocialAuthController;
-use App\Http\Controllers\Auth\TwoFactorAuthenticationController;
-use App\Http\Controllers\Auth\VerificationController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\PermissionsController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RolesController;
+use App\Http\Controllers\V1\Admin\UserController;
+use App\Http\Controllers\V1\Auth\LoginController;
+use App\Http\Controllers\V1\Auth\SocialAuthController;
+use App\Http\Controllers\V1\Auth\TwoFactorAuthenticationController;
+use App\Http\Controllers\V1\Auth\VerificationController;
+use App\Http\Controllers\V1\NotificationController;
+use App\Http\Controllers\V1\PaymentController;
+use App\Http\Controllers\V1\PermissionsController;
+use App\Http\Controllers\V1\ProfileController;
+use App\Http\Controllers\V1\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,13 +19,13 @@ Route::get('V1/user', function(Request $request ) {
 
 Route::prefix('V1')->group(function () {
     Route::prefix('auth')->middleware('guest')->group(function () {
-        Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])
+        Route::post('/register', [App\Http\Controllers\V1\Auth\RegisterController::class, 'register'])
             ->name('auth.register');
         Route::post('/login', [LoginController::class, 'login'])
             ->name('auth.login');
-        Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])
+        Route::post('/forgot-password', [App\Http\Controllers\V1\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])
             ->name('auth.forgot-password.email');
-        Route::post('/password-reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])
+        Route::post('/password-reset', [App\Http\Controllers\V1\Auth\ResetPasswordController::class, 'reset'])
             ->name('auth.password.reset');
         Route::post('/login/2fa-challenge', [LoginController::class, 'challenge'])
             ->name('auth.login.2fa-challenge');
@@ -39,13 +39,13 @@ Route::prefix('V1')->group(function () {
     });
 
     Route::prefix('auth')->middleware('auth:user')->group(function () {
-        Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])
+        Route::post('/logout', [App\Http\Controllers\V1\Auth\LogoutController::class, 'logout'])
             ->name('auth.logout');
         Route::post('/email/resend-verification', [VerificationController::class, 'resend'])
             ->middleware('throttle:6,1')->name('auth.verification.resend');
         Route::get('/email/verify', [VerificationController::class, 'verify'])
             ->middleware('signed','throttle:6,1')->name('auth.verification.verify');
-        Route::post('/change-password', [App\Http\Controllers\Auth\PasswordController::class, 'changePassword'])
+        Route::post('/change-password', [App\Http\Controllers\V1\Auth\PasswordController::class, 'changePassword'])
             ->middleware('isActive','verified','isLocked')->name('auth.change-password');
         Route::middleware(['verified','isActive','isLocked','passwordResetNeeded'])
             ->prefix('2fa')->group(function () {
@@ -79,7 +79,7 @@ Route::prefix('V1')->group(function () {
             Route::post('/users/{user}/removeRole/roles/{role}', [RolesController::class,'removeRole'])
                 ->name('role.revoke');
 
-            Route::get('/activities', [App\Http\Controllers\ActivityLogController::class, 'listActivities'])
+            Route::get('/activities', [App\Http\Controllers\V1\ActivityLogController::class, 'listActivities'])
                 ->name('activity.list');
 
             Route::apiResource('users',UserController::class)->except('update','destroy');
@@ -125,3 +125,4 @@ Route::prefix('V1')->group(function () {
         });
 
 });
+

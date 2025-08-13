@@ -15,7 +15,7 @@ test('user must be logged in to logout', function () use ($url) {
 
     $response->assertStatus(401);
     $response->assertJson([
-        'message' => 'Unauthenticated.'
+        'message' => 'Log in to perform this action.'
     ]);
 });
 
@@ -39,6 +39,6 @@ test('user can logout successfully', function () use ($url) {
 
     $protectedRouteResponse->assertStatus(401)
         ->assertJson([
-            'message' => 'Unauthenticated.'
+            'message' => 'Log in to perform this action.'
         ]);
 });

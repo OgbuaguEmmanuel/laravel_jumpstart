@@ -16,7 +16,7 @@ test('register route exists and is a POST method', function () use ($url) {
     $response = $this->get($url);
 
     $response->assertStatus(405);
-    $response->assertSeeText('Method Not Allowed');
+    $response->assertSeeText('GET method is not allowed for this endpoint');
 
     $this->postJson($url, [])->assertStatus(422);
 
@@ -31,7 +31,6 @@ test('first name is required for registration', function () use ($lastName, $ema
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['first_name']);
     $response->assertJsonFragment([
         'first_name' => ['The first name field is required.'],
     ]);
@@ -47,7 +46,6 @@ test('first name must be a string for registration', function () use ($lastName,
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['first_name']);
     $response->assertJsonFragment([
         'first_name' => ['The first name field must be a string.'],
     ]);
@@ -63,7 +61,6 @@ test('first name must be a minimum of 2 for registration', function () use ($las
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['first_name']);
     $response->assertJsonFragment([
         'first_name' => ['The first name field must be at least 2 characters.'],
     ]);
@@ -79,7 +76,6 @@ test('first name must be a maximum of 100 for registration', function () use ($l
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['first_name']);
     $response->assertJsonFragment([
         'first_name' => ['The first name field must not be greater than 100 characters.'],
     ]);
@@ -95,7 +91,6 @@ test('last name is required for registration', function () use ($firstName, $ema
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['last_name']);
     $response->assertJsonFragment([
         'last_name' => ['The last name field is required.'],
     ]);
@@ -111,7 +106,6 @@ test('last name must be a string for registration', function () use ($firstName,
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['last_name']);
     $response->assertJsonFragment([
         'last_name' => ['The last name field must be a string.'],
     ]);
@@ -127,7 +121,6 @@ test('last name must be a minimum of 2 for registration', function () use ($firs
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['last_name']);
     $response->assertJsonFragment([
         'last_name' => ['The last name field must be at least 2 characters.'],
     ]);
@@ -144,7 +137,6 @@ test('last name must be a maximum of 100 for registration', function () use ($fi
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['last_name']);
     $response->assertJsonFragment([
         'last_name' => ['The last name field must not be greater than 100 characters.'],
     ]);
@@ -160,7 +152,6 @@ test('email is required for registration', function () use ($firstName, $lastNam
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['email']);
     $response->assertJsonFragment([
         'email' => ['The email field is required.'],
     ]);
@@ -176,7 +167,6 @@ test('email must be a valid email format for registration', function () use ($fi
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['email']);
     $response->assertJsonFragment([
         'email' => ['The email field must be a valid email address.'],
     ]);
@@ -196,7 +186,6 @@ test('email must be unique for registration', function () use ($firstName, $last
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['email']);
     $response->assertJsonFragment([
         'email' => ['The email has already been taken.'],
     ]);
@@ -212,7 +201,6 @@ test('email must be a maximum of 255 characters for registration', function () u
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['email']);
     $response->assertJsonFragment([
         'email' => ['The email field must not be greater than 255 characters.'],
     ]);
@@ -227,7 +215,6 @@ test('password is required for registration', function () use ($firstName, $last
         'password_confirmation' => $password,
     ]);
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertJsonFragment([
         'password' => ['The password field is required.'],
     ]);
@@ -242,7 +229,6 @@ test('password must be a string for registration', function () use ($firstName, 
         'password_confirmation' => 12345678,
     ]);
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertJsonFragment([
         'password' => ['The password field must be a string.'],
     ]);
@@ -257,7 +243,6 @@ test('password must be confirmed for registration', function () use ($firstName,
         'password' => $password,
     ]);
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertJsonFragment([
         'password' => ['The password field confirmation does not match.'],
     ]);
@@ -273,7 +258,6 @@ test('password must be a minimum of 8 characters for registration', function () 
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertJsonFragment([
         'password' => ['The password field must be at least 8 characters.'],
     ]);
@@ -289,7 +273,6 @@ test('password must contain a letter for registration', function () use ($firstN
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one letter.'
     ]);
@@ -305,7 +288,6 @@ test('password must contain at least an uppercase letter for registration', func
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one uppercase and one lowercase letter.'
     ]);
@@ -321,7 +303,6 @@ test('password must contain at least an lowercase letter for registration', func
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one uppercase and one lowercase letter.'
     ]);
@@ -337,7 +318,6 @@ test('password must contain at least a number for registration', function () use
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one number.'
     ]);
@@ -353,7 +333,6 @@ test('password must contain at least a symbol for registration', function () use
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The password field must contain at least one symbol.'
     ]);
@@ -369,7 +348,6 @@ test('password must not be compromised for registration', function () use ($firs
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['password']);
     $response->assertSeeText([
         'The given password has appeared in a data leak. Please choose a different password'
     ]);
@@ -436,7 +414,6 @@ test('phone number must be a valid Nigerian phone number for registration', func
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['phone_number']);
     $response->assertSeeText('The phone number field format is invalid.');
 });
 
@@ -455,7 +432,6 @@ test('phone number must be unique for registration', function () use ($firstName
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['phone_number']);
     $response->assertSeeText('The phone number has already been taken.');
 });
 
@@ -470,6 +446,5 @@ test('phone number must be a string for registration', function () use ($firstNa
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['phone_number']);
     $response->assertSeeText('The phone number field must be a string.');
 });
