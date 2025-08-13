@@ -180,9 +180,9 @@ class LoginUserAction
             ];
         } else {
             $user->notify(new LoginAlertNotification(
-                request()->ip(), request()->userAgent(), now()->toDateTimeString())
+                'Email/Password', request()->ip(), request()->userAgent())
             );
-            
+
             return [
                 'token' => $token,
                 'user' => $userDetails,

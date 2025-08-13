@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Enums\ActivityLogTypeEnum;
 use App\Models\User;
+use App\Notifications\LoginAlertNotification;
 use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -207,6 +208,11 @@ class SocialAuthAction
                     'token_created' => true
                 ])
                 ->log('User logged in successfully');
+            $user->notify(new LoginAlertNotification(
+                $provider, request()->ip(), request()->userAgent()
+            )
+        );
+
         } catch (Exception $e) {
             logger()->error('Login failed: ' . $e->getMessage(), [
                 'email' => $user->email,

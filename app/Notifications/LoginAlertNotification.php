@@ -10,31 +10,53 @@ class LoginAlertNotification extends BaseNotification implements ShouldQueue
 {
     use Queueable;
 
-    protected string $ip;
-    protected string $userAgent;
-    protected string $time;
+    public string $provider;
+    public string $ip;
+    public ?string $browser;
+    public ?string $location;
 
-    public function __construct(string $ip, string $userAgent, string $time)
+    /**
+     * @param string      $provider e.g. 'Google', 'Email/Password', '2FA'
+     * @param string      $ip
+     * @param string|null $browser
+     * @param string|null $location (optional, if you use IP-to-location lookup)
+     */
+    public function __construct(string $provider, string $ip, ?string $browser = null, ?string $location = null)
     {
+        $this->provider = $provider;
         $this->ip = $ip;
-        $this->userAgent = $userAgent;
-        $this->time = $time;
+        $this->browser = $browser;
+        $this->location = $location;
     }
 
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
+        $appName = config('app.name');
+        $loginMethod = $this->provider;
+
         return (new MailMessage)
-            ->subject('New Login to Your Account')
-            ->greeting("Hello {$notifiable->name},")
-            ->line('A new login to your account was detected.')
+            ->subject("New Login to Your {$appName} Account")
+            ->greeting("Hello {$notifiable->full_name},")
+            ->line("We noticed a new login to your account.")
+            ->line("**Login Method:** {$loginMethod}")
             ->line("**IP Address:** {$this->ip}")
-            ->line("**Device/Browser:** {$this->userAgent}")
-            ->line("**Time:** {$this->time}")
-            ->line('If this was not you, please reset your password immediately.');
+            ->lineIf($this->browser, "**Browser/Device:** {$this->browser}")
+            ->lineIf($this->location, "**Location:** {$this->location}")
+            ->line("If this was you, you can safely ignore this message.")
+            ->line("If this wasn't you, please reset your password immediately and contact support.");
+    }
+
+    public function toDatabase(object $notifiable): array
+    {
+        return $this->formatData(
+            'New Login Detected',
+            "A new login to your account was detected via {$this->provider} from IP {$this->ip}" .
+            ($this->location ? " ({$this->location})" : '') . "."
+        );
     }
 }

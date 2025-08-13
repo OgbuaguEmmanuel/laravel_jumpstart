@@ -150,8 +150,8 @@ class LoginUserUsing2FAAction
         $userDetails['directPermissions'] = $user->permissions()->select('id', 'name')->get();
 
         $user->notify(new LoginAlertNotification(
-                request()->ip(), request()->userAgent(), now()->toDateTimeString())
-            );
+            '2FA', request()->ip(), request()->userAgent())
+        );
 
         return [
             'token' => $token,
