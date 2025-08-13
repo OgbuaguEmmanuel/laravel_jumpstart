@@ -23,6 +23,8 @@ use BenSampo\Enum\Enum;
  * @method static  unlockUsers()
  * @method static createUser()
  * @method static viewLock()
+ * @method static viewSupportTicket()
+ * @method static treatSupportTicket()
  */
 final class PermissionTypeEnum extends Enum
 {
@@ -47,4 +49,6 @@ final class PermissionTypeEnum extends Enum
     const viewUsers = 'view_users';
     const createUser = 'create_user';
     const viewLock = 'view_lock';
+    const viewSupportTicket = 'view_support_ticket';
+    const treatSupportTicket = 'treat_support_ticket';
 }

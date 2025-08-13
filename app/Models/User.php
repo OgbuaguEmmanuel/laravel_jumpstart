@@ -310,4 +310,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return $this->getFirstMediaUrl(MediaTypeEnum::ProfilePicture);
     }
 
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
 }

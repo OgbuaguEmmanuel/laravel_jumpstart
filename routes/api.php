@@ -10,6 +10,8 @@ use App\Http\Controllers\V1\PaymentController;
 use App\Http\Controllers\V1\PermissionsController;
 use App\Http\Controllers\V1\ProfileController;
 use App\Http\Controllers\V1\RolesController;
+use App\Http\Controllers\V1\SupportMessageController;
+use App\Http\Controllers\V1\SupportTicketController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -123,6 +125,14 @@ Route::prefix('V1')->group(function () {
             Route::post('/{notification}/delete', [NotificationController::class, 'destroy'])
                 ->name('notification.delete');
         });
+    Route::middleware('auth:user', 'isActive','isLocked', 'verified','passwordResetNeeded')
+        ->group(function (): void {
+            Route::apiResource('tickets', SupportTicketController::class);
+
+            Route::post('/tickets/{supportTicket}/messages', [SupportMessageController::class, 'store'])
+                ->name('tickets.messages.store');
+        }
+    );
 
 });
 
