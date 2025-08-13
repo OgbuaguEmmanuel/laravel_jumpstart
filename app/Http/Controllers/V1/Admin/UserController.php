@@ -5,11 +5,17 @@ namespace App\Http\Controllers\V1\Admin;
 use App\Actions\CreateUserAction;
 use App\Enums\ActivityLogTypeEnum;
 use App\Enums\ToggleStatusReasonEnum;
+use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreateUserRequest;
 use App\Http\Requests\Admin\DeleteUserRequest;
 use App\Http\Requests\Admin\ToggleUserRequest;
 use App\Http\Requests\Admin\UnlockUserAccountRequest;
+use App\Http\Requests\FileImportRequest;
+use App\Imports\UsersImport;
+use App\Jobs\ExportUsersJob;
+use App\Jobs\ImportUsersJob;
+use App\Mail\ImportUsersReportMail;
 use App\Models\User;
 use App\Notifications\UserAccountDeletedNotification;
 use App\Notifications\UserAccountUnlockedNotification;
@@ -19,10 +25,15 @@ use App\Traits\Helper;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Excel as ExcelExcel;
+use Maatwebsite\Excel\Facades\Excel;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Spatie\Permission\Models\Role;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
@@ -262,4 +273,79 @@ class UserController extends Controller
             ->withHttpCode(Response::HTTP_OK)
             ->build();
     }
+
+    public function import(FileImportRequest $request)
+    {
+        $this->authorize('importUsers', User::class);
+        $admin = Auth::user();
+        $import = new UsersImport($admin);
+        Excel::import($import, $request->file('file'));
+
+        if ($import->failures()->isNotEmpty()) {
+            Mail::to($admin->email)->send(new ImportUsersReportMail($import->failures()));
+
+            return ResponseBuilder::asError(422)
+                ->withHttpCode(Response::HTTP_UNPROCESSABLE_ENTITY)
+                ->withMessage('Import completed with some errors. Please check your email for details.')
+                ->withData(['failures' => $import->failures()])
+                ->build();
+        }
+        return ResponseBuilder::asSuccess()
+            ->withMessage('Import successful. All rows processed successfully.')
+            ->build();
+    }
+
+    public function importAsync(FileImportRequest $request)
+    {
+        $this->authorize('importUsers', User::class);
+        $filePath = $request->file('file')->store('imports');
+
+        ImportUsersJob::dispatch(auth()->user(), $filePath);
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage('Import started. You will receive an email when it is completed.')
+            ->build();
+    }
+
+    public function export(Request $request)
+    {
+        $this->authorize('exportUsers', User::class);
+
+        $type = strtolower($request->query('type', 'excel'));
+        $fileName = 'users_export_' . now()->format('Y_m_d_His');
+
+        if ($type === 'csv') {
+            return Excel::download(new UsersExport, $fileName . '.csv', ExcelExcel::CSV);
+        }
+
+        return Excel::download(new UsersExport, $fileName . '.xlsx', ExcelExcel::XLSX);
+    }
+
+    public function exportAsync(Request $request)
+    {
+        $this->authorize('exportUsers', User::class);
+
+        $type = strtolower($request->query('type', 'excel'));
+        ExportUsersJob::dispatch(auth()->user(), $type);
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage('Export started. You will receive an email with the file when it is ready.')
+            ->build();
+    }
+
+    public function download(string $file): StreamedResponse
+    {
+        if (request()->user != auth()->id()) {
+            abort(403, 'You are not authorized to download this file.');
+        }
+        
+        $path = 'exports/' . $file;
+
+        if (!Storage::disk('local')->exists($path)) {
+            abort(404, 'File not found.');
+        }
+
+        return Storage::disk('local')->download($path);
+    }
+
 }

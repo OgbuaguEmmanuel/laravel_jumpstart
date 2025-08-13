@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
+        "maatwebsite/excel": "^3.1",
         "marcin-orlowski/laravel-api-response-builder": "^12.1",
         "pragmarx/google2fa-laravel": "^2.3",
         "socialiteproviders/gitlab": "^4.1",

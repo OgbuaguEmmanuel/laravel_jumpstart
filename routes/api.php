@@ -19,6 +19,9 @@ Route::get('V1/user', function(Request $request ) {
     return $request->user();
 })->middleware('auth:user');
 
+Route::get('/exports/download/{file}', [UserController::class, 'download'])
+    ->name('exports.download')->middleware(['auth', 'signed']);
+    
 Route::prefix('V1')->group(function () {
     Route::prefix('auth')->middleware('guest')->group(function () {
         Route::post('/register', [App\Http\Controllers\V1\Auth\RegisterController::class, 'register'])
@@ -93,6 +96,10 @@ Route::prefix('V1')->group(function () {
                 ->name('user.unlock');
             Route::post('users/{user}/toggleStatus', [UserController::class, 'toggleUserStatus'])
                 ->name('user.toggle_status');
+            Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
+            Route::post('/users/importAsync', [UserController::class, 'importAsync'])->name('users.import.async');
+            Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
+            Route::get('/users/exportAsync', [UserController::class, 'exportAsync'])->name('users.export.async');
 
             Route::patch('profile/{user}/update', [ProfileController::class, 'update'])
                 ->name('profile.update');
@@ -131,6 +138,8 @@ Route::prefix('V1')->group(function () {
 
             Route::post('/tickets/{supportTicket}/messages', [SupportMessageController::class, 'store'])
                 ->name('tickets.messages.store');
+
+
         }
     );
 

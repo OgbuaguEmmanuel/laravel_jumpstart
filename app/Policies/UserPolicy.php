@@ -97,11 +97,17 @@ class UserPolicy
         return false;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, User $model): bool
+    public function importUsers(User $user): Response
     {
-        return false;
+        return $user->hasPermissionTo(PermissionTypeEnum::importUsers)
+            ? Response::allow()
+            : Response::deny('Unauthorized to create import user(s).', 403);
+    }
+
+    public function exportUsers(User $user): Response
+    {
+        return $user->hasPermissionTo(PermissionTypeEnum::exportUsers)
+            ? Response::allow()
+            : Response::deny('Unauthorized to create export user(s).', 403);
     }
 }

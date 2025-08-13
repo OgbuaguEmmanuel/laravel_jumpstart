@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('failed_attempts')->default(0);
             $table->string('status_reason')->nullable();
             $table->boolean('force_password_reset')->default(false);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('activated_at')->nullable();

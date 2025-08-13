@@ -25,6 +25,8 @@ use BenSampo\Enum\Enum;
  * @method static viewLock()
  * @method static viewSupportTicket()
  * @method static treatSupportTicket()
+ * @method static importUsers()
+ * @method static exportUsers()
  */
 final class PermissionTypeEnum extends Enum
 {
@@ -51,4 +53,6 @@ final class PermissionTypeEnum extends Enum
     const viewLock = 'view_lock';
     const viewSupportTicket = 'view_support_ticket';
     const treatSupportTicket = 'treat_support_ticket';
+    const importUsers = 'import_users';
+    const exportUsers = 'export_users';
 }
