@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\V1\Auth;
 
 use App\Actions\LoginUserAction;
 use App\Actions\LoginUserUsing2FAAction;

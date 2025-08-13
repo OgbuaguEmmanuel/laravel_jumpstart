@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\V1;
 
 use App\Enums\MediaTypeEnum;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUploadRequest;
 use App\Http\Requests\UpdateUserProfile;
 use App\Models\User;
