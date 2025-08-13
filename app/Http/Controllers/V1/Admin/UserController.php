@@ -335,7 +335,7 @@ class UserController extends Controller
 
     public function download(string $file): StreamedResponse
     {
-        if (request()->owner != auth()->id()) {
+        if ((int) request()->owner !== auth()->id()) {
             abort(403, 'You are not authorized to download this file.');
         }
 
