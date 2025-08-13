@@ -18,7 +18,7 @@ class ForcePasswordResetMiddleware
         $user = auth('user')->user();
 
         if (!$user) {
-            abort(Response::HTTP_FORBIDDEN, 'User not authenticated');
+            abort(Response::HTTP_UNAUTHORIZED, 'User not authenticated');
         }
 
         if ($user->force_password_reset) {
