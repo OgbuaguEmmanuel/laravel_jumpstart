@@ -12,6 +12,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -53,50 +54,80 @@ class Handler extends ExceptionHandler
     public function handleApiException(Request $request, $exception){
 
         if($exception instanceof MethodNotAllowedHttpException){
-            return Response::error(
-                [],
-                'The ' . strtoupper($request->method()) . ' is not allowed for this endpoint.',
-                Response::HTTP_METHOD_NOT_ALLOWED
-            );
+            return ResponseBuilder::asError(Response::HTTP_METHOD_NOT_ALLOWED)
+                ->withHttpCode(Response::HTTP_METHOD_NOT_ALLOWED)
+                ->withMessage(strtoupper($request->getMethod()) . ' method is not allowed for this endpoint.')
+                ->build();
         }
 
         if($exception instanceof NotFoundHttpException){
-            return Response::error([], $exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ResponseBuilder::asError(Response::HTTP_NOT_FOUND)
+                ->withHttpCode(Response::HTTP_NOT_FOUND)
+                ->withMessage($exception->getMessage())
+                ->build();
         }
 
         if($exception instanceof RouteNotFoundException){
-            return Response::error([], $exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ResponseBuilder::asError(Response::HTTP_NOT_FOUND)
+                ->withHttpCode(Response::HTTP_NOT_FOUND)
+                ->withMessage($exception->getMessage())
+                ->build();
         }
 
         if($exception instanceof AuthorizationException){
-            return Response::error([], $exception->getMessage(), Response::HTTP_FORBIDDEN);
+            return ResponseBuilder::asError(Response::HTTP_FORBIDDEN)
+                ->withHttpCode(Response::HTTP_FORBIDDEN)
+                ->withMessage($exception->getMessage())
+                ->build();
         }
 
         if($exception instanceof AuthenticationException){
-            return Response::error([], "You need to login to perform this action.", Response::HTTP_UNAUTHORIZED);
+            return ResponseBuilder::asError(Response::HTTP_UNAUTHORIZED)
+                ->withHttpCode(Response::HTTP_UNAUTHORIZED)
+                ->withMessage('Log in to perform this action.')
+                ->build();
         }
 
         if($exception instanceof ModelNotFoundException){
-            return Response::error([], 'No query result was found for the resource.', Response::HTTP_NOT_FOUND);
+            return ResponseBuilder::asError(Response::HTTP_NOT_FOUND)
+                ->withHttpCode(Response::HTTP_NOT_FOUND)
+                ->withMessage('No query result was found for the resource.')
+                ->build();
         }
 
         if($exception instanceof ThrottleRequestsException){
-            return Response::error([], Lang::get('auth.throttle'), Response::HTTP_TOO_MANY_REQUESTS);
+            return ResponseBuilder::asError(Response::HTTP_TOO_MANY_REQUESTS)
+                ->withHttpCode(Response::HTTP_TOO_MANY_REQUESTS)
+                ->withMessage(Lang::get('auth.throttle'))
+                ->build();
         }
 
         if($exception instanceof BadRequestException){
-            return Response::error([], 'Bad request.', Response::HTTP_BAD_REQUEST);
+            return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
+                ->withHttpCode(Response::HTTP_BAD_REQUEST)
+                ->withMessage('Bad request.')
+                ->build();
         }
 
         if($exception instanceof ValidationException){
-            return Response::error(['errors' => $exception->errors()], $exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ResponseBuilder::asError($exception->status)
+                ->withHttpCode($exception->status)
+                ->withData($exception->errors())
+                ->withMessage($exception->getMessage())
+                ->build();
         }
 
         if(method_exists($exception, 'getStatusCode')){
-            return Response::error([], $exception->getMessage(), $exception->getStatusCode());
+            return ResponseBuilder::asError($exception->getStatusCode)
+                ->withHttpCode($exception->getStatusCode)
+                ->withMessage($exception->getMessage())
+                ->build();
         }
 
-        return Response::error([], 'A technical error occurred.', Response::HTTP_INTERNAL_SERVER_ERROR);
+        return ResponseBuilder::asError(Response::HTTP_INTERNAL_SERVER_ERROR)
+            ->withHttpCode(Response::HTTP_INTERNAL_SERVER_ERROR)
+            ->withMessage('A technical error occurred.')
+            ->build();
     }
 
 }
