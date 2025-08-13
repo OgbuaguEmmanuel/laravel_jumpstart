@@ -53,7 +53,7 @@ class ExportUsersJob implements ShouldQueue
             // Send secure download link
             $downloadUrl = URL::temporarySignedRoute(
                 'exports.download',  now()->addHours(48),
-                ['file' => $fileName, 'user' => $this->admin->id]
+                ['file' => $fileName, 'owner' => $this->admin->id]
             );
 
             Mail::to($this->admin->email)->send(
