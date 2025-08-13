@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\ActivityLogTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResendVerificationRequest;
-use App\Notifications\VerifyEmailNotification;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;

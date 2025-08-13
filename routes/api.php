@@ -18,38 +18,37 @@ Route::get('V1/user', function(Request $request ) {
 })->middleware('auth:user');
 
 Route::prefix('V1')->group(function () {
-    Route::prefix('auth')->middleware('guest')
-        ->group(function () {
-            Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])
-                ->name('auth.register');
-            Route::post('/login', [LoginController::class, 'login'])
-                ->name('auth.login');
-            Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])
-                ->name('auth.forgot-password.email');
-            Route::post('/password-reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])
-                ->name('auth.password.reset');
-            Route::post('/login/2fa-challenge', [LoginController::class, 'challenge'])
-                ->name('auth.login.2fa-challenge');
+    Route::prefix('auth')->middleware('guest')->group(function () {
+        Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])
+            ->name('auth.register');
+        Route::post('/login', [LoginController::class, 'login'])
+            ->name('auth.login');
+        Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])
+            ->name('auth.forgot-password.email');
+        Route::post('/password-reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])
+            ->name('auth.password.reset');
+        Route::post('/login/2fa-challenge', [LoginController::class, 'challenge'])
+            ->name('auth.login.2fa-challenge');
 
-            Route::middleware('web')->prefix('social')->group(function () {
-                Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])
-                    ->name('auth.social.redirect');
-                Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])
-                    ->name('auth.social.callback');
-            });
+        Route::middleware('web')->prefix('social')->group(function () {
+            Route::get('{provider}/redirect', [SocialAuthController::class, 'redirectToProvider'])
+                ->name('auth.social.redirect');
+            Route::get('{provider}/callback', [SocialAuthController::class, 'handleProviderCallback'])
+                ->name('auth.social.callback');
         });
+    });
 
-    Route::prefix('auth')->middleware('auth:user')
-        ->group(function () {
-            Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])
-                ->name('auth.logout');
-            Route::post('/email/resend-verification', [VerificationController::class, 'resend'])
-                ->middleware('throttle:6,1')->name('auth.verification.resend');
-            Route::get('/email/verify', [VerificationController::class, 'verify'])
-                ->middleware('signed','throttle:6,1')->name('auth.verification.verify');
-            Route::post('/change-password', [App\Http\Controllers\Auth\PasswordController::class, 'changePassword'])
-                ->middleware('isActive','verified','isLocked')->name('auth.change-password');
-            Route::prefix('2fa')->middleware(['verified','isActive','isLocked','passwordResetNeeded'])->group(function () {
+    Route::prefix('auth')->middleware('auth:user')->group(function () {
+        Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])
+            ->name('auth.logout');
+        Route::post('/email/resend-verification', [VerificationController::class, 'resend'])
+            ->middleware('throttle:6,1')->name('auth.verification.resend');
+        Route::get('/email/verify', [VerificationController::class, 'verify'])
+            ->middleware('signed','throttle:6,1')->name('auth.verification.verify');
+        Route::post('/change-password', [App\Http\Controllers\Auth\PasswordController::class, 'changePassword'])
+            ->middleware('isActive','verified','isLocked')->name('auth.change-password');
+        Route::middleware(['verified','isActive','isLocked','passwordResetNeeded'])
+            ->prefix('2fa')->group(function () {
                 Route::post('/setup', [TwoFactorAuthenticationController::class, 'setup'])
                     ->name('auth.2fa.setup');
                 Route::post('/enable', [TwoFactorAuthenticationController::class, 'enable'])
@@ -58,12 +57,12 @@ Route::prefix('V1')->group(function () {
                     ->name('auth.2fa.disable');
                 Route::post('/recovery-codes', [TwoFactorAuthenticationController::class, 'generateNewRecoveryCodes'])
                     ->name('auth.2fa.recovery-codes');
-            });
-        });
+            }
+        );
+    });
 
-
-    Route::middleware(['auth:user','verified', 'isActive','isLocked','passwordResetNeeded'])->prefix('admin')
-        ->group( function() {
+    Route::middleware(['auth:user','verified', 'isActive','isLocked','passwordResetNeeded'])
+        ->prefix('admin')->group( function() {
             Route::apiResource('/permissions', PermissionsController::class)->except('destroy');
             Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser'])
                 ->name('permission.user.assign');
@@ -107,8 +106,8 @@ Route::prefix('V1')->group(function () {
             ->middleware('guest')->name('payment.paystack.webhook');
     });
 
-    Route::prefix('/notifications')->middleware('auth:user', 'isActive','isLocked', 'verified','passwordResetNeeded')
-        ->group(function (): void {
+    Route::middleware('auth:user', 'isActive','isLocked', 'verified','passwordResetNeeded')
+        ->prefix('/notifications')->group(function (): void {
             Route::get('/all', [NotificationController::class, 'index'])
                 ->name('notification.all');
             Route::get('/read', [NotificationController::class, 'read'])
