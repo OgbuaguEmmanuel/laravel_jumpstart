@@ -8,6 +8,7 @@ use App\Exceptions\SocialAuthException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Exceptions\PostTooLargeException;
@@ -46,6 +47,7 @@ final class APIExceptionHandler
         if ($throwable instanceof NotFoundHttpException
             || $throwable instanceof RouteNotFoundException
             || $throwable instanceof ModelNotFoundException
+            || $throwable instanceof FileNotFoundException
         ) {
             $message = $throwable->getMessage();
 
