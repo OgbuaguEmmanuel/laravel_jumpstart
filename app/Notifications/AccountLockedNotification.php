@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 class AccountLockedNotification extends BaseNotification implements ShouldQueue
 {
     protected $duration;
+
     protected $ip;
 
     public function __construct(int $duration, string $ip)
@@ -24,7 +25,7 @@ class AccountLockedNotification extends BaseNotification implements ShouldQueue
     {
         return (new \Illuminate\Notifications\Messages\MailMessage)
             ->subject('Account Locked')
-            ->line("Your account has been locked due to multiple failed login attempts.")
+            ->line('Your account has been locked due to multiple failed login attempts.')
             ->line("IP Address: {$this->ip}")
             ->line("Lockout Duration: {$this->duration} minutes")
             ->line("If this wasn't you, contact support immediately.");

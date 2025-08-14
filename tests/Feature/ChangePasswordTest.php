@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
 $url = '/api/V1/auth/change-password';
@@ -25,13 +24,13 @@ test('ensure current password is required', function () use ($url) {
     $rawToken = createUserAndGenerateToken()['token'];
 
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $rawToken,
-        'Accept' => 'application/json'
+        'Authorization' => 'Bearer '.$rawToken,
+        'Accept' => 'application/json',
     ])
-    ->postJson($url, [
-        'new_password' => 'newpassword123',
-        'new_password_confirmation' => 'newpassword123',
-    ]);
+        ->postJson($url, [
+            'new_password' => 'newpassword123',
+            'new_password_confirmation' => 'newpassword123',
+        ]);
 
     $response->assertStatus(422)
         ->assertSeeText('The current password field is required');
@@ -40,29 +39,29 @@ test('ensure current password is required', function () use ($url) {
 test('ensure new password is required', function () use ($url) {
     $rawToken = createUserAndGenerateToken()['token'];
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $rawToken,
-        'Accept' => 'application/json'
+        'Authorization' => 'Bearer '.$rawToken,
+        'Accept' => 'application/json',
     ])
-    ->postJson($url, [
-        'current_password' => 'currentpassword123',
-        'new_password_confirmation' => 'newpassword123',
-    ]);
+        ->postJson($url, [
+            'current_password' => 'currentpassword123',
+            'new_password_confirmation' => 'newpassword123',
+        ]);
 
     $response->assertStatus(422)
-            ->assertSeeText('The new password field is required');
+        ->assertSeeText('The new password field is required');
 
 });
 
 test('ensure new password confirmation is required', function () use ($url) {
     $rawToken = createUserAndGenerateToken()['token'];
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $rawToken,
-        'Accept' => 'application/json'
+        'Authorization' => 'Bearer '.$rawToken,
+        'Accept' => 'application/json',
     ])
-    ->postJson($url, [
-        'current_password' => 'currentpassword123',
-        'new_password' => 'newpassword123',
-    ]);
+        ->postJson($url, [
+            'current_password' => 'currentpassword123',
+            'new_password' => 'newpassword123',
+        ]);
 
     $response->assertStatus(422)
         ->assertSeeText('The new password field confirmation does not match.');
@@ -71,14 +70,14 @@ test('ensure new password confirmation is required', function () use ($url) {
 test('ensure new password matches confirmation', function () use ($url) {
     $rawToken = createUserAndGenerateToken()['token'];
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $rawToken,
-        'Accept' => 'application/json'
+        'Authorization' => 'Bearer '.$rawToken,
+        'Accept' => 'application/json',
     ])
-    ->postJson($url, [
-        'current_password' => 'currentpassword123',
-        'new_password' => 'newpassword123',
-        'new_password_confirmation' => 'differentpassword123',
-    ]);
+        ->postJson($url, [
+            'current_password' => 'currentpassword123',
+            'new_password' => 'newpassword123',
+            'new_password_confirmation' => 'differentpassword123',
+        ]);
 
     $response->assertStatus(422)
         ->assertSeeText('The new password field confirmation does not match');
@@ -87,19 +86,18 @@ test('ensure new password matches confirmation', function () use ($url) {
 test('ensure current password is correct and password validations passes', function () use ($url) {
     $rawToken = createUserAndGenerateToken()['token'];
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $rawToken,
-        'Accept' => 'application/json'
+        'Authorization' => 'Bearer '.$rawToken,
+        'Accept' => 'application/json',
     ])
-    ->postJson($url, [
-        'current_password' => 'wrongpassword',
-        'new_password' => 'chiPassword@123',
-        'new_password_confirmation' => 'chiPassword@123',
-    ]);
+        ->postJson($url, [
+            'current_password' => 'wrongpassword',
+            'new_password' => 'chiPassword@123',
+            'new_password_confirmation' => 'chiPassword@123',
+        ]);
 
     $response->assertStatus(422)
         ->assertSeeText('Current password is incorrect');
 });
-
 
 test('change password with correct details', function () use ($url) {
     $newPassword = 'chiPassword@123';
@@ -108,19 +106,19 @@ test('change password with correct details', function () use ($url) {
     $user = $data['user'];
 
     $response = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $rawToken,
-        'Accept' => 'application/json'
+        'Authorization' => 'Bearer '.$rawToken,
+        'Accept' => 'application/json',
     ])
-    ->postJson($url, [
-        'current_password' => 'password',
-        'new_password' => $newPassword,
-        'new_password_confirmation' => $newPassword,
-    ]);
+        ->postJson($url, [
+            'current_password' => 'password',
+            'new_password' => $newPassword,
+            'new_password_confirmation' => $newPassword,
+        ]);
 
     $user->refresh();
 
     $response->assertStatus(200)
         ->assertSeeText('Password changed successfully');
 
-   expect(Hash::check($newPassword, $user->password))->toBe(true);
+    expect(Hash::check($newPassword, $user->password))->toBe(true);
 });

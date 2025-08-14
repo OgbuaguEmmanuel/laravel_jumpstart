@@ -24,13 +24,21 @@ return new class extends Migration
             $table->string('status_reason')->nullable();
             $table->boolean('force_password_reset')->default(false);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('provider_name')->nullable();
+            $table->string('provider_id')->nullable();
+            $table->string('avatar')->nullable();
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
+            $table->timestamp('two_factor_enabled_at')->nullable();
             $table->timestamp('activated_at')->nullable();
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('locked_until')->nullable();
             $table->timestamps();
             $table->softDeletes();
+            $table->unique(['provider_name', 'provider_id']);
+
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

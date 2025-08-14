@@ -123,6 +123,6 @@ return [
     ],
 
     'verification' => [
-        'expire' => env('VERIFICATION_TOKEN_TIMEOUT', 60) // minutes
+        'expire' => env('VERIFICATION_TOKEN_TIMEOUT', 60), // minutes
     ],
 ];

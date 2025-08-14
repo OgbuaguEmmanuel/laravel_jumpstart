@@ -15,7 +15,7 @@ class PasswordController extends Controller
     {
         $user = $request->user();
 
-        if (!Hash::check($request->validated('current_password'), $user->password)) {
+        if (! Hash::check($request->validated('current_password'), $user->password)) {
             activity()
                 ->inLog(ActivityLogTypeEnum::ChangePassword)
                 ->causedBy($user)
@@ -36,10 +36,10 @@ class PasswordController extends Controller
             ->inLog(ActivityLogTypeEnum::ChangePassword)
             ->causedBy($user)
             ->log('Password changed successfully');
+
         return ResponseBuilder::asSuccess()
             ->withHttpCode(200)
             ->withMessage('Password changed successfully')
             ->build();
     }
-
 }

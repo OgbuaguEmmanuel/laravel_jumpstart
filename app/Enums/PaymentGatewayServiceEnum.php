@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums;
 
@@ -15,6 +17,8 @@ use BenSampo\Enum\Enum;
 final class PaymentGatewayServiceEnum extends Enum
 {
     const Paystack = PaystackService::class;
+
     const Stripe = StripeService::class;
+
     const Paypal = PaypalService::class;
 }

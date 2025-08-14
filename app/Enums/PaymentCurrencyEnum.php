@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums;
 
@@ -13,7 +15,8 @@ use BenSampo\Enum\Enum;
 final class PaymentCurrencyEnum extends Enum
 {
     const NARIA = 'NGN';
-    const DOLLAR = 'USD';
-    const POUND = 'GBP';
 
+    const DOLLAR = 'USD';
+
+    const POUND = 'GBP';
 }

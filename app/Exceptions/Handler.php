@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use App\Helpers\APIExceptionHandler;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+
 class Handler extends ExceptionHandler
 {
     /**
@@ -31,7 +32,7 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $exception)
     {
         if ($request->expectsJson() || $request->routeIs('api.*')) {
-            return (new APIExceptionHandler())->handle($request, $exception);
+            return (new APIExceptionHandler)->handle($request, $exception);
         }
 
     }

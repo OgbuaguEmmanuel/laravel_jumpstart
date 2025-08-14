@@ -34,13 +34,13 @@ final class APIExceptionHandler
     public function handle(
         Request $request,
         Throwable $throwable
-    ): JsonResponse {
+    ): Response {
         if ($throwable instanceof MethodNotAllowedException
             || $throwable instanceof MethodNotAllowedHttpException
         ) {
             return ResponseBuilder::asError(Response::HTTP_METHOD_NOT_ALLOWED)
                 ->withHttpCode(Response::HTTP_METHOD_NOT_ALLOWED)
-                ->withMessage(strtoupper($request->getMethod()) . ' method is not allowed for this endpoint.')
+                ->withMessage(strtoupper($request->getMethod()).' method is not allowed for this endpoint.')
                 ->build();
         }
 
@@ -54,6 +54,7 @@ final class APIExceptionHandler
             if (empty($message)) {
                 $message = 'Not found.';
             }
+
             return ResponseBuilder::asError(Response::HTTP_NOT_FOUND)
                 ->withHttpCode(Response::HTTP_NOT_FOUND)
                 ->withMessage($message)
@@ -78,8 +79,9 @@ final class APIExceptionHandler
             $message = $throwable->getMessage();
 
             if (empty($message)) {
-                $message = "Max number of attempts exceeded. Please wait for some seconds.";
+                $message = 'Max number of attempts exceeded. Please wait for some seconds.';
             }
+
             return ResponseBuilder::asError(Response::HTTP_TOO_MANY_REQUESTS)
                 ->withHttpCode(Response::HTTP_TOO_MANY_REQUESTS)
                 ->withMessage($message)
@@ -92,8 +94,9 @@ final class APIExceptionHandler
             $message = $throwable->getMessage();
 
             if (empty($message)) {
-                $message = "Bad request.";
+                $message = 'Bad request.';
             }
+
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
                 ->withHttpCode(Response::HTTP_BAD_REQUEST)
                 ->withMessage($message)
@@ -187,8 +190,7 @@ final class APIExceptionHandler
 
         return ResponseBuilder::asError(Response::HTTP_INTERNAL_SERVER_ERROR)
             ->withHttpCode(Response::HTTP_INTERNAL_SERVER_ERROR)
-            ->withMessage("An error occurred. Please try again.")
+            ->withMessage('An error occurred. Please try again.')
             ->build();
     }
-
 }

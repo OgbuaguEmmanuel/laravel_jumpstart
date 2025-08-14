@@ -27,10 +27,10 @@ class LoginUserUsing2FAAction
     public function handle(array $data)
     {
         $challengeKey = $data['2fa_challenge_key'];
-        $userId = Cache::get('2fa_challenge:' . $challengeKey);
+        $userId = Cache::get('2fa_challenge:'.$challengeKey);
         $ipAddress = request()->ip();
 
-        if (!$userId || !($user = $this->getUserByID($userId))) {
+        if (! $userId || ! ($user = $this->getUserByID($userId))) {
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy(null)
@@ -46,8 +46,8 @@ class LoginUserUsing2FAAction
             ])->status(400);
         }
 
-        if (!$user->hasTwoFactorEnabled()) {
-            Cache::forget('2fa_challenge:' . $challengeKey);
+        if (! $user->hasTwoFactorEnabled()) {
+            Cache::forget('2fa_challenge:'.$challengeKey);
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
@@ -66,14 +66,14 @@ class LoginUserUsing2FAAction
         $isValid = false;
         $authMethod = 'None';
 
-        if (isset($data['code']) && !is_null($data['code']) && !is_null($user->two_factor_secret)) {
+        if (isset($data['code']) && ! is_null($data['code']) && ! is_null($user->two_factor_secret)) {
             $isValid = $this->google2fa->verifyKey($user->two_factor_secret, $data['code']);
             if ($isValid) {
                 $authMethod = '2FA Code';
             }
         }
 
-        if (!$isValid && isset($data['recovery_code']) && !is_null($data['recovery_code'])) {
+        if (! $isValid && isset($data['recovery_code']) && ! is_null($data['recovery_code'])) {
             $recoveryCodes = $user->two_factor_recovery_codes;
 
             foreach ($recoveryCodes as $index => $code) {
@@ -91,7 +91,7 @@ class LoginUserUsing2FAAction
             }
         }
 
-        if (!$isValid) {
+        if (! $isValid) {
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
                 ->causedBy($user)
@@ -99,7 +99,7 @@ class LoginUserUsing2FAAction
                     'user_id' => $user->id,
                     'email' => $user->email,
                     'ip_address' => $ipAddress,
-                    'attempted_code_type' => (isset($data['code']) && !is_null($data['code'])) ? '2FA Code' : ((isset($data['recovery_code']) && !is_null($data['recovery_code'])) ? 'Recovery Code' : 'Unknown'),
+                    'attempted_code_type' => (isset($data['code']) && ! is_null($data['code'])) ? '2FA Code' : ((isset($data['recovery_code']) && ! is_null($data['recovery_code'])) ? 'Recovery Code' : 'Unknown'),
                     'reason' => 'Invalid 2FA code or recovery code provided',
                 ])
                 ->log('2FA login failed: Invalid Code');
@@ -108,7 +108,7 @@ class LoginUserUsing2FAAction
             ])->status(400);
         }
 
-        Cache::forget('2fa_challenge:' . $challengeKey);
+        Cache::forget('2fa_challenge:'.$challengeKey);
 
         try {
             $token = $user->createToken('UserAuthToken')->plainTextToken;
@@ -123,7 +123,7 @@ class LoginUserUsing2FAAction
                 ])
                 ->log('User successfully logged in with 2FA');
         } catch (Exception $e) {
-            logger()->error('Login failed: ' . $e->getMessage(), [
+            logger()->error('Login failed: '.$e->getMessage(), [
                 'email' => $data['email'],
                 'code' => $e->getCode(),
             ]);
@@ -139,7 +139,7 @@ class LoginUserUsing2FAAction
                 ])
                 ->log('2FA login successful, but API token creation failed');
 
-            throw new Exception("Something went wrong. Please contact support", 500);
+            throw new Exception('Something went wrong. Please contact support', 500);
         }
 
         $userDetails = $user->only('id', 'first_name', 'last_name', 'email');

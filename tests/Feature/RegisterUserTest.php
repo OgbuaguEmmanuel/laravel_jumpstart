@@ -81,7 +81,6 @@ test('first name must be a maximum of 100 for registration', function () use ($l
     ]);
 });
 
-
 test('last name is required for registration', function () use ($firstName, $email, $password, $url) {
     $response = $this->postJson($url, [
         'first_name' => $firstName,
@@ -126,7 +125,6 @@ test('last name must be a minimum of 2 for registration', function () use ($firs
     ]);
 });
 
-
 test('last name must be a maximum of 100 for registration', function () use ($firstName, $email, $password, $url) {
     $response = $this->postJson($url, [
         'first_name' => $firstName,
@@ -141,7 +139,6 @@ test('last name must be a maximum of 100 for registration', function () use ($fi
         'last_name' => ['The last name field must not be greater than 100 characters.'],
     ]);
 });
-
 
 test('email is required for registration', function () use ($firstName, $lastName, $password, $url) {
     $response = $this->postJson($url, [
@@ -174,7 +171,7 @@ test('email must be a valid email format for registration', function () use ($fi
 
 test('email must be unique for registration', function () use ($firstName, $lastName, $email, $password, $url) {
     User::factory()->create([
-        'email' => $email
+        'email' => $email,
     ]);
 
     $response = $this->postJson($url, [
@@ -195,7 +192,7 @@ test('email must be a maximum of 255 characters for registration', function () u
     $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
-        'email' => str_repeat('a', 256) . '@example.com',
+        'email' => str_repeat('a', 256).'@example.com',
         'password' => $password,
         'password_confirmation' => $password,
     ]);
@@ -205,7 +202,6 @@ test('email must be a maximum of 255 characters for registration', function () u
         'email' => ['The email field must not be greater than 255 characters.'],
     ]);
 });
-
 
 test('password is required for registration', function () use ($firstName, $lastName, $email, $password, $url) {
     $response = $this->postJson($url, [
@@ -233,7 +229,6 @@ test('password must be a string for registration', function () use ($firstName, 
         'password' => ['The password field must be a string.'],
     ]);
 });
-
 
 test('password must be confirmed for registration', function () use ($firstName, $lastName, $email, $password, $url) {
     $response = $this->postJson($url, [
@@ -274,7 +269,7 @@ test('password must contain a letter for registration', function () use ($firstN
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one letter.'
+        'The password field must contain at least one letter.',
     ]);
 });
 
@@ -289,7 +284,7 @@ test('password must contain at least an uppercase letter for registration', func
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one uppercase and one lowercase letter.'
+        'The password field must contain at least one uppercase and one lowercase letter.',
     ]);
 });
 
@@ -304,7 +299,7 @@ test('password must contain at least an lowercase letter for registration', func
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one uppercase and one lowercase letter.'
+        'The password field must contain at least one uppercase and one lowercase letter.',
     ]);
 });
 
@@ -319,7 +314,7 @@ test('password must contain at least a number for registration', function () use
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one number.'
+        'The password field must contain at least one number.',
     ]);
 });
 
@@ -334,7 +329,7 @@ test('password must contain at least a symbol for registration', function () use
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one symbol.'
+        'The password field must contain at least one symbol.',
     ]);
 });
 
@@ -349,11 +344,11 @@ test('password must not be compromised for registration', function () use ($firs
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The given password has appeared in a data leak. Please choose a different password'
+        'The given password has appeared in a data leak. Please choose a different password',
     ]);
 });
 
-test('there is no validation error for registration', function() use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
+test('there is no validation error for registration', function () use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
     $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
@@ -367,7 +362,7 @@ test('there is no validation error for registration', function() use ($firstName
 
 });
 
-test('expect to see a user created', function() use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
+test('expect to see a user created', function () use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
     $response = $this->postJson($url, [
         'first_name' => $firstName,
         'last_name' => $lastName,
@@ -419,7 +414,7 @@ test('phone number must be a valid Nigerian phone number for registration', func
 
 test('phone number must be unique for registration', function () use ($firstName, $lastName, $email, $password, $url, $phoneNumber) {
     User::factory()->create([
-        'phone_number' => $phoneNumber
+        'phone_number' => $phoneNumber,
     ]);
 
     $response = $this->postJson($url, [

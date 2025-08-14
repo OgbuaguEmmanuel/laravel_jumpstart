@@ -35,9 +35,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(PaymentGatewayInterface::class, function () {
             return match (config('payment.driver')) {
-                PaymentGatewayEnum::PAYSTACK => new PaystackService(),
-                PaymentGatewayEnum::STRIPE => new StripeService(),
-                PaymentGatewayEnum::PAYPAL => new PaypalService(),
+                PaymentGatewayEnum::PAYSTACK => new PaystackService,
+                PaymentGatewayEnum::STRIPE => new StripeService,
+                PaymentGatewayEnum::PAYPAL => new PaypalService,
             };
         });
     }
@@ -47,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Model::preventLazyLoading(!app()->isProduction());
+        Model::preventLazyLoading(! app()->isProduction());
 
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('twitter', Provider::class);

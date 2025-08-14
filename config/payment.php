@@ -16,6 +16,6 @@ return [
     'paystack' => [
         'baseurl' => env('PAYSTACK_BASE_URL', 'https://api.paystack.co'),
         'secret' => env('PAYSTACK_SECRET_KEY'),
-        'callbackUrl' => env('PAYSTACK_CALLBACK_URL', config('app.url'))
+        'callbackUrl' => env('PAYSTACK_CALLBACK_URL', config('app.url')),
     ],
 ];

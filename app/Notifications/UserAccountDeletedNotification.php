@@ -2,16 +2,17 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use App\Models\User;
 
 class UserAccountDeletedNotification extends BaseNotification implements ShouldQueue
 {
     use Queueable;
 
     public $deletedUser;
+
     public $admin;
 
     public function __construct(User $deletedUser, User $admin)

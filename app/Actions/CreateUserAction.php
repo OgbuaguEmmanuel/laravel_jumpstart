@@ -15,7 +15,7 @@ class CreateUserAction
      */
     public function handle(array $data, ?UploadedFile $file = null): User
     {
-        $user =  User::create([
+        $user = User::create([
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
             'email' => $data['email'],
@@ -23,7 +23,7 @@ class CreateUserAction
             'password' => Hash::make($data['password']),
         ]);
 
-        if (!empty($data['profile_picture'])) {
+        if (! empty($data['profile_picture'])) {
             $media = $user->addMedia($file)->toMediaCollection(MediaTypeEnum::ProfilePicture);
 
             activity()
@@ -39,7 +39,7 @@ class CreateUserAction
         }
 
         $user->notify(new WelcomeUserNotification(config('frontend.dashboard')));
-        
+
         return $user;
     }
 }

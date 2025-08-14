@@ -47,7 +47,7 @@ trait AuthHelpers
         $numberChars = '0123456789';
         $symbolChars = '!@#$%^&*()-_=+[]{}|;:,.<>?'; // Common symbols
 
-        $allChars = $lowerCaseChars . $upperCaseChars . $numberChars . $symbolChars;
+        $allChars = $lowerCaseChars.$upperCaseChars.$numberChars.$symbolChars;
 
         $password = [];
 

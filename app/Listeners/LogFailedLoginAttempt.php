@@ -10,7 +10,6 @@ use App\Notifications\FailedLoginAttemptNotification;
 use App\Traits\AuthHelpers;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 
 class LogFailedLoginAttempt implements ShouldQueue
@@ -61,7 +60,7 @@ class LogFailedLoginAttempt implements ShouldQueue
                 $maxAttempts
             ));
 
-            if ($user->failed_attempts >= $maxAttempts && !$user->isLocked()) {
+            if ($user->failed_attempts >= $maxAttempts && ! $user->isLocked()) {
                 $user->lockAccount($lockoutDuration, ToggleStatusReasonEnum::FRAUDULENT_ACTIVITY);
 
                 activity()
@@ -92,7 +91,7 @@ class LogFailedLoginAttempt implements ShouldQueue
                     'email_attempted' => $event->credentials['email'] ?? 'N/A',
                     'ip_address' => request()->ip(),
                 ])
-                ->log("Login failed for unknown user or invalid credentials.");
+                ->log('Login failed for unknown user or invalid credentials.');
         }
     }
 }

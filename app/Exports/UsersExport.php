@@ -14,10 +14,10 @@ class UsersExport implements FromCollection, WithHeadings
             ->get()
             ->map(function ($user) {
                 return [
-                    'first_name'       => $user->first_name,
-                    'last_name'       => $user->last_name,
-                    'email'      => $user->email,
-                    'role'       => optional($user->roles->first())->name,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'role' => optional($user->roles->first())->name,
                     'created_at' => $user->created_at->toDateTimeString(),
                 ];
             });
@@ -25,6 +25,6 @@ class UsersExport implements FromCollection, WithHeadings
 
     public function headings(): array
     {
-        return ['First Name','Last Name', 'Email', 'Created At'];
+        return ['First Name', 'Last Name', 'Email', 'Created At'];
     }
 }

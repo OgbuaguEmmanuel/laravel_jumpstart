@@ -11,6 +11,7 @@ class PasswordChangedNotification extends BaseNotification implements ShouldQueu
     use Queueable;
 
     protected string $ip;
+
     protected string $time;
 
     public function __construct(string $ip, string $time)

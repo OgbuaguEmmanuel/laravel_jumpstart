@@ -26,15 +26,13 @@ class ActivityLogController extends Controller
     /**
      * List activity logs with various filtering and pagination options.
      *
-     * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\Response
      * @throws ValidationException|AuthorizationException
      */
     public function listActivities(Request $request): Response
     {
         $user = Auth::user();
 
-        if (!$user->can(PermissionTypeEnum::viewActivity)) {
+        if (! $user->can(PermissionTypeEnum::viewActivity)) {
             throw new AuthorizationException('You do not have permission to view activity logs.');
         }
 
@@ -53,7 +51,7 @@ class ActivityLogController extends Controller
 
             $canViewAllActivities = $user->can(PermissionTypeEnum::viewAllActivities);
 
-           if (!empty($validatedData['log_name'])) {
+            if (! empty($validatedData['log_name'])) {
                 $logNames = explode(',', $validatedData['log_name']);
                 $filteredLogNames = array_map('trim', $logNames);
 
@@ -70,20 +68,20 @@ class ActivityLogController extends Controller
                     $query->where('causer_id', $user->id);
                 }
             } else {
-                if (!$canViewAllActivities) {
+                if (! $canViewAllActivities) {
                     $query->where('causer_id', $user->id);
                 }
             }
 
-            if (!empty($validatedData['description'])) {
-                $query->where('description', 'like', '%' . $validatedData['description'] . '%');
+            if (! empty($validatedData['description'])) {
+                $query->where('description', 'like', '%'.$validatedData['description'].'%');
             }
 
-            if (!empty($validatedData['from_date'])) {
-                $query->where('created_at', '>=', $validatedData['from_date'] . ' 00:00:00');
+            if (! empty($validatedData['from_date'])) {
+                $query->where('created_at', '>=', $validatedData['from_date'].' 00:00:00');
             }
-            if (!empty($validatedData['to_date'])) {
-                $query->where('created_at', '<=', $validatedData['to_date'] . ' 23:59:59');
+            if (! empty($validatedData['to_date'])) {
+                $query->where('created_at', '<=', $validatedData['to_date'].' 23:59:59');
             }
 
             $query->latest();
@@ -112,7 +110,7 @@ class ActivityLogController extends Controller
                 ->withData($e->errors())
                 ->build();
         } catch (AuthorizationException $e) {
-            Log::error('Error fetching activity logs: ' . $e->getMessage(), ['exception' => $e, 'user_id' => $user->id ?? 'guest']);
+            Log::error('Error fetching activity logs: '.$e->getMessage(), ['exception' => $e, 'user_id' => $user->id ?? 'guest']);
 
             return ResponseBuilder::asError(Response::HTTP_FORBIDDEN)
                 ->withHttpCode(Response::HTTP_FORBIDDEN)
@@ -120,7 +118,7 @@ class ActivityLogController extends Controller
                 ->build();
 
         } catch (\Exception $e) {
-            Log::error('Error fetching activity logs: ' . $e->getMessage(), ['exception' => $e, 'user_id' => $user->id ?? 'guest']);
+            Log::error('Error fetching activity logs: '.$e->getMessage(), ['exception' => $e, 'user_id' => $user->id ?? 'guest']);
 
             return ResponseBuilder::asError(Response::HTTP_INTERNAL_SERVER_ERROR)
                 ->withHttpCode(Response::HTTP_INTERNAL_SERVER_ERROR)

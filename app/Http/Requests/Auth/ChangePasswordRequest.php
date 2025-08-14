@@ -24,7 +24,7 @@ class ChangePasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string'],
-            'new_password'=> [
+            'new_password' => [
                 'required',
                 'string',
                 'confirmed',
@@ -35,7 +35,7 @@ class ChangePasswordRequest extends FormRequest
                     ->numbers()
                     ->symbols()
                     ->uncompromised(),
-            ]
+            ],
         ];
     }
 }

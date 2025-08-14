@@ -57,8 +57,8 @@ class UserController extends Controller
 
         $users = QueryBuilder::for(User::query())
             ->defaultSort('-created_at')
-            ->allowedFilters('first_name','last_name','email','is_active')
-            ->allowedSorts(['first_name','last_name','created_at'])
+            ->allowedFilters('first_name', 'last_name', 'email', 'is_active')
+            ->allowedSorts(['first_name', 'last_name', 'created_at'])
             ->paginate($request->get('per_page') ?? $this->per_page);
 
         return ResponseBuilder::asSuccess()
@@ -82,9 +82,6 @@ class UserController extends Controller
 
     /**
      * Store a newly created user in storage by an admin.
-     *
-     * @param CreateUserRequest $request
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function store(CreateUserRequest $request, CreateUserAction $action): Response
     {
@@ -100,7 +97,7 @@ class UserController extends Controller
 
         $user = $action->handle($userData, $file);
 
-        if (!empty($userData['roles'])) {
+        if (! empty($userData['roles'])) {
             $roles = Role::whereIn('name', $userData['roles'])->get();
             $user->syncRoles($roles);
         }
@@ -176,13 +173,13 @@ class UserController extends Controller
                 ->build();
         }
 
-        if ($request->validated('action') === 'deactivate' && !$user->is_active) {
+        if ($request->validated('action') === 'deactivate' && ! $user->is_active) {
             return ResponseBuilder::asError(421)
                 ->withMessage('User is already not active')
                 ->build();
         }
 
-        $user->is_active = !$user->is_active;
+        $user->is_active = ! $user->is_active;
 
         if ($user->is_active) {
             $user->activated_at = now();
@@ -205,7 +202,7 @@ class UserController extends Controller
                 'status' => $statusText,
                 'toggled_by' => Auth::user()->email,
                 'ip_address' => request()->ip(),
-                'reason' => $user->status_reason
+                'reason' => $user->status_reason,
             ])
             ->log("User {$statusText} successfully.");
 
@@ -227,8 +224,8 @@ class UserController extends Controller
 
         $users = QueryBuilder::for(User::query()->isLocked())
             ->defaultSort('-created_at')
-            ->allowedFilters('first_name','last_name','email')
-            ->allowedSorts(['first_name','last_name','created_at'])
+            ->allowedFilters('first_name', 'last_name', 'email')
+            ->allowedSorts(['first_name', 'last_name', 'created_at'])
             ->paginate($request->get('per_page') ?? $this->per_page);
 
         return ResponseBuilder::asSuccess()
@@ -240,15 +237,14 @@ class UserController extends Controller
     /**
      * Unlock a user account.
      *
-     * @param User $user The user to unlock
-     * @param UnlockUserAccountRequest $request The request for validation and authorization
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param  User  $user  The user to unlock
+     * @param  UnlockUserAccountRequest  $request  The request for validation and authorization
      */
     public function unlockUser(User $user, UnlockUserAccountRequest $request): Response
     {
         $this->authorize('unlockUser', User::class);
 
-        if (!$user->isLocked()) {
+        if (! $user->isLocked()) {
             return ResponseBuilder::asError(Response::HTTP_BAD_REQUEST)
                 ->withMessage('User account is not currently locked.')
                 ->build();
@@ -277,7 +273,7 @@ class UserController extends Controller
         $admin->notify($notification);
 
         return ResponseBuilder::asSuccess()
-            ->withMessage("User account unlocked successfully.")
+            ->withMessage('User account unlocked successfully.')
             ->withHttpCode(Response::HTTP_OK)
             ->build();
     }
@@ -298,6 +294,7 @@ class UserController extends Controller
                 ->withData(['failures' => $import->failures()])
                 ->build();
         }
+
         return ResponseBuilder::asSuccess()
             ->withMessage('Import successful. All rows processed successfully.')
             ->build();
@@ -320,13 +317,13 @@ class UserController extends Controller
         $this->authorize('exportUsers', User::class);
 
         $type = strtolower($request->query('type', 'excel'));
-        $fileName = 'users_export_' . now()->format('Y_m_d_His');
+        $fileName = 'users_export_'.now()->format('Y_m_d_His');
 
         if ($type === 'csv') {
-            return Excel::download(new UsersExport, $fileName . '.csv', ExcelExcel::CSV);
+            return Excel::download(new UsersExport, $fileName.'.csv', ExcelExcel::CSV);
         }
 
-        return Excel::download(new UsersExport, $fileName . '.xlsx', ExcelExcel::XLSX);
+        return Excel::download(new UsersExport, $fileName.'.xlsx', ExcelExcel::XLSX);
     }
 
     public function exportAsync(Request $request)
@@ -347,12 +344,11 @@ class UserController extends Controller
             abort(403, 'You are not authorized to download this file.');
         }
 
-        $path = 'exports/' . $file;
-        if (!Storage::disk('local')->exists($path)) {
+        $path = 'exports/'.$file;
+        if (! Storage::disk('local')->exists($path)) {
             abort(404, 'File not found.');
         }
 
         return Storage::disk('local')->download($path);
     }
-
 }

@@ -15,15 +15,12 @@ class VerifyEmailNotification extends BaseNotification implements ShouldQueue
 
     /**
      * The callback that should be used to build the mail message.
-     *
-     * @var string
      */
     public string $callbackUrl;
 
     /**
      * Create a new notification instance.
      *
-     * @param string $callbackUrl
      * @return void
      */
     public function __construct(string $callbackUrl)
@@ -33,25 +30,20 @@ class VerifyEmailNotification extends BaseNotification implements ShouldQueue
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @return array
      */
     public function via(): array
     {
-        return ['mail','database'];
+        return ['mail', 'database'];
     }
 
     /**
      * Get the mail representation of the notification.
-     *
-     * @param mixed $notifiable
-     * @return MailMessage
      */
     public function toMail(mixed $notifiable): MailMessage
     {
         $verificationUrl = $this->verificationUrl($notifiable);
 
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject('Verify Email Address')
             ->greeting("Dear {$notifiable->full_name},")
             ->line('Please click the button below to verify your email address.')
@@ -59,7 +51,7 @@ class VerifyEmailNotification extends BaseNotification implements ShouldQueue
             ->line('If you did not create an account, no further action is required.');
     }
 
-      public function toDatabase($notifiable): array
+    public function toDatabase($notifiable): array
     {
         return $this->formatData(
             'Verify Email Address',
@@ -74,7 +66,7 @@ class VerifyEmailNotification extends BaseNotification implements ShouldQueue
     /**
      * Get the verification URL for the given notifiable.
      *
-     * @param mixed $notifiable
+     * @param  mixed  $notifiable
      * @return string
      */
     protected function verificationUrl($notifiable)
@@ -97,10 +89,9 @@ class VerifyEmailNotification extends BaseNotification implements ShouldQueue
             'expires' => $urlQueries['expires'],
             'hash' => $urlQueries['hash'],
             'id' => $urlQueries['id'],
-            'signature' => $urlQueries['signature']
+            'signature' => $urlQueries['signature'],
         ]);
 
         return "{$this->callbackUrl}?{$parameters}";
     }
-
 }

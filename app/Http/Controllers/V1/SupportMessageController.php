@@ -19,7 +19,7 @@ class SupportMessageController extends Controller
 
         $message = $supportTicket->messages()->create([
             'user_id' => Auth::id(),
-            'message' => $request->validated('message')
+            'message' => $request->validated('message'),
         ]);
 
         return ResponseBuilder::asSuccess()

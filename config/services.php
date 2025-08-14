@@ -81,9 +81,9 @@ return [
     ],
 
     '2FA' => [
-        'enabled' => env('TWO_FACTOR_AUTHENTICATION_ENABLED', false)
+        'enabled' => env('TWO_FACTOR_AUTHENTICATION_ENABLED', false),
     ],
     'pagination' => [
-        'size' => env('PAGINATION_SIZE', 15)
-    ]
+        'size' => env('PAGINATION_SIZE', 15),
+    ],
 ];

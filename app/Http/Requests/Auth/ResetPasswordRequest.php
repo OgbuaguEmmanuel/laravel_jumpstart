@@ -26,7 +26,7 @@ class ResetPasswordRequest extends FormRequest
             'token' => 'required',
             'email' => 'required|email|exists:users',
             'callbackContactUrl' => 'required|url',
-            'password'=> [
+            'password' => [
                 'required',
                 'string',
                 'confirmed',
@@ -37,7 +37,7 @@ class ResetPasswordRequest extends FormRequest
                     ->numbers()
                     ->symbols()
                     ->uncompromised(),
-            ]
+            ],
         ];
     }
 }

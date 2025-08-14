@@ -9,7 +9,9 @@ use Illuminate\Foundation\Http\FormRequest;
 class InitiatePaymentRequest extends FormRequest
 {
     protected int $minAmount;
+
     protected string $currency;
+
     protected string $symbol;
 
     /**

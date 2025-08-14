@@ -7,13 +7,13 @@ use App\Notifications\LoginAlertNotification;
 use App\Notifications\VerifyEmailNotification;
 use App\Traits\AuthHelpers;
 use Exception;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
-use PragmaRX\Google2FALaravel\Google2FA;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use PragmaRX\Google2FALaravel\Google2FA;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Auth\Events\Failed;
 
 class LoginUserAction
 {
@@ -41,7 +41,7 @@ class LoginUserAction
                 ->withProperties([
                     'email_attempted' => $data['email'],
                     'reason' => 'Login failed: Account is locked',
-                    'ip_address' => $ipAddress
+                    'ip_address' => $ipAddress,
                 ])
                 ->log('Login failed: Account locked');
 
@@ -52,11 +52,11 @@ class LoginUserAction
             ])->status(423); // 423 Locked status code
         }
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+        if (! $user || ! Hash::check($data['password'], $user->password)) {
             try {
                 event(new Failed('api', $user, ['email' => $data['email'], 'password' => $data['password']]));
-            } catch(Exception $e) {
-                logger('from event '. $e->getMessage());
+            } catch (Exception $e) {
+                logger('from event '.$e->getMessage());
                 throw $e;
             }
             activity()
@@ -65,11 +65,11 @@ class LoginUserAction
                 ->withProperties([
                     'email_attempted' => $data['email'],
                     'reason' => 'Invalid credentials provided',
-                    'ip_address' => $ipAddress
+                    'ip_address' => $ipAddress,
                 ])
                 ->log('Login failed: Invalid Credentials');
             throw ValidationException::withMessages([
-                'email' => ["Invalid Login Credential"],
+                'email' => ['Invalid Login Credential'],
             ])->status(404);
         }
 
@@ -80,7 +80,7 @@ class LoginUserAction
                 ->withProperties([
                     'email_attempted' => $data['email'],
                     'reason' => 'Login failed: You must reset password to continue',
-                    'ip_address' => $ipAddress
+                    'ip_address' => $ipAddress,
                 ])
                 ->log('Login failed: Reset password to continue');
 
@@ -93,7 +93,7 @@ class LoginUserAction
 
         if ($user->hasTwoFactorEnabled()) {
             $challengeKey = Str::uuid()->toString();
-            Cache::put('2fa_challenge:' . $challengeKey, $user->id, now()->addMinutes(5));
+            Cache::put('2fa_challenge:'.$challengeKey, $user->id, now()->addMinutes(5));
 
             activity()
                 ->inLog(ActivityLogTypeEnum::Login)
@@ -102,7 +102,7 @@ class LoginUserAction
                     'email' => $user->email,
                     '2fa_challenge_key' => $challengeKey,
                     'reason' => 'Two-factor authentication required',
-                    'ip_address' => $ipAddress
+                    'ip_address' => $ipAddress,
                 ])
                 ->log('Login attempt: 2FA required');
 
@@ -110,7 +110,7 @@ class LoginUserAction
                 'requires_2fa' => true,
                 '2fa_challenge_key' => $challengeKey,
                 'message' => 'Two-factor authentication required. Please provide your 2FA code.',
-                'status' => Response::HTTP_ACCEPTED
+                'status' => Response::HTTP_ACCEPTED,
             ];
         }
 
@@ -142,11 +142,11 @@ class LoginUserAction
                 ->withProperties([
                     'email' => $user->email,
                     'ip_address' => $ipAddress,
-                    'token_created' => true
+                    'token_created' => true,
                 ])
                 ->log('User logged in successfully');
         } catch (Exception $e) {
-            logger()->error('Login failed: ' . $e->getMessage(), [
+            logger()->error('Login failed: '.$e->getMessage(), [
                 'email' => $data['email'],
                 'code' => $e->getCode(),
             ]);
@@ -161,7 +161,7 @@ class LoginUserAction
                 ])
                 ->log('Login failed: API Token creation error');
 
-            throw new Exception("Something went wrong. Please contact support", 500);
+            throw new Exception('Something went wrong. Please contact support', 500);
         }
 
         $userDetails = $user->only('id', 'first_name', 'last_name', 'email');
@@ -176,7 +176,7 @@ class LoginUserAction
                 'token' => $token,
                 'user' => $userDetails,
                 'message' => 'Check your email and verify your email address',
-                'status' => Response::HTTP_PARTIAL_CONTENT
+                'status' => Response::HTTP_PARTIAL_CONTENT,
             ];
         } else {
             $user->notify(new LoginAlertNotification(
@@ -187,7 +187,7 @@ class LoginUserAction
                 'token' => $token,
                 'user' => $userDetails,
                 'message' => 'Login successful',
-                'status' => Response::HTTP_OK
+                'status' => Response::HTTP_OK,
             ];
         }
     }

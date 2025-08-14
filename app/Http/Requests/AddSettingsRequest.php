@@ -25,12 +25,12 @@ class AddSettingsRequest extends FormRequest
         $id = $this->input('id');
 
         return [
-            'id'    => 'nullable|exists:settings,id',
-            'key'   => [
-                'required','string','max:255',
-                Rule::unique('settings', 'key')->ignore($id)
+            'id' => 'nullable|exists:settings,id',
+            'key' => [
+                'required', 'string', 'max:255',
+                Rule::unique('settings', 'key')->ignore($id),
             ],
-            'value' => 'required'
+            'value' => 'required',
         ];
     }
 }

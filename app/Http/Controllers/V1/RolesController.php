@@ -31,8 +31,6 @@ class RolesController extends Controller
 
     /**
      * List  all roles
-     *
-     * @return Response
      */
     public function index(Request $request): Response
     {
@@ -41,7 +39,7 @@ class RolesController extends Controller
         $roles = QueryBuilder::for(Role::query())
             ->defaultSort('-created_at')
             ->allowedFilters('name')
-            ->allowedSorts(['name','created_at'])
+            ->allowedSorts(['name', 'created_at'])
             ->paginate($request->get('per_page') ?? $this->per_page);
 
         return ResponseBuilder::asSuccess()
@@ -64,9 +62,6 @@ class RolesController extends Controller
 
     /**
      * Store a new role
-     *
-     * @param StoreRoleRequest $request
-     * @return Response
      */
     public function store(StoreRoleRequest $request): Response
     {
@@ -76,7 +71,7 @@ class RolesController extends Controller
         $ipAddress = request()->ip();
 
         $role = Role::create([
-            'name' => ucwords($request->validated('name'))
+            'name' => ucwords($request->validated('name')),
         ]);
 
         $role->refresh();
@@ -95,7 +90,7 @@ class RolesController extends Controller
             ->withHttpCode(Response::HTTP_CREATED)
             ->withMessage('Role successfully created!!!')
             ->withData([
-                'role' => $role
+                'role' => $role,
             ])
             ->build();
     }
@@ -129,10 +124,6 @@ class RolesController extends Controller
 
     /**
      * Give permission to a role
-     *
-     * @param GivePermissionToRoleRequest $request
-     * @param Role $role
-     * @return Response
      */
     public function givePermissions(GivePermissionToRoleRequest $request, Role $role): Response
     {
@@ -143,9 +134,9 @@ class RolesController extends Controller
 
         $alreadyAssignedPermissions = $role->permissions()->whereIn('name', $permissionNames)->pluck('name')->toArray();
 
-        $responseMessage = 'Role already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions);
+        $responseMessage = 'Role already has the following permissions: '.implode(', ', $alreadyAssignedPermissions);
 
-        if (!empty($alreadyAssignedPermissions)) {
+        if (! empty($alreadyAssignedPermissions)) {
             activity()
                 ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->performedOn($role)
@@ -175,23 +166,19 @@ class RolesController extends Controller
                 'permissions_assigned' => $permissionNames,
                 'ip_address' => $ipAddress,
             ])
-            ->log("Permissions [" . implode(', ', $permissionNames) . "] successfully assigned to role '{$role->name}'.");
+            ->log('Permissions ['.implode(', ', $permissionNames)."] successfully assigned to role '{$role->name}'.");
 
         return ResponseBuilder::asSuccess()
             ->withHttpCode(Response::HTTP_CREATED)
             ->withMessage('Permissions successfully assigned to role!!!')
             ->withData([
-                'role_permissions' => $role->permissions->pluck('name')->toArray()
+                'role_permissions' => $role->permissions->pluck('name')->toArray(),
             ])
             ->build();
     }
 
     /**
      * Revoke permission from role
-     *
-     * @param RevokePermissionFromRoleRequest $request
-     * @param Role $role
-     * @return Response
      */
     public function revokePermissions(RevokePermissionFromRoleRequest $request, Role $role): Response
     {
@@ -204,8 +191,8 @@ class RolesController extends Controller
             ->pluck('name')->toArray();
 
         $notAssigned = array_diff($permissionNames, $roleActuallyHas);
-        $msg = 'Role does not have the following permissions: ' . implode(', ', $notAssigned);
-        if (!empty($notAssigned)) {
+        $msg = 'Role does not have the following permissions: '.implode(', ', $notAssigned);
+        if (! empty($notAssigned)) {
             activity()
                 ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->causedBy($user)
@@ -235,17 +222,13 @@ class RolesController extends Controller
         return ResponseBuilder::asSuccess()
             ->withMessage('Permissions successfully revoked from role!!!')
             ->withData([
-                'role_permissions' => $role->permissions->pluck('name')->toArray()
+                'role_permissions' => $role->permissions->pluck('name')->toArray(),
             ])
             ->build();
     }
 
     /**
      * Assign a role to a user
-     *
-     * @param User $user
-     * @param Role $role
-     * @return Response
      */
     public function assignRole(User $user, Role $role): Response
     {
@@ -286,17 +269,13 @@ class RolesController extends Controller
             ->withHttpCode(Response::HTTP_CREATED)
             ->withMessage('Role successfully assigned to user!!!')
             ->withData([
-                'user_roles' => $user->roles->pluck('name')->toArray()
+                'user_roles' => $user->roles->pluck('name')->toArray(),
             ])
             ->build();
     }
 
     /**
      * Remove a role from a user
-     *
-     * @param User $user
-     * @param Role $role
-     * @return Response
      */
     public function removeRole(User $user, Role $role): Response
     {
@@ -321,7 +300,7 @@ class RolesController extends Controller
             return ResponseBuilder::asSuccess()
                 ->withMessage('Role successfully removed from user!!!')
                 ->withData([
-                    'user_roles' => $user->roles->pluck('name')->toArray()
+                    'user_roles' => $user->roles->pluck('name')->toArray(),
                 ])
                 ->build();
         }
@@ -340,5 +319,4 @@ class RolesController extends Controller
             ->withMessage("This role hasn't been assigned to this user!!!")
             ->build();
     }
-
 }

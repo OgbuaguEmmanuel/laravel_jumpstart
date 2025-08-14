@@ -54,9 +54,10 @@ function createUserAndGenerateToken()
     ]);
 
     $personalAccessTokenResult = $user->createToken('TestToken');
+
     return [
         'token' => $personalAccessTokenResult->plainTextToken,
-        'user' => $user
+        'user' => $user,
     ];
 }
 
@@ -64,13 +65,14 @@ function createUnverifiedUserAndGenerateToken()
 {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
-        'email_verified_at' => null
+        'email_verified_at' => null,
     ]);
 
     $personalAccessTokenResult = $user->createToken('TestToken');
+
     return [
         'token' => $personalAccessTokenResult->plainTextToken,
-        'user' => $user
+        'user' => $user,
     ];
 }
 
@@ -94,7 +96,7 @@ function verificationUrlParam($user)
         'expires' => $urlQueries['expires'],
         'hash' => $urlQueries['hash'],
         'id' => $urlQueries['id'],
-        'signature' => $urlQueries['signature']
+        'signature' => $urlQueries['signature'],
     ]);
 
     return "{$parameters}";

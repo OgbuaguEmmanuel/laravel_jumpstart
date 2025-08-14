@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\PermissionTypeEnum;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UnlockUserAccountRequest extends FormRequest

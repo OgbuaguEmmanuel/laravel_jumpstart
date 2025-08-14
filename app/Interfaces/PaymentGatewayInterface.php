@@ -13,5 +13,4 @@ interface PaymentGatewayInterface
     public function verify(string $reference): array;
 
     public static function verifyWebhook(Request $request, string $payload): bool;
-
 }

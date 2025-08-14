@@ -40,9 +40,9 @@ class PasswordResetSuccessNotification extends BaseNotification implements Shoul
             ->subject("Your {$appName} Password Was Successfully Reset")
             ->greeting("Dear {$notifiable->full_name},")
             ->line("This is a confirmation that your password for {$appName} has been successfully reset.")
-            ->line("If you made this change, you can safely ignore this message.")
-            ->line("If you did not request this change, please reset your password immediately and contact our support team.")
-            ->action("Log In", $this->loginUrl)
-            ->line("For security, we recommend enabling two-factor authentication to further protect your account.");
+            ->line('If you made this change, you can safely ignore this message.')
+            ->line('If you did not request this change, please reset your password immediately and contact our support team.')
+            ->action('Log In', $this->loginUrl)
+            ->line('For security, we recommend enabling two-factor authentication to further protect your account.');
     }
 }

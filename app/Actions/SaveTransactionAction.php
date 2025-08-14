@@ -20,12 +20,12 @@ class SaveTransactionAction
     /**
      * Execute the action.
      *
-     * @param object $paymentTransaction
+     * @param  object  $paymentTransaction
      * @return Transaction
      */
     public function execute($paymentTransaction)
     {
-        $transaction = new Transaction();
+        $transaction = new Transaction;
         $transaction->user_id = ($paymentTransaction->user_id == '' ? null : $paymentTransaction->user_id);
         $transaction->transactionable_id = $paymentTransaction->transactionable_id;
         $transaction->transactionable_type = $paymentTransaction->transactionable_type;
@@ -48,12 +48,12 @@ class SaveTransactionAction
     /**
      * Execute the action.
      *
-     * @param object $paymentCard
+     * @param  object  $paymentCard
      * @return PaymentCard
      */
     public function saveCard($paymentCard)
     {
-        $card = new PaymentCard();
+        $card = new PaymentCard;
         $card->authorization_code = $paymentCard->authorization_code;
         $card->bin = $paymentCard->bin;
         $card->last4 = $paymentCard->last4;
@@ -69,5 +69,4 @@ class SaveTransactionAction
 
         return $card;
     }
-
 }

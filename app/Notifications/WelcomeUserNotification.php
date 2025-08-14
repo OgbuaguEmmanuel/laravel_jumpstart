@@ -40,8 +40,8 @@ class WelcomeUserNotification extends BaseNotification implements ShouldQueue
             ->subject("Welcome to {$appName}")
             ->greeting("Dear {$notifiable->full_name},")
             ->line("Welcome to {$appName}! We're excited to have you on board.")
-            ->line("Click the button below to log in and start exploring:")
-            ->action("Go to Dashboard", $this->callbackUrl)
-            ->line("If you have any questions, feel free to reach out to our support team.");
+            ->line('Click the button below to log in and start exploring:')
+            ->action('Go to Dashboard', $this->callbackUrl)
+            ->line('If you have any questions, feel free to reach out to our support team.');
     }
 }

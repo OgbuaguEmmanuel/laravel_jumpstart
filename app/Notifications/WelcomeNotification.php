@@ -11,20 +11,14 @@ class WelcomeNotification extends BaseNotification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * @var string
-     */
     public string $callbackUrl;
 
-     /**
-     * @var string
-     */
     public string $token;
 
     /**
      * Create a new notification instance.
      *
-     * @param string $loginCallbackUrl
+     * @param  string  $loginCallbackUrl
      * @return void
      */
     public function __construct(string $callbackUrl, string $token)
@@ -36,26 +30,21 @@ class WelcomeNotification extends BaseNotification implements ShouldQueue
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @return array
      */
     public function via(): array
     {
-        return ['mail','database'];
+        return ['mail', 'database'];
     }
 
     /**
      * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return MailMessage
      */
     public function toMail(mixed $notifiable): MailMessage
     {
         $appName = config('app.name');
 
-        return (new MailMessage())
-            ->subject("Welcome to " . $appName)
+        return (new MailMessage)
+            ->subject('Welcome to '.$appName)
             ->greeting("Dear $notifiable->full_name")
             ->line(
                 Lang::get('An account has been created on your behalf on our platform.')
@@ -63,13 +52,13 @@ class WelcomeNotification extends BaseNotification implements ShouldQueue
             ->line(
                 Lang::get('Kindly click on the link below to reset your password to start using our platform.')
             )
-            ->action($appName . ' Reset Password', $this->getResetPasswordUrl());
+            ->action($appName.' Reset Password', $this->getResetPasswordUrl());
     }
 
     public function toDatabase($notifiable): array
     {
         return $this->formatData(
-            'Welcome to ' . config('app.name'),
+            'Welcome to '.config('app.name'),
             'An account has been created for you. Please reset your password to start using the platform.',
             [
                 'callbackUrl' => $this->callbackUrl,
@@ -77,11 +66,9 @@ class WelcomeNotification extends BaseNotification implements ShouldQueue
             ]
         );
     }
-    
+
     /**
      * Get the reset URL for the given notifiable.
-     *
-     * @return string
      */
     protected function getResetPasswordUrl(): string
     {

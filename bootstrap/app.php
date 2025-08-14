@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\APIExceptionHandler;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -7,7 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use App\Helpers\APIExceptionHandler;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

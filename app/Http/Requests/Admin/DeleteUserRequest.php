@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\PermissionTypeEnum;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DeleteUserRequest extends FormRequest
@@ -25,7 +23,7 @@ class DeleteUserRequest extends FormRequest
     {
         return [
             'ids' => 'required|array',
-            'ids.*' => 'required|exists:users,id'
+            'ids.*' => 'required|exists:users,id',
         ];
     }
 }

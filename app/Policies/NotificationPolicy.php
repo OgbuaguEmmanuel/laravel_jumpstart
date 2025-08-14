@@ -35,5 +35,4 @@ class NotificationPolicy
             ? Response::allow()
             : Response::deny('Unauthorized to delete this notification.', 403);
     }
-
 }

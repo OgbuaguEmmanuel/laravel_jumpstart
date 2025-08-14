@@ -8,7 +8,9 @@ use Illuminate\Notifications\Notification;
 abstract class BaseNotification extends Notification
 {
     public $connection;
+
     public $queue;
+
     public $delay = null;
 
     public function __construct()
@@ -21,7 +23,7 @@ abstract class BaseNotification extends Notification
     {
         return array_merge([
             'title' => $title,
-            'body'  => $body,
+            'body' => $body,
         ], $extra);
     }
 

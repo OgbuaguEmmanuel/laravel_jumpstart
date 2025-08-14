@@ -16,9 +16,9 @@ class TwoFactorAuthenticationEnabledMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-         $user = auth('user')->user();
+        $user = auth('user')->user();
 
-        if (!$user) {
+        if (! $user) {
             abort(Response::HTTP_UNAUTHORIZED, 'User not authenticated');
         }
 

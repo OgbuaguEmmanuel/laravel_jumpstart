@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums;
 
@@ -23,20 +25,32 @@ final class ToggleStatusReasonEnum extends Enum
 {
     // --- Deactivation Reasons ---
     const SUSPICIOUS_ACTIVITY = 'suspicious_activity';
+
     const TOS_VIOLATION = 'tos_violation';
+
     const USER_REQUESTED_DEACTIVATION = 'user_requested_deactivation';
+
     const EXTENDED_INACTIVITY = 'extended_inactivity';
+
     const PAYMENT_LAPSE = 'payment_lapse';
+
     const FRAUDULENT_ACTIVITY = 'fraudulent_activity';
+
     const SECURITY_COMPROMISE = 'security_compromise';
+
     const LEGAL_ORDER = 'legal_order';
 
     // --- Activation Reasons ---
     const REGISTRATION_COMPLETE = 'registration_complete';
+
     const EMAIL_VERIFIED = 'email_verified';
+
     const USER_REQUESTED_REACTIVATION = 'user_requested_reactivation';
+
     const PAYMENT_RENEWED = 'payment_renewed';
+
     const ADMIN_ACTIVATION = 'admin_activation';
+
     const ISSUE_RESOLVED = 'issue_resolved';
 
     public static function getDescription(mixed $value): string
@@ -80,6 +94,7 @@ final class ToggleStatusReasonEnum extends Enum
 
     /**
      * Helper method to get all activation reason values.
+     *
      * @return array<string> // Array of strings
      */
     public static function getActivationReasons(): array

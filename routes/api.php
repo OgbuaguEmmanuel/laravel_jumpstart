@@ -16,7 +16,7 @@ use App\Http\Controllers\V1\SupportTicketController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('V1/user', function(Request $request ) {
+Route::get('V1/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:user');
 
@@ -47,10 +47,10 @@ Route::prefix('V1')->group(function () {
         Route::post('/email/resend-verification', [VerificationController::class, 'resend'])
             ->middleware('throttle:6,1')->name('auth.verification.resend');
         Route::get('/email/verify', [VerificationController::class, 'verify'])
-            ->middleware('signed','throttle:6,1')->name('auth.verification.verify');
+            ->middleware('signed', 'throttle:6,1')->name('auth.verification.verify');
         Route::post('/change-password', [App\Http\Controllers\V1\Auth\PasswordController::class, 'changePassword'])
-            ->middleware('isActive','verified','isLocked')->name('auth.change-password');
-        Route::middleware(['verified','isActive','isLocked','passwordResetNeeded','is2FAEnabled'])
+            ->middleware('isActive', 'verified', 'isLocked')->name('auth.change-password');
+        Route::middleware(['verified', 'isActive', 'isLocked', 'passwordResetNeeded', 'is2FAEnabled'])
             ->prefix('2fa')->group(function () {
                 Route::post('/setup', [TwoFactorAuthenticationController::class, 'setup'])
                     ->name('auth.2fa.setup');
@@ -61,11 +61,11 @@ Route::prefix('V1')->group(function () {
                 Route::post('/recovery-codes', [TwoFactorAuthenticationController::class, 'generateNewRecoveryCodes'])
                     ->name('auth.2fa.recovery-codes');
             }
-        );
+            );
     });
 
-    Route::middleware(['auth:user','verified', 'isActive','isLocked','passwordResetNeeded'])
-        ->prefix('admin')->group( function() {
+    Route::middleware(['auth:user', 'verified', 'isActive', 'isLocked', 'passwordResetNeeded'])
+        ->prefix('admin')->group(function () {
             Route::apiResource('/permissions', PermissionsController::class)->except('destroy');
             Route::post('users/{user}/assign-permissions', [PermissionsController::class, 'assignPermissionsToUser'])
                 ->name('permission.user.assign');
@@ -77,15 +77,15 @@ Route::prefix('V1')->group(function () {
                 ->name('permission.role.assign');
             Route::post('/roles/{role}/revoke-permission', [RolesController::class, 'revokePermissions'])
                 ->name('permission.role.revoke');
-            Route::post('/users/{user}/assignRole/roles/{role}', [RolesController::class,'assignRole'])
+            Route::post('/users/{user}/assignRole/roles/{role}', [RolesController::class, 'assignRole'])
                 ->name('role.assign');
-            Route::post('/users/{user}/removeRole/roles/{role}', [RolesController::class,'removeRole'])
+            Route::post('/users/{user}/removeRole/roles/{role}', [RolesController::class, 'removeRole'])
                 ->name('role.revoke');
 
             Route::get('/activities', [App\Http\Controllers\V1\ActivityLogController::class, 'listActivities'])
                 ->name('activity.list');
 
-            Route::apiResource('users',UserController::class)->except('update','destroy');
+            Route::apiResource('users', UserController::class)->except('update', 'destroy');
             Route::delete('users', [UserController::class, 'destroy'])
                 ->name('user.destroy');
             Route::get('locked/users', [UserController::class, 'lockedUsers'])
@@ -101,7 +101,7 @@ Route::prefix('V1')->group(function () {
             Route::get('/exports/download/{file}', [UserController::class, 'download'])
                 ->name('exports.download')->middleware(['auth', 'signed:relative']);
 
-            Route::apiResource('settings', SettingsController::class)->only('view','index');
+            Route::apiResource('settings', SettingsController::class)->only('view', 'index');
             Route::post('/settings/set', [SettingsController::class, 'storeOrUpdate'])
                 ->name('settings.set');
             Route::post('/settings/bulkSet', [SettingsController::class, 'bulkSet'])
@@ -113,11 +113,11 @@ Route::prefix('V1')->group(function () {
         Route::post('init', [PaymentController::class, 'initialize'])->name('payment.init');
         Route::post('confirm', [PaymentController::class, 'confirm'])->name('payment.verify');
         Route::post('paystack/webhook', [PaymentController::class, 'paystackWebhook'])
-            ->withoutMiddleware(['auth:user','verified', 'isActive','isLocked','passwordResetNeeded'])
+            ->withoutMiddleware(['auth:user', 'verified', 'isActive', 'isLocked', 'passwordResetNeeded'])
             ->middleware('guest')->name('payment.paystack.webhook');
     });
 
-    Route::middleware('auth:user', 'isActive','isLocked', 'verified','passwordResetNeeded')
+    Route::middleware('auth:user', 'isActive', 'isLocked', 'verified', 'passwordResetNeeded')
         ->prefix('/notifications')->group(function (): void {
             Route::get('/all', [NotificationController::class, 'index'])
                 ->name('notification.all');
@@ -134,7 +134,7 @@ Route::prefix('V1')->group(function () {
             Route::post('/{notification}/delete', [NotificationController::class, 'destroy'])
                 ->name('notification.delete');
         });
-    Route::middleware('auth:user', 'isActive','isLocked', 'verified','passwordResetNeeded')
+    Route::middleware('auth:user', 'isActive', 'isLocked', 'verified', 'passwordResetNeeded')
         ->group(function (): void {
             Route::apiResource('tickets', SupportTicketController::class);
 
@@ -146,7 +146,6 @@ Route::prefix('V1')->group(function () {
             Route::post('profile/{user}/upload', [ProfileController::class, 'uploadProfilePicture'])
                 ->name('profile.upload');
         }
-    );
+        );
 
 });
-

@@ -13,7 +13,6 @@ use App\Services\PaystackService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Spatie\Activitylog\Facades\Activity;
 
 class PaymentController extends Controller
@@ -38,7 +37,7 @@ class PaymentController extends Controller
                 'email' => $email,
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
-                'purpose' => PaymentPurposeEnum::Registration
+                'purpose' => PaymentPurposeEnum::Registration,
             ]
         );
 
@@ -51,7 +50,7 @@ class PaymentController extends Controller
                 'callback_url' => $callbackUrl,
                 'reference' => $data['reference'],
                 'authorization_url' => $data['authorization_url'],
-                'access_code' => $data['access_code']
+                'access_code' => $data['access_code'],
             ])
             ->log('Initialized a payment');
 
@@ -71,7 +70,7 @@ class PaymentController extends Controller
             ->withProperties([
                 'reference' => $reference,
                 'status' => $data['status'],
-                'channel' => $data['channel']
+                'channel' => $data['channel'],
             ])
             ->log('Verified a payment');
 

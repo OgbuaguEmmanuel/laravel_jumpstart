@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
 $url = '/api/V1/auth/login';
@@ -24,23 +23,23 @@ test('email is required for login', function () use ($url) {
 
 test('password is required for login', function () use ($url) {
     $response = $this->postJson($url, [
-        'email' => 'example@test.com'
+        'email' => 'example@test.com',
     ]);
 
     $response->assertStatus(422);
     $response->assertSeeText('The password field is required.');
 });
 
-test('email must exist in users table', function () use ($url){
+test('email must exist in users table', function () use ($url) {
 
     $user = User::factory()->create([
-        'email' => 'jumpstart@test.com'
+        'email' => 'jumpstart@test.com',
     ]);
 
-    $response = $this->postJson($url,[
+    $response = $this->postJson($url, [
         'email' => $user->email,
         'password' => 'wrongpassword',
-        'callbackUrl' => 'https://example.test.com'
+        'callbackUrl' => 'https://example.test.com',
 
     ]);
 
@@ -51,7 +50,7 @@ test('email must exist in users table', function () use ($url){
 test('email must be a valid email address', function () use ($url) {
     $response = $this->postJson($url, [
         'email' => 'invalid-email',
-        'password' => 'password123'
+        'password' => 'password123',
     ]);
 
     $response->assertStatus(422);
@@ -61,7 +60,7 @@ test('email must be a valid email address', function () use ($url) {
 test('password must be a string', function () use ($url) {
     $response = $this->postJson($url, [
         'email' => 'example@test.com',
-        'password' => 123456
+        'password' => 123456,
     ]);
 
     $response->assertStatus(422);
@@ -71,14 +70,14 @@ test('password must be a string', function () use ($url) {
 test('user cannot login with invalid credentials', function () use ($url) {
     $user = User::factory()->create([
         'email' => 'jumpstart@test.com',
-        'password' => Hash::make('password123')
+        'password' => Hash::make('password123'),
 
     ]);
 
     $response = $this->postJson($url, [
         'email' => $user->email,
         'password' => 'password',
-        'callbackUrl' => 'https://example.test.com'
+        'callbackUrl' => 'https://example.test.com',
 
     ]);
 
@@ -91,13 +90,13 @@ test('user can login with valid credentials', function () use ($url) {
 
     $user = User::factory()->create([
         'email' => 'jumpstart@test.com',
-        'password' => Hash::make('password123')
+        'password' => Hash::make('password123'),
     ]);
 
     $response = $this->postJson($url, [
         'email' => $user->email,
         'password' => 'password123',
-        'callbackUrl' => 'https://example.test.com'
+        'callbackUrl' => 'https://example.test.com',
 
     ]);
 
@@ -111,4 +110,3 @@ test('user can login with valid credentials', function () use ($url) {
     expect($response->json('data.user.id'))->toBe($user->id);
 
 });
-

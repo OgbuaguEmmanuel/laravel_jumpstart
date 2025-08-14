@@ -30,9 +30,9 @@ class CreateUserRequest extends FormRequest
                 'nullable',
                 'string',
                 'unique:users',
-                'regex:/^(?:\+?234|0|234)?(70|80|91|90|81|71|070|080|091|090|081|071)\d{8}$/'
+                'regex:/^(?:\+?234|0|234)?(70|80|91|90|81|71|070|080|091|090|081|071)\d{8}$/',
             ],
-            'password'=> [
+            'password' => [
                 'required',
                 'string',
                 'confirmed',
@@ -44,7 +44,7 @@ class CreateUserRequest extends FormRequest
                     ->symbols()
                     ->uncompromised(),
             ],
-            'profile_picture' => 'nullable|file|mimes:jpeg,png|max:2048'
+            'profile_picture' => 'nullable|file|mimes:jpeg,png|max:2048',
         ];
     }
 }

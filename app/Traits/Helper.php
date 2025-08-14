@@ -2,9 +2,4 @@
 
 namespace App\Traits;
 
-use App\Models\Notification;
-
-trait Helper
-{
-    
-}
+trait Helper {}

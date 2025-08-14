@@ -9,5 +9,5 @@ use Illuminate\Database\Eloquent\Model;
 #[ObservedBy(WebhookEventObserver::class)]
 class WebhookEvent extends Model
 {
-    protected $fillable = ['payment_gateway','log'];
+    protected $fillable = ['payment_gateway', 'log'];
 }

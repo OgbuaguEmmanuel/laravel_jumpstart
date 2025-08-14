@@ -10,21 +10,21 @@ use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthAction
 {
     protected array $validProviders = [
         'facebook', 'google', 'github', 'linkedin-openid',
-        'gitlab', 'bitbucket', 'slack','twitter-oauth-2'
+        'gitlab', 'bitbucket', 'slack', 'twitter-oauth-2',
     ];
 
     public function handleRedirect($provider)
     {
         $ip = request()->ip();
 
-        if (!$this->isValidProvider($provider)) {
+        if (! $this->isValidProvider($provider)) {
             activity()
                 ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
@@ -36,7 +36,7 @@ class SocialAuthAction
                 ->log("Attempted social login with invalid provider: {$provider}.");
 
             throw new SocialAuthException(
-                "Invalid social provider. Allowed are: " . implode(', ', $this->validProviders),
+                'Invalid social provider. Allowed are: '.implode(', ', $this->validProviders),
                 400,
                 ['provider' => $provider, 'ip' => $ip]
             );
@@ -57,7 +57,7 @@ class SocialAuthAction
     {
         $ip = request()->ip();
 
-        if (!$this->isValidProvider($provider)) {
+        if (! $this->isValidProvider($provider)) {
             activity()
                 ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
@@ -69,7 +69,7 @@ class SocialAuthAction
                 ->log("Callback received for invalid social provider: {$provider}.");
 
             throw new SocialAuthException(
-                "Invalid social provider. Allowed are: " . implode(', ', $this->validProviders),
+                'Invalid social provider. Allowed are: '.implode(', ', $this->validProviders),
                 400,
                 ['provider' => $provider, 'ip' => $ip]
             );
@@ -78,7 +78,7 @@ class SocialAuthAction
         // Handle errors or user cancellations from the provider
         if ($request->has('error') || $request->has('denied')) {
             $errorMessage = $request->input('error_description') ?? $request->input('error') ?? 'User denied access.';
-            Log::warning("Socialite callback error from {$provider}: " . $errorMessage);
+            Log::warning("Socialite callback error from {$provider}: ".$errorMessage);
             activity()
                 ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
@@ -108,7 +108,7 @@ class SocialAuthAction
         ]);
 
         if ($validator->fails()) {
-            Log::warning("Essential data missing from {$provider} user: " . json_encode($validator->errors()->toArray()));
+            Log::warning("Essential data missing from {$provider} user: ".json_encode($validator->errors()->toArray()));
             activity()
                 ->inLog(ActivityLogTypeEnum::SocialAuth)
                 ->causedBy(null)
@@ -130,7 +130,7 @@ class SocialAuthAction
         $user = User::where('provider_name', $provider)
             ->where('provider_id', $socialUser->getId())->first();
 
-        if (!$user) {
+        if (! $user) {
             // If user with this provider_id doesn't exist, check by email
             $user = User::where('email', $socialUser->getEmail())->first();
 
@@ -159,7 +159,7 @@ class SocialAuthAction
                 $nameParts = explode(' ', $socialUser->getName(), 2);
 
                 $user = User::create([
-                    'first_name' =>$nameParts[0] ?? 'User',
+                    'first_name' => $nameParts[0] ?? 'User',
                     'last_name' => $nameParts[1] ?? '',
                     'email' => $socialUser->getEmail(),
                     'password' => Hash::make(Str::random(16)), // Assign a random password, user won't use it directly
@@ -205,17 +205,17 @@ class SocialAuthAction
                 ->withProperties([
                     'email' => $user->email,
                     'ip_address' => request()->ip(),
-                    'token_created' => true
+                    'token_created' => true,
                 ])
                 ->log('User logged in successfully');
 
             $user->notify(new LoginAlertNotification(
                 $provider, request()->ip(), request()->userAgent()
             )
-        );
+            );
 
         } catch (Exception $e) {
-            logger()->error('Login failed: ' . $e->getMessage(), [
+            logger()->error('Login failed: '.$e->getMessage(), [
                 'email' => $user->email,
                 'code' => $e->getCode(),
             ]);
@@ -230,11 +230,11 @@ class SocialAuthAction
                 ])
                 ->log('Login failed: API Token creation error');
 
-                throw new SocialAuthException(
-                    "Something went wrong. Please contact support.",
-                    500,
-                    ['email' => $user->email, 'code' => $e->getCode()]
-                );
+            throw new SocialAuthException(
+                'Something went wrong. Please contact support.',
+                500,
+                ['email' => $user->email, 'code' => $e->getCode()]
+            );
         }
 
         activity()
@@ -250,15 +250,12 @@ class SocialAuthAction
             ->log("User successfully logged in via {$provider}.");
 
         return [
-            'user' => $user, 'token' => $token
+            'user' => $user, 'token' => $token,
         ];
     }
 
     /**
      * Validate the provider name.
-     *
-     * @param string $provider
-     * @return bool
      */
     protected function isValidProvider(string $provider): bool
     {

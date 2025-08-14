@@ -8,7 +8,6 @@ use App\Http\Requests\AddSettingsRequest;
 use App\Http\Requests\BulkSettingsRequest;
 use App\Models\Setting;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 
@@ -42,7 +41,8 @@ class SettingsController extends Controller
 
         $setting = Settings::set($request->validated('key'), $request->validated('value'));
 
-        $message = $request->validated('id') ? 'Setting updated successfully.': 'Setting created successfully.';
+        $message = $request->validated('id') ? 'Setting updated successfully.' : 'Setting created successfully.';
+
         return ResponseBuilder::asSuccess()
             ->withMessage($message)
             ->withData($setting)

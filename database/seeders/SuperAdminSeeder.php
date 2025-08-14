@@ -14,12 +14,10 @@ class SuperAdminSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
     public function run(): void
     {
-       DB::beginTransaction();
+        DB::beginTransaction();
 
         $superAdminData = [
             'first_name' => 'Super Admin',
@@ -39,7 +37,7 @@ class SuperAdminSeeder extends Seeder
         $superAdminRole = Role::findOrCreate(RoleTypeEnum::SuperAdmin);
         $this->command->info("Role '{$superAdminRole->name}' ensured to exist.");
 
-        if (!$superAdmin->hasRole($superAdminRole)) {
+        if (! $superAdmin->hasRole($superAdminRole)) {
             $superAdmin->assignRole($superAdminRole);
             $this->command->info("Assigned '{$superAdminRole->name}' role to {$superAdmin->email}.");
         } else {
@@ -50,7 +48,6 @@ class SuperAdminSeeder extends Seeder
 
         $superAdminRole->syncPermissions($allPermissions);
         $this->command->info("All permissions synced to '{$superAdminRole->name}' role.");
-
 
         DB::commit();
         $this->command->info('Super Admin seeding completed successfully.');

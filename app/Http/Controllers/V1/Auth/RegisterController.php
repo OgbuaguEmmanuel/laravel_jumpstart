@@ -28,5 +28,4 @@ class RegisterController extends Controller
             ->withMessage('User registered successfully.')
             ->build();
     }
-
 }

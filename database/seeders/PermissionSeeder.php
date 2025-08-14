@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\PermissionTypeEnum;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 

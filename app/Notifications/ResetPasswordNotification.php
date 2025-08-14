@@ -11,18 +11,13 @@ class ResetPasswordNotification extends BaseNotification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * @var string
-     * @var string
-     */
     public string $callbackUrl;
+
     public string $token;
 
     /**
      * Create a new notification instance.
      *
-     * @param string $callbackUrl
-     * @param string $token
      * @return void
      */
     public function __construct(string $callbackUrl, string $token)
@@ -33,24 +28,20 @@ class ResetPasswordNotification extends BaseNotification implements ShouldQueue
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @return array
      */
     public function via(): array
     {
-        return ['mail','database'];
+        return ['mail', 'database'];
     }
 
     /**
      * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return MailMessage
      */
     public function toMail(mixed $notifiable): MailMessage
     {
         $expires = config('auth.passwords.users.expire');
-        return (new MailMessage())
+
+        return (new MailMessage)
             ->subject(Lang::get('Reset Password Notification'))
             ->greeting("Dear {$notifiable->full_name},")
             ->line(
@@ -58,7 +49,7 @@ class ResetPasswordNotification extends BaseNotification implements ShouldQueue
             )
             ->action(Lang::get('Reset Password'), $this->getResetUrl())
             ->line(Lang::get('This password reset link will expire in :count minutes.', [
-                'count' => config('auth.passwords.' . config('auth.defaults.passwords') . '.expire')
+                'count' => config('auth.passwords.'.config('auth.defaults.passwords').'.expire'),
             ]))
             ->line(Lang::get('If you did not request a password reset, no further action is required.'));
     }
@@ -75,9 +66,6 @@ class ResetPasswordNotification extends BaseNotification implements ShouldQueue
 
     /**
      * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
      */
     public function toArray(mixed $notifiable): array
     {

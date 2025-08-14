@@ -14,16 +14,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Str;
 
 class ResetPasswordController extends Controller
 {
     /**
      * Get the broker to be used during password reset.
-     *
-     * @return PasswordBroker
      */
     public function broker(): PasswordBroker
     {
@@ -32,8 +30,6 @@ class ResetPasswordController extends Controller
 
     /**
      * Get the guard to be used during password reset.
-     *
-     * @return Guard|StatefulGuard
      */
     protected function guard(): Guard|StatefulGuard
     {
@@ -42,9 +38,6 @@ class ResetPasswordController extends Controller
 
     /**
      * Get the response for a successful password reset.
-     *
-     * @param string $response
-     * @return Response
      */
     protected function sendResetResponse(string $response): Response
     {
@@ -55,23 +48,21 @@ class ResetPasswordController extends Controller
     }
 
     /**
-     * @param Request $request
-     * @return Response
-
+     * @param  Request  $request
      */
     public function reset(ResetPasswordRequest $request): Response
     {
         $ipAddress = $request->ip();
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) use($ipAddress) {
+            function ($user, $password) use ($ipAddress) {
                 $user->forceFill([
-                    'password' => Hash::make($password)
+                    'password' => Hash::make($password),
                 ])->setRememberToken(Str::random(60));
                 $user->save();
 
                 $emailVerificationTriggered = false;
-                if (!$user->hasVerifiedEmail()) {
+                if (! $user->hasVerifiedEmail()) {
                     $user->notify(new VerifyEmailNotification(config('frontend.email_verification_url')));
                     $emailVerificationTriggered = true;
                 }
@@ -85,7 +76,7 @@ class ResetPasswordController extends Controller
                         'email' => $user->email,
                         'ip_address' => $ipAddress,
                         'email_verification_triggered' => $emailVerificationTriggered,
-                        'action_type' => 'Password Reset Successful'
+                        'action_type' => 'Password Reset Successful',
                     ])
                     ->log('User password reset successfully.');
 
@@ -104,7 +95,7 @@ class ResetPasswordController extends Controller
                     'email_attempted' => $request->email,
                     'ip_address' => $ipAddress,
                     'status_reason' => $status, // e.g., 'passwords.token', 'passwords.user', 'passwords.password'
-                    'action_type' => 'Password Reset Failed'
+                    'action_type' => 'Password Reset Failed',
                 ])
                 ->log('Password reset failed.');
 
@@ -114,9 +105,6 @@ class ResetPasswordController extends Controller
 
     /**
      * Get the response for a failed password reset.
-     *
-     * @param string $response
-     * @return Response
      */
     protected function sendResetFailedResponse(string $response): Response
     {

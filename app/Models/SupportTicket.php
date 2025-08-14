@@ -14,7 +14,7 @@ class SupportTicket extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['user_id', 'subject', 'description', 'status', 'priority','updated_by'];
+    protected $fillable = ['user_id', 'subject', 'description', 'status', 'priority', 'updated_by'];
 
     public function messages(): HasMany
     {
@@ -34,17 +34,17 @@ class SupportTicket extends Model
     public function isUntreated(): bool
     {
         $hasAdminMessage = $this->messages()
-            ->whereHas('user', fn($q) => $q->hasPermission(PermissionTypeEnum::treatSupportTicket))
+            ->whereHas('user', fn ($q) => $q->hasPermission(PermissionTypeEnum::treatSupportTicket))
             ->exists();
 
         $adminUpdated = $this->updated_by && $this->updated_by !== $this->user_id
             && $this->updatedBy->hasPermissionTo(PermissionTypeEnum::treatSupportTicket);
 
-        return !$hasAdminMessage && !$adminUpdated;
+        return ! $hasAdminMessage && ! $adminUpdated;
     }
 
     public function isTreated(): bool
     {
-        return !$this->isUntreated();
+        return ! $this->isUntreated();
     }
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums;
 
@@ -20,14 +22,24 @@ use BenSampo\Enum\Enum;
 final class ActivityLogTypeEnum extends Enum
 {
     const Login = 'Login';
+
     const Register = 'Register';
+
     const ResetPassword = 'ResetPassword';
+
     const ChangePassword = 'ChangePassword';
+
     const VerifyEmail = 'VerifyEmail';
+
     const Logout = 'Logout';
+
     const TwoFactorAuth = 'TwoFactorAuth';
+
     const SocialAuth = 'SocialAuth';
+
     const RolesAndPermissions = 'RolesAndPermissions';
+
     const UserModel = 'User';
+
     const UserManagement = 'user_management';
 }

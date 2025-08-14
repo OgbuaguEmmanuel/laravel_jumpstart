@@ -23,8 +23,8 @@ class TwoFactorLoginChallengeRequest extends FormRequest
     {
         return [
             '2fa_challenge_key' => ['required', 'string', 'uuid'],
-            'code' => ['nullable', 'numeric', 'digits:6', 'required_without:recovery_code','prohibits:recovery_code'],
-            'recovery_code' => ['nullable', 'string', 'required_without:code','prohibits:code'],
+            'code' => ['nullable', 'numeric', 'digits:6', 'required_without:recovery_code', 'prohibits:recovery_code'],
+            'recovery_code' => ['nullable', 'string', 'required_without:code', 'prohibits:code'],
         ];
     }
 

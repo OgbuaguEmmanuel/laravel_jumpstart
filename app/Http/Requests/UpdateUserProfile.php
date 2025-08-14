@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -26,11 +25,11 @@ class UpdateUserProfile extends FormRequest
         return [
             'first_name' => 'sometimes|string',
             'last_name' => 'sometimes|string',
-            'email' => 'sometimes|email'
+            'email' => 'sometimes|email',
         ];
     }
 
-     /**
+    /**
      * This method runs after all other rules have been evaluated.
      *
      * @return array<callable>
@@ -48,9 +47,9 @@ class UpdateUserProfile extends FormRequest
                 ];
 
                 // Check if at least one of the defined updateable fields is 'filled' (present and not empty).
-                if (! collect($updateableFields)->contains(fn($field) => $this->filled($field))) {
+                if (! collect($updateableFields)->contains(fn ($field) => $this->filled($field))) {
                     // Make field names readable for the error message
-                    $readableFields = implode(', ', array_map(function($field) {
+                    $readableFields = implode(', ', array_map(function ($field) {
                         return str_replace('_', ' ', $field); // Converts 'first_name' to 'first name'
                     }, $updateableFields));
 
@@ -59,7 +58,7 @@ class UpdateUserProfile extends FormRequest
                         "At least one of the following fields must be provided for update: {$readableFields}."
                     );
                 }
-            }
+            },
         ];
     }
 }

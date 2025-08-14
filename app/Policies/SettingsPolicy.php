@@ -31,5 +31,4 @@ class SettingsPolicy
         return $user->hasPermissionTo(PermissionTypeEnum::setSettings) ?
             Response::allow() : Response::deny();
     }
-
 }

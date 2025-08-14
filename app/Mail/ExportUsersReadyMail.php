@@ -11,11 +11,14 @@ class ExportUsersReadyMail extends Mailable
     use Queueable, SerializesModels;
 
     public $downloadUrl;
+
     public $fileName;
+
     public $filePath;
+
     public $mimeType;
 
-    public function __construct($downloadUrl = null, $fileName, $filePath = null, $mimeType = null)
+    public function __construct($downloadUrl, $fileName, $filePath = null, $mimeType = null)
     {
         $this->downloadUrl = $downloadUrl;
         $this->fileName = $fileName;
@@ -30,15 +33,15 @@ class ExportUsersReadyMail extends Mailable
         if ($this->filePath && file_exists($this->filePath)) {
             $mail->attach($this->filePath, [
                 'as' => $this->fileName,
-                'mime' => $this->mimeType
+                'mime' => $this->mimeType,
             ])->markdown('mail.export-users-ready-mail', [
                 'downloadUrl' => null,
-                'fileName' => $this->fileName
+                'fileName' => $this->fileName,
             ]);
         } else {
             $mail->markdown('mail.export-users-ready-mail', [
                 'downloadUrl' => $this->downloadUrl,
-                'fileName' => $this->fileName
+                'fileName' => $this->fileName,
             ]);
         }
 

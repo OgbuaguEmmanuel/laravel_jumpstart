@@ -34,8 +34,8 @@ class TwoFactorAuthenticationController extends Controller
                     'qr_code_url' => $data['qrCodeUrl'],
                 ])
                 ->build();
-        } catch(Throwable $th) {
-            logger()->error('2FA setup unexpected error: ' . $th->getMessage(), ['exception' => $th]);
+        } catch (Throwable $th) {
+            logger()->error('2FA setup unexpected error: '.$th->getMessage(), ['exception' => $th]);
             $this->apiExceptionHandler->handle(request(), $th);
         }
     }
@@ -52,8 +52,8 @@ class TwoFactorAuthenticationController extends Controller
                     'recovery_codes' => $data['recovery_codes'],
                 ])
                 ->build();
-        } catch(Throwable $th) {
-            logger()->error('2FA enable unexpected error: ' . $th->getMessage(), ['exception' => $th]);
+        } catch (Throwable $th) {
+            logger()->error('2FA enable unexpected error: '.$th->getMessage(), ['exception' => $th]);
             $this->apiExceptionHandler->handle(request(), $th);
         }
     }
@@ -67,8 +67,8 @@ class TwoFactorAuthenticationController extends Controller
                 ->withHttpCode(Response::HTTP_OK)
                 ->withMessage('Two-factor authentication disabled successfully.')
                 ->build();
-        } catch(Throwable $th) {
-            logger()->error('2FA disable unexpected error: ' . $th->getMessage(), ['exception' => $th]);
+        } catch (Throwable $th) {
+            logger()->error('2FA disable unexpected error: '.$th->getMessage(), ['exception' => $th]);
             $this->apiExceptionHandler->handle(request(), $th);
         }
     }
@@ -82,11 +82,11 @@ class TwoFactorAuthenticationController extends Controller
                 ->withHttpCode(Response::HTTP_OK)
                 ->withMessage('New recovery codes generated successfully.')
                 ->withData([
-                    'recovery_codes' => $data['recovery_codes']
+                    'recovery_codes' => $data['recovery_codes'],
                 ])
                 ->build();
-        } catch(Throwable $th) {
-            logger()->error('2FA recovery code generation unexpected error: ' . $th->getMessage(), ['exception' => $th]);
+        } catch (Throwable $th) {
+            logger()->error('2FA recovery code generation unexpected error: '.$th->getMessage(), ['exception' => $th]);
             $this->apiExceptionHandler->handle(request(), $th);
 
         }

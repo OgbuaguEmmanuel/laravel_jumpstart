@@ -11,15 +11,16 @@ class LoginAlertNotification extends BaseNotification implements ShouldQueue
     use Queueable;
 
     public string $provider;
+
     public string $ip;
+
     public ?string $browser;
+
     public ?string $location;
 
     /**
-     * @param string      $provider e.g. 'Google', 'Email/Password', '2FA'
-     * @param string      $ip
-     * @param string|null $browser
-     * @param string|null $location (optional, if you use IP-to-location lookup)
+     * @param  string  $provider  e.g. 'Google', 'Email/Password', '2FA'
+     * @param  string|null  $location  (optional, if you use IP-to-location lookup)
      */
     public function __construct(string $provider, string $ip, ?string $browser = null, ?string $location = null)
     {
@@ -42,12 +43,12 @@ class LoginAlertNotification extends BaseNotification implements ShouldQueue
         return (new MailMessage)
             ->subject("New Login to Your {$appName} Account")
             ->greeting("Hello {$notifiable->full_name},")
-            ->line("We noticed a new login to your account.")
+            ->line('We noticed a new login to your account.')
             ->line("**Login Method:** {$loginMethod}")
             ->line("**IP Address:** {$this->ip}")
             ->lineIf($this->browser, "**Browser/Device:** {$this->browser}")
             ->lineIf($this->location, "**Location:** {$this->location}")
-            ->line("If this was you, you can safely ignore this message.")
+            ->line('If this was you, you can safely ignore this message.')
             ->line("If this wasn't you, please reset your password immediately and contact support.");
     }
 
@@ -55,8 +56,8 @@ class LoginAlertNotification extends BaseNotification implements ShouldQueue
     {
         return $this->formatData(
             'New Login Detected',
-            "A new login to your account was detected via {$this->provider} from IP {$this->ip}" .
-            ($this->location ? " ({$this->location})" : '') . "."
+            "A new login to your account was detected via {$this->provider} from IP {$this->ip}".
+            ($this->location ? " ({$this->location})" : '').'.'
         );
     }
 }

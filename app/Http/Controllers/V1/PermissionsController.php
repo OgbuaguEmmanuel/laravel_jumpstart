@@ -35,7 +35,7 @@ class PermissionsController extends Controller
 
         $permissions = QueryBuilder::for(Permission::query())
             ->defaultSort('-created_at')
-            ->allowedSorts(['name','created_at'])
+            ->allowedSorts(['name', 'created_at'])
             ->allowedFilters(['name'])
             ->paginate($request->get('per_page') ?? $this->per_page);
 
@@ -55,7 +55,7 @@ class PermissionsController extends Controller
         $ipAddress = request()->ip();
 
         $permission = Permission::create([
-            'name' => $request->validated('name')
+            'name' => $request->validated('name'),
         ]);
 
         $permission->refresh();
@@ -74,7 +74,7 @@ class PermissionsController extends Controller
             ->withHttpCode(Response::HTTP_CREATED)
             ->withMessage('Permission successfully created!!!')
             ->withData([
-                'permission' => $permission
+                'permission' => $permission,
             ])
             ->build();
     }
@@ -123,9 +123,9 @@ class PermissionsController extends Controller
 
         $permissionNames = $request->validated('permissions');
         $alreadyAssignedPermissions = $user->permissions()->whereIn('name', $permissionNames)->pluck('name')->toArray();
-        $message ='User already has the following permissions: ' . implode(', ', $alreadyAssignedPermissions);
+        $message = 'User already has the following permissions: '.implode(', ', $alreadyAssignedPermissions);
 
-        if (!empty($alreadyAssignedPermissions)) {
+        if (! empty($alreadyAssignedPermissions)) {
             activity()
                 ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->causedBy($user)
@@ -156,7 +156,7 @@ class PermissionsController extends Controller
             ->withHttpCode(Response::HTTP_CREATED)
             ->withMessage('Permission successfully assigned to user!!!')
             ->withData([
-                'user_permission(s)' => $user->permissions->pluck('name')->toArray()
+                'user_permission(s)' => $user->permissions->pluck('name')->toArray(),
             ])
             ->build();
     }
@@ -170,9 +170,9 @@ class PermissionsController extends Controller
             ->pluck('name')->toArray();
 
         $notAssigned = array_diff($permissionNames, $userActuallyHas);
-        $message = 'User does not have the following permissions: ' . implode(', ', $notAssigned);
+        $message = 'User does not have the following permissions: '.implode(', ', $notAssigned);
 
-        if (!empty($notAssigned)) {
+        if (! empty($notAssigned)) {
             activity()
                 ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
                 ->causedBy($user)
@@ -202,7 +202,7 @@ class PermissionsController extends Controller
         return ResponseBuilder::asSuccess()
             ->withMessage('Permissions successfully revoked from user!!!')
             ->withData([
-                'user_permissions' => $user->permissions->pluck('name')->toArray()
+                'user_permissions' => $user->permissions->pluck('name')->toArray(),
             ])
             ->build();
     }

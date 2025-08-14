@@ -13,7 +13,7 @@ test('token is required', function () use ($url) {
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson($url, []);
+        ->postJson($url, []);
 
     $response->assertStatus(422)
         ->assertSeeText('The token field is required.');
@@ -23,7 +23,7 @@ test('email is required', function () use ($url) {
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson($url, []);
+        ->postJson($url, []);
 
     $response->assertStatus(422)
         ->assertSeeText('The email field is required.');
@@ -33,7 +33,7 @@ test('email is valid', function () use ($url) {
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson($url, ['email' => 'invalid-email']);
+        ->postJson($url, ['email' => 'invalid-email']);
 
     $response->assertStatus(422)
         ->assertSeeText('The email field must be a valid email address.');
@@ -44,9 +44,9 @@ test('email must exist in users table', function () use ($url) {
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson($url,[
-        'email' => 'example@test.com',
-    ]);
+        ->postJson($url, [
+            'email' => 'example@test.com',
+        ]);
 
     $response->assertStatus(422)
         ->assertSeeText('The selected email is invalid.');
@@ -69,7 +69,6 @@ test('password must be a string', function () use ($url) {
     $response->assertStatus(422);
     $response->assertSeeText('The password field must be a string.');
 });
-
 
 test('password must be confirmed to reset', function () use ($password, $url) {
     $response = $this->postJson($url, [
@@ -98,7 +97,7 @@ test('password must contain a letter to reset', function () use ($url) {
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one letter.'
+        'The password field must contain at least one letter.',
     ]);
 });
 
@@ -110,7 +109,7 @@ test('password must contain at least an uppercase letter to reset', function () 
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one uppercase and one lowercase letter.'
+        'The password field must contain at least one uppercase and one lowercase letter.',
     ]);
 });
 
@@ -122,7 +121,7 @@ test('password must contain at least an lowercase letter to reset', function () 
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one uppercase and one lowercase letter.'
+        'The password field must contain at least one uppercase and one lowercase letter.',
     ]);
 });
 
@@ -134,7 +133,7 @@ test('password must contain at least a number to reset', function () use ($url) 
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one number.'
+        'The password field must contain at least one number.',
     ]);
 });
 
@@ -146,7 +145,7 @@ test('password must contain at least a symbol to reset', function () use ($url) 
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The password field must contain at least one symbol.'
+        'The password field must contain at least one symbol.',
     ]);
 });
 
@@ -158,29 +157,29 @@ test('password must not be compromised to reset', function () use ($url) {
 
     $response->assertStatus(422);
     $response->assertSeeText([
-        'The given password has appeared in a data leak. Please choose a different password'
+        'The given password has appeared in a data leak. Please choose a different password',
     ]);
 });
 
-test('callback Contact Url is valid', function() use ($url) {
+test('callback Contact Url is valid', function () use ($url) {
 
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson($url, [
-        'callbackContactUrl' => 'invalid-url'
-    ]);
+        ->postJson($url, [
+            'callbackContactUrl' => 'invalid-url',
+        ]);
 
     $response->assertStatus(422)
         ->assertSeeText('The callback contact url field must be a valid URL.');
 });
 
-test('callbackContactUrl is required', function() use ($url) {
+test('callbackContactUrl is required', function () use ($url) {
 
     $response = $this->withHeaders([
         'Accept' => 'application/json',
     ])
-    ->postJson($url, []);
+        ->postJson($url, []);
 
     $response->assertStatus(422)
         ->assertSeeText('The callback contact url field is required.');

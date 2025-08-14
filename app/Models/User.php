@@ -4,18 +4,20 @@ namespace App\Models;
 
 use App\Enums\ActivityLogTypeEnum;
 use App\Enums\MediaTypeEnum;
-use App\Notifications\WelcomeNotification;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
+use App\Notifications\WelcomeNotification;
 use App\Observers\UserObserver;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Password;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\CausesActivity;
@@ -23,14 +25,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Laravel\Sanctum\HasApiTokens;
 
 #[ObservedBy([UserObserver::class])]
-class User extends Authenticatable implements MustVerifyEmail, HasMedia
+class User extends Authenticatable implements HasMedia, MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasApiTokens, InteractsWithMedia, HasRoles;
-    use LogsActivity, CausesActivity, SoftDeletes;
+    use CausesActivity, LogsActivity, SoftDeletes;
+    use HasApiTokens, HasFactory, HasRoles, InteractsWithMedia, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -38,9 +38,9 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
      * @var list<string>
      */
     protected $fillable = [
-        'first_name','last_name',
-        'email','phone_number','force_password_reset',
-        'password','provider_name', 'locked_until',
+        'first_name', 'last_name',
+        'email', 'phone_number', 'force_password_reset',
+        'password', 'provider_name', 'locked_until',
         'provider_id', 'avatar', 'failed_attempts',
     ];
 
@@ -70,15 +70,14 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             'activated_at' => 'datetime',
             'deactivated_at' => 'datetime',
             'locked_until' => 'datetime',
-            'force_password_reset' => 'boolean'
+            'force_password_reset' => 'boolean',
         ];
     }
 
     /**
      * Send the password reset notification.
      *
-     * @param string $token
-     * @return void
+     * @param  string  $token
      */
     public function sendPasswordResetNotification($token): void
     {
@@ -89,8 +88,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
     /**
      * Get the user's full name.
-     *
-     * @return string
      */
     public function getFullNameAttribute(): string
     {
@@ -139,10 +136,11 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             // Don't create an empty log if nothing changed (default, good for updates)
             ->dontSubmitEmptyLogs()
             // Customize the description for different events
-            ->setDescriptionForEvent(function(string $eventName) {
+            ->setDescriptionForEvent(function (string $eventName) {
                 if ($eventName === 'created') {
-                    return "New user registered: " . ($this->email ?? 'N/A');
+                    return 'New user registered: '.($this->email ?? 'N/A');
                 }
+
                 return "User model has been {$eventName}";
             });
     }
@@ -152,12 +150,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
         return $this->hasMany(Activity::class, 'causer_id')->where('causer_type', User::class);
     }
 
-        /**
+    /**
      * Scope a query to filter users by active status.
-     *
-     * @param Builder $query
-     * @param bool $isActive
-     * @return Builder
      */
     public function scopeIsActive(Builder $query, bool $isActive = true): Builder
     {
@@ -166,9 +160,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
     /**
      * Scope a query to only include active users.
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeActiveUsers(Builder $query): Builder
     {
@@ -177,9 +168,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
     /**
      * Scope a query to only include deactivated users.
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeDeactivatedUsers(Builder $query): Builder
     {
@@ -195,9 +183,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
     /**
      * Scope a query to only include locked users.
-     *
-     * @param Builder $query
-     * @return Builder
      */
     public function scopeLockedUsers(Builder $query): Builder
     {
@@ -241,8 +226,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     /**
      * Lock the user account for a specified duration.
      *
-     * @param int $durationMinutes The duration in minutes to lock the account.
-     * @param string|null $reason The reason for locking.
+     * @param  int  $durationMinutes  The duration in minutes to lock the account.
+     * @param  string|null  $reason  The reason for locking.
      */
     public function lockAccount(int $durationMinutes, ?string $reason = null): void
     {
@@ -256,7 +241,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     /**
      * Unlock the user account immediately.
      *
-     * @param string|null $reason The reason for unlocking.
+     * @param  string|null  $reason  The reason for unlocking.
      */
     public function unlockAccount(?string $reason = null): void
     {
@@ -273,7 +258,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
     /**
      * Send welcome notification to new user
-     * @return void
      */
     public function sendWelcomeNotification($callbackUrl = null): void
     {
@@ -295,8 +279,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
 
     /**
      * Register media collections.
-     *
-     * @return void
      */
     public function registerMediaCollections(): void
     {

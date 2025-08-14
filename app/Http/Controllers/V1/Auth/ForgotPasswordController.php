@@ -23,7 +23,7 @@ class ForgotPasswordController extends Controller
                 ->causedBy(null)
                 ->withProperties([
                     'email_requested' => $requestedEmail,
-                    'action_type' => 'Password Reset Request'
+                    'action_type' => 'Password Reset Request',
                 ])
                 ->log('Password reset link sent.');
 
@@ -36,7 +36,7 @@ class ForgotPasswordController extends Controller
                 ->withProperties([
                     'email_requested' => $requestedEmail,
                     'status_reason' => $status,
-                    'action_type' => 'Password Reset Request Failed'
+                    'action_type' => 'Password Reset Request Failed',
                 ])
                 ->log('Password reset link failed to send.');
 
@@ -44,11 +44,8 @@ class ForgotPasswordController extends Controller
         }
     }
 
-     /**
+    /**
      * Get the response for a successful sent password reset link.
-     *
-     * @param string $response
-     * @return Response
      */
     protected function sendResetLinkResponse(string $response): Response
     {
@@ -60,9 +57,6 @@ class ForgotPasswordController extends Controller
 
     /**
      * Get the response for a failed send password reset.
-     *
-     * @param string $response
-     * @return Response
      */
     protected function sendResetLinkFailedResponse(string $response): Response
     {
@@ -71,5 +65,4 @@ class ForgotPasswordController extends Controller
             ->withMessage(trans($response))
             ->build();
     }
-
 }

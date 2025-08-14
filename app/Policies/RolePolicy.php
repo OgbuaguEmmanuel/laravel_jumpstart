@@ -68,7 +68,6 @@ class RolePolicy
             : Response::deny('Unauthorized to remove roles from users.', 403);
     }
 
-
     /**
      * Determine whether the user can delete the model.
      */

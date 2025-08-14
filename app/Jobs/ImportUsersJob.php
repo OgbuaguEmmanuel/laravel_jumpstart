@@ -17,6 +17,7 @@ class ImportUsersJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $admin;
+
     public $filePath;
 
     public function __construct($admin, $filePath)
@@ -28,7 +29,7 @@ class ImportUsersJob implements ShouldQueue
     public function handle()
     {
         $import = new UsersImport($this->admin);
-        Excel::import($import, storage_path('app/' . $this->filePath));
+        Excel::import($import, storage_path('app/'.$this->filePath));
 
         Mail::to($this->admin->email)->send(
             new ImportUsersReportMail($import->failures())

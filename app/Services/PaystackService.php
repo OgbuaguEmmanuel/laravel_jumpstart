@@ -11,14 +11,16 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Facades\Activity;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PaystackService implements PaymentGatewayInterface
 {
     protected string $baseUrl;
+
     protected string $secret;
+
     public const SUCCESS = 'success';
 
     public function __construct()
@@ -72,7 +74,7 @@ class PaystackService implements PaymentGatewayInterface
                     'amount' => $payload->amount,
                     'currency' => $payload->currency ?? PaymentCurrencyEnum::NARIA,
                     'url' => "{$this->baseUrl}/transaction/initialize",
-                    'exception' => $e
+                    'exception' => $e,
                 ])
                 ->log($e->getMessage());
             throw new HttpException(500, 'Something went wrong while initializing the payment.');
@@ -101,7 +103,7 @@ class PaystackService implements PaymentGatewayInterface
                     'currency' => $data['currency'],
                     'metadata' => json_encode($metaData),
                     'user_id' => $metaData['user_id'],
-                    'gateway_response' => $data['gateway_response']
+                    'gateway_response' => $data['gateway_response'],
                 ]
             );
 
@@ -111,9 +113,9 @@ class PaystackService implements PaymentGatewayInterface
                 'amount' => $data['amount'],
                 'user_id' => $metaData['user_id'],
                 'channel' => $data['channel'],
-                'gateway_response' => $data['gateway_response']
+                'gateway_response' => $data['gateway_response'],
             ])->performedOn($transaction)
-            ->log('Paystack payment verified successfully');
+                ->log('Paystack payment verified successfully');
 
             if ($data['status'] !== self::SUCCESS) {
                 $message = "Payment not successful: {$data['gateway_response']}";
@@ -135,7 +137,7 @@ class PaystackService implements PaymentGatewayInterface
             Activity::withProperties([
                 'reference' => $reference,
                 'message' => $e->getMessage(),
-                'status_code' => $e->getStatusCode()
+                'status_code' => $e->getStatusCode(),
             ])->log('Payment verification failed (HttpException)');
 
             throw new HttpException($e->getStatusCode(), $e->getMessage());
@@ -150,7 +152,7 @@ class PaystackService implements PaymentGatewayInterface
             Activity::withProperties([
                 'reference' => $reference,
                 'error' => $e->response?->json(),
-                'status_code' => $e->response?->status()
+                'status_code' => $e->response?->status(),
             ])->log('Payment verification failed (RequestException)');
 
             throw new HttpException($status, $message);
@@ -176,10 +178,10 @@ class PaystackService implements PaymentGatewayInterface
                 'expected' => $expectedSignature,
                 'received' => $signature,
             ]);
+
             return false;
         }
 
         return true;
     }
-
 }

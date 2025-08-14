@@ -24,7 +24,7 @@ class BulkSettingsRequest extends FormRequest
         return [
             'settings' => ['required', 'array', 'min:1'],
             'settings.*.key' => ['required', 'string', 'max:255'],
-            'settings.*.value' => ['required']
+            'settings.*.value' => ['required'],
         ];
     }
 }

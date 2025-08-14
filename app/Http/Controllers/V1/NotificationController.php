@@ -6,9 +6,9 @@ use App\Facades\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NotificationResource;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
@@ -119,5 +119,4 @@ class NotificationController extends Controller
             $notification->delete();
         });
     }
-
 }

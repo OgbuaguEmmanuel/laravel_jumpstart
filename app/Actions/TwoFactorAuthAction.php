@@ -12,6 +12,7 @@ use PragmaRX\Google2FAQRCode\Google2FA as Google2FAQrCode;
 class TwoFactorAuthAction
 {
     protected Google2FA $google2fa;
+
     protected Google2FAQrCode $google2faQrCode;
 
     public function __construct(Google2FA $google2fa, Google2FAQrCode $google2faQrCode)
@@ -39,7 +40,7 @@ class TwoFactorAuthAction
                 ->log('2FA setup attempted but already enabled for user.');
 
             throw ValidationException::withMessages([
-                '2fa' => "Two-factor authentication is already enabled for this account."
+                '2fa' => 'Two-factor authentication is already enabled for this account.',
             ])->status(400);
         }
 
@@ -79,7 +80,7 @@ class TwoFactorAuthAction
         return [
             'secret' => $secret,
             'qrCodeUrl' => $qrCodeUrl,
-            'qrCodeSvg' => $qrCodeSvg
+            'qrCodeSvg' => $qrCodeSvg,
         ];
     }
 
@@ -88,7 +89,7 @@ class TwoFactorAuthAction
         $user = Auth::user();
         $ipAddress = request()->ip();
 
-        if (!$user->two_factor_secret || $user->hasTwoFactorEnabled()) {
+        if (! $user->two_factor_secret || $user->hasTwoFactorEnabled()) {
             activity()
                 ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
@@ -102,13 +103,13 @@ class TwoFactorAuthAction
                 ->log('2FA enable attempted but user is in invalid state.');
 
             throw ValidationException::withMessages([
-                '2fa' => "2FA setup not initiated or already enabled."
+                '2fa' => '2FA setup not initiated or already enabled.',
             ])->status(400);
         }
 
         $valid = $this->google2fa->verifyKey($user->two_factor_secret, $data['code']);
 
-        if (!$valid) {
+        if (! $valid) {
             activity()
                 ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
@@ -123,7 +124,7 @@ class TwoFactorAuthAction
                 ->log('2FA enable failed: Invalid verification code.');
 
             throw ValidationException::withMessages([
-                'code' => 'Invalid 2FA code. Please try again.'
+                'code' => 'Invalid 2FA code. Please try again.',
             ])->status(400);
         }
 
@@ -145,7 +146,7 @@ class TwoFactorAuthAction
             ->log('User successfully enabled 2FA.');
 
         return [
-            'recovery_codes' => $user->two_factor_recovery_codes
+            'recovery_codes' => $user->two_factor_recovery_codes,
         ];
     }
 
@@ -154,7 +155,7 @@ class TwoFactorAuthAction
         $user = Auth::user();
         $ipAddress = request()->ip();
 
-        if (!Hash::check($data['password'], $user->password)) {
+        if (! Hash::check($data['password'], $user->password)) {
             activity()
                 ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
@@ -168,11 +169,11 @@ class TwoFactorAuthAction
                 ->log('2FA disable failed: Invalid password.');
 
             throw ValidationException::withMessages([
-                'password' => 'Invalid password.'
+                'password' => 'Invalid password.',
             ])->status(422);
         }
 
-        if (!$user->hasTwoFactorEnabled()) {
+        if (! $user->hasTwoFactorEnabled()) {
             activity()
                 ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
@@ -184,16 +185,16 @@ class TwoFactorAuthAction
                     'action_type' => '2FA Disable Attempt: Not Enabled',
                 ])
                 ->log('2FA disable attempted but not enabled for user.');
-                
+
             throw ValidationException::withMessages([
-                '2fa' => 'Two-factor authentication is not enabled for this account.'
+                '2fa' => 'Two-factor authentication is not enabled for this account.',
             ])->status(400);
         }
 
         $user->forceFill([
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
-            'two_factor_enabled_at' => null
+            'two_factor_enabled_at' => null,
         ]);
         $user->save();
 
@@ -215,7 +216,7 @@ class TwoFactorAuthAction
         $user = Auth::user();
         $ipAddress = request()->ip();
 
-        if (!$user->hasTwoFactorEnabled()) {
+        if (! $user->hasTwoFactorEnabled()) {
             activity()
                 ->inLog(ActivityLogTypeEnum::TwoFactorAuth)
                 ->causedBy($user)
@@ -229,7 +230,7 @@ class TwoFactorAuthAction
                 ->log('2FA recovery code generation attempted but 2FA not enabled.');
 
             throw ValidationException::withMessages([
-                '2fa' => 'Two-factor authentication is not enabled for this account.'
+                '2fa' => 'Two-factor authentication is not enabled for this account.',
             ])->status(400);
         }
 
@@ -249,7 +250,7 @@ class TwoFactorAuthAction
             ->log('User generated new 2FA recovery codes.');
 
         return [
-            'recovery_codes' => $newRecoveryCodes
+            'recovery_codes' => $newRecoveryCodes,
         ];
 
     }
@@ -259,8 +260,9 @@ class TwoFactorAuthAction
         $codes = [];
         for ($i = 0; $i < 8; $i++) { // Generate 8 codes
             // Generate a random 10-character alphanumeric string, split by hyphen
-            $codes[] = implode('-', str_split(substr(str_shuffle("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"), 0, 10), 5));
+            $codes[] = implode('-', str_split(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 10), 5));
         }
+
         return $codes;
     }
 }

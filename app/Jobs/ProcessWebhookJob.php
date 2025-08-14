@@ -15,7 +15,9 @@ class ProcessWebhookJob implements ShouldQueue
     use Queueable;
 
     protected string $reference;
+
     protected mixed $authorization;
+
     protected string $paymentGateway;
 
     public function __construct(string $reference, mixed $authorization, string $gateway)
@@ -27,9 +29,9 @@ class ProcessWebhookJob implements ShouldQueue
 
     public function handle()
     {
-        logger('Processing webhook for gateway: ' . $this->paymentGateway);
+        logger('Processing webhook for gateway: '.$this->paymentGateway);
 
-        logger('Verifying again for gateway: ' . $this->paymentGateway);
+        logger('Verifying again for gateway: '.$this->paymentGateway);
 
         if ($this->paymentGateway === PaymentGatewayEnum::PAYSTACK) {
             $paystackSecret = config('payment.paystack.secret');
@@ -42,18 +44,20 @@ class ProcessWebhookJob implements ShouldQueue
                 $data = $response->throw()->json('data');
 
                 if ($data['status'] !== 'success') {
-                    Log::warning("Paystack transaction verification failed", [
+                    Log::warning('Paystack transaction verification failed', [
                         'reference' => $this->reference,
                         'status' => $data['status'],
-                        'gateway_response' => $data['gateway_response']
+                        'gateway_response' => $data['gateway_response'],
                     ]);
+
                     return;
                 }
 
-                if (!isset($data['metadata'])) {
-                    Log::error("Missing metadata in verified transaction", [
+                if (! isset($data['metadata'])) {
+                    Log::error('Missing metadata in verified transaction', [
                         'reference' => $this->reference,
                     ]);
+
                     return;
                 }
 
@@ -62,7 +66,7 @@ class ProcessWebhookJob implements ShouldQueue
             } catch (\Throwable $e) {
                 Log::critical('Error verifying Paystack transaction in webhook job', [
                     'reference' => $this->reference,
-                    'exception' => $e
+                    'exception' => $e,
                 ]);
             }
         }
@@ -80,10 +84,10 @@ class ProcessWebhookJob implements ShouldQueue
             $paymentCard = $this->buildPaymentCard($verifiedData['authorization']);
 
             // Save the payment transaction
-            $paymentTransaction = (new SaveTransactionAction())->execute($paymentTransactionType);
+            $paymentTransaction = (new SaveTransactionAction)->execute($paymentTransactionType);
 
             // Save the payment card details
-            $paymentCard = (new SaveTransactionAction())->saveCard($paymentCard);
+            $paymentCard = (new SaveTransactionAction)->saveCard($paymentCard);
 
             // Exit if the payment transaction is not successful
             if ($paymentTransaction->payment_status !== 'success') {
@@ -125,12 +129,12 @@ class ProcessWebhookJob implements ShouldQueue
     /**
      * Build the payment transaction type class.
      *
-     * @param mixed $transaction
+     * @param  mixed  $transaction
      * @return stdClass $paymentTransactionType
      */
     protected function buildPaymentTransactionType(array $transaction): stdClass
     {
-        $paymentTransactionType = new stdClass();
+        $paymentTransactionType = new stdClass;
         $paymentTransactionType->status = $transaction['status'];
         $paymentTransactionType->paymentGateway = $this->paymentGateway;
         $paymentTransactionType->paymentMethod = $transaction['channel'];
@@ -148,16 +152,14 @@ class ProcessWebhookJob implements ShouldQueue
         return $paymentTransactionType;
     }
 
-
     /**
      * Build the payment card details
      *
-     * @param $data
      * @return stdClass $paymentCard
      */
     protected function buildPaymentCard(array $data)
     {
-        $paymentCard = new stdClass();
+        $paymentCard = new stdClass;
 
         $paymentCard->authorization_code = $data['authorization_code'];
         $paymentCard->bin = $data['bin'];
@@ -174,4 +176,3 @@ class ProcessWebhookJob implements ShouldQueue
         return $paymentCard;
     }
 }
-

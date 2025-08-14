@@ -24,7 +24,7 @@ class UpdateSupportTicketRequest extends FormRequest
         return [
             'status' => 'sometimes|in:open,in_progress,resolved,closed',
             'priority' => 'sometimes|in:low,medium,high',
-            'subject'   => 'sometimes|string|max:255',
+            'subject' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
         ];
     }

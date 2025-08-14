@@ -24,7 +24,6 @@ class SocialAuthController extends Controller
     /**
      * Redirect the user to the social provider's authentication page.
      *
-     * @param string $provider
      * @return \Illuminate\Http\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
     public function redirectToProvider(string $provider, SocialAuthAction $action)
@@ -50,7 +49,7 @@ class SocialAuthController extends Controller
                 ->withData(['url' => $url])
                 ->build();
         } catch (Throwable $th) {
-            Log::error("Socialite redirect failed for {$provider}: " . $th->getMessage());
+            Log::error("Socialite redirect failed for {$provider}: ".$th->getMessage());
 
             return $this->apiExceptionHandler->handle(request(), $th);
         }
@@ -59,8 +58,6 @@ class SocialAuthController extends Controller
     /**
      * Handle the callback from the social provider.
      *
-     * @param string $provider
-     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\Response
      */
     public function handleProviderCallback(string $provider, Request $request, SocialAuthAction $action)
@@ -72,14 +69,14 @@ class SocialAuthController extends Controller
                 ->withHttpCode(Response::HTTP_OK)
                 ->withData([
                     'token' => $data['token'],
-                    'user' => $data['user']
+                    'user' => $data['user'],
                 ])
                 ->build();
         } catch (Throwable $th) {
-            Log::error("Socialite callback failed for {$provider}: " . $th->getMessage());
+            Log::error("Socialite callback failed for {$provider}: ".$th->getMessage());
+
             return $this->apiExceptionHandler->handle($request, $th);
         }
-
 
     }
 }
