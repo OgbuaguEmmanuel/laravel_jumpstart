@@ -104,6 +104,8 @@ Route::prefix('V1')->group(function () {
             Route::apiResource('settings', SettingsController::class)->only('view','index');
             Route::post('/settings/set', [SettingsController::class, 'storeOrUpdate'])
                 ->name('settings.set');
+            Route::post('/settings/bulkSet', [SettingsController::class, 'bulkSet'])
+                ->name('settings.set.bulk');
 
         });
 

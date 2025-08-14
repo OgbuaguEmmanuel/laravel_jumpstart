@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class AddSettingsRequest extends FormRequest
+class BulkSettingsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,15 +21,10 @@ class AddSettingsRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->input('id');
-
         return [
-            'id'    => 'nullable|exists:settings,id',
-            'key'   => [
-                'required','string','max:255',
-                Rule::unique('settings', 'key')->ignore($id)
-            ],
-            'value' => 'required'
+            'settings' => ['required', 'array', 'min:1'],
+            'settings.*.key' => ['required', 'string', 'max:255'],
+            'settings.*.value' => ['required']
         ];
     }
 }

@@ -5,9 +5,11 @@ namespace App\Http\Controllers\V1\Admin;
 use App\Facades\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AddSettingsRequest;
+use App\Http\Requests\BulkSettingsRequest;
 use App\Models\Setting;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 
 class SettingsController extends Controller
@@ -44,6 +46,21 @@ class SettingsController extends Controller
         return ResponseBuilder::asSuccess()
             ->withMessage($message)
             ->withData($setting)
+            ->build();
+    }
+
+    public function bulkSet(BulkSettingsRequest $request)
+    {
+        $this->authorize('storeOrUpdate', Setting::class);
+
+        DB::transaction(function () use ($request) {
+            foreach ($request->validated()['settings'] as $setting) {
+                Settings::set($setting['key'], $setting['value']);
+            }
+        });
+
+        return ResponseBuilder::asSuccess()
+            ->withMessage('Settings saved successfully.')
             ->build();
     }
 }
