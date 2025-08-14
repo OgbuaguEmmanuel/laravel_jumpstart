@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\V1\Admin\SettingsController;
 use App\Http\Controllers\V1\Admin\UserController;
 use App\Http\Controllers\V1\Auth\LoginController;
 use App\Http\Controllers\V1\Auth\SocialAuthController;
@@ -49,7 +50,7 @@ Route::prefix('V1')->group(function () {
             ->middleware('signed','throttle:6,1')->name('auth.verification.verify');
         Route::post('/change-password', [App\Http\Controllers\V1\Auth\PasswordController::class, 'changePassword'])
             ->middleware('isActive','verified','isLocked')->name('auth.change-password');
-        Route::middleware(['verified','isActive','isLocked','passwordResetNeeded'])
+        Route::middleware(['verified','isActive','isLocked','passwordResetNeeded','is2FAEnabled'])
             ->prefix('2fa')->group(function () {
                 Route::post('/setup', [TwoFactorAuthenticationController::class, 'setup'])
                     ->name('auth.2fa.setup');
@@ -100,10 +101,10 @@ Route::prefix('V1')->group(function () {
             Route::get('/exports/download/{file}', [UserController::class, 'download'])
                 ->name('exports.download')->middleware(['auth', 'signed:relative']);
 
-            Route::patch('profile/{user}/update', [ProfileController::class, 'update'])
-                ->name('profile.update');
-            Route::post('profile/{user}/upload', [ProfileController::class, 'uploadProfilePicture'])
-                ->name('profile.upload');
+            Route::apiResource('settings', SettingsController::class)->only('view','index');
+            Route::post('/settings/set', [SettingsController::class, 'storeOrUpdate'])
+                ->name('settings.set');
+
         });
 
     Route::middleware('auth:user')->prefix('payment')->group(function () {
@@ -138,7 +139,10 @@ Route::prefix('V1')->group(function () {
             Route::post('/tickets/{supportTicket}/messages', [SupportMessageController::class, 'store'])
                 ->name('tickets.messages.store');
 
-
+            Route::patch('profile/{user}/update', [ProfileController::class, 'update'])
+                ->name('profile.update');
+            Route::post('profile/{user}/upload', [ProfileController::class, 'uploadProfilePicture'])
+                ->name('profile.upload');
         }
     );
 

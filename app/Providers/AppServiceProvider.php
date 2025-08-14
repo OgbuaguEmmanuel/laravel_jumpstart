@@ -4,11 +4,13 @@ namespace App\Providers;
 
 use App\Enums\PaymentGatewayEnum;
 use App\Interfaces\PaymentGatewayInterface;
+use App\Models\Setting;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Policies\NotificationPolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\RolePolicy;
+use App\Policies\SettingsPolicy;
 use App\Policies\SupportTicketPolicy;
 use App\Policies\UserPolicy;
 use App\Services\PaypalService;
@@ -56,5 +58,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Permission::class, PermissionPolicy::class);
         Gate::policy(DatabaseNotification::class, NotificationPolicy::class);
         Gate::policy(SupportTicket::class, SupportTicketPolicy::class);
+        Gate::policy(Setting::class, SettingsPolicy::class);
     }
 }
