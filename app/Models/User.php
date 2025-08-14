@@ -307,4 +307,13 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     {
         $this->notify(new WelcomeUserNotification(config('frontend.dashboard')));
     }
+
+    public function createdEventActions()
+    {
+        $this->sendEmailVerificationNotification();
+        $this->welcomeUserNotification();
+        if ($this->createdByAdmin()) {
+            $this->sendWelcomeNotification();
+        }
+    }
 }
