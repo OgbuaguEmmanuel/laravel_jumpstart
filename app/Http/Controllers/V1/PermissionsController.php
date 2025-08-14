@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Enums\ActivityLogTypeEnum;
+use App\Facades\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Permission\AssignPermissionToUserRequest;
 use App\Http\Requests\Permission\RevokePermissionFromUserRequest;
@@ -21,6 +22,13 @@ class PermissionsController extends Controller
 {
     use AuthorizesRequests;
 
+    protected int $per_page;
+
+    public function __construct()
+    {
+        $this->per_page = Settings::get('pagination_size');
+    }
+
     public function index(Request $request): Response
     {
         $this->authorize('viewAny', Permission::class);
@@ -29,7 +37,7 @@ class PermissionsController extends Controller
             ->defaultSort('-created_at')
             ->allowedSorts(['name','created_at'])
             ->allowedFilters(['name'])
-            ->paginate($request->get('per_page'));
+            ->paginate($request->get('per_page') ?? $this->per_page);
 
         return ResponseBuilder::asSuccess()
             ->withMessage('Permissions fetched successfully!!!')

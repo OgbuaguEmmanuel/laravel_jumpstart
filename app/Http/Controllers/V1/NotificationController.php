@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Facades\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NotificationResource;
 use Carbon\Carbon;
@@ -13,6 +14,13 @@ use Illuminate\Notifications\DatabaseNotification;
 class NotificationController extends Controller
 {
     use AuthorizesRequests;
+
+    protected int $per_page;
+
+    public function __construct()
+    {
+        $this->per_page = Settings::get('pagination_size');
+    }
 
     public function index(Request $request)
     {
@@ -32,7 +40,7 @@ class NotificationController extends Controller
                     ->when($request->filled('type'), function (Builder $query) use ($request) {
                         $query->where('type', $request->get('type'));
                     })
-                    ->paginate(15)
+                    ->paginate($this->per_page)
             )->additional(['unread' => $user->unreadNotifications()->count()]);
     }
 
@@ -53,7 +61,7 @@ class NotificationController extends Controller
                         return $query
                             ->where('type', request()->get('type'));
                     })
-                    ->paginate(15)
+                    ->paginate($this->per_page)
             );
     }
 
@@ -74,7 +82,7 @@ class NotificationController extends Controller
                         return $query
                             ->where('type', request()->get('type'));
                     })
-                    ->paginate(15)
+                    ->paginate($this->per_page)
             );
     }
 

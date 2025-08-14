@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Enums\PermissionTypeEnum;
+use App\Facades\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateSupportTicketRequest;
 use App\Http\Requests\UpdateSupportTicketRequest;
@@ -16,6 +17,13 @@ use Spatie\QueryBuilder\QueryBuilder;
 class SupportTicketController extends Controller
 {
     use AuthorizesRequests;
+
+    protected int $per_page;
+
+    public function __construct()
+    {
+        $this->per_page = Settings::get('pagination_size');
+    }
 
     /**
      * Display a listing of the resource.
@@ -44,7 +52,7 @@ class SupportTicketController extends Controller
                     'status',
                     'priority',
                 ])
-                ->paginate(15)
+                ->paginate($this->per_page)
                 ->appends(request()->query());
         }
 

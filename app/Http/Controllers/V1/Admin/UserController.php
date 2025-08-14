@@ -6,6 +6,7 @@ use App\Actions\CreateUserAction;
 use App\Enums\ActivityLogTypeEnum;
 use App\Enums\ToggleStatusReasonEnum;
 use App\Exports\UsersExport;
+use App\Facades\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreateUserRequest;
 use App\Http\Requests\Admin\DeleteUserRequest;
@@ -40,6 +41,13 @@ class UserController extends Controller
     use AuthHelpers, Helper;
     use AuthorizesRequests;
 
+    protected int $per_page;
+
+    public function __construct()
+    {
+        $this->per_page = Settings::get('pagination_size');
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -51,7 +59,7 @@ class UserController extends Controller
             ->defaultSort('-created_at')
             ->allowedFilters('first_name','last_name','email','is_active')
             ->allowedSorts(['first_name','last_name','created_at'])
-            ->paginate($request->get('per_page'));
+            ->paginate($request->get('per_page') ?? $this->per_page);
 
         return ResponseBuilder::asSuccess()
             ->withData(['users' => $users])
@@ -221,7 +229,7 @@ class UserController extends Controller
             ->defaultSort('-created_at')
             ->allowedFilters('first_name','last_name','email')
             ->allowedSorts(['first_name','last_name','created_at'])
-            ->paginate($request->get('per_page'));
+            ->paginate($request->get('per_page') ?? $this->per_page);
 
         return ResponseBuilder::asSuccess()
             ->withData(['users' => $users])
@@ -340,7 +348,6 @@ class UserController extends Controller
         }
 
         $path = 'exports/' . $file;
-
         if (!Storage::disk('local')->exists($path)) {
             abort(404, 'File not found.');
         }

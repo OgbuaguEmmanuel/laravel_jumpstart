@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Enums\ActivityLogTypeEnum;
+use App\Facades\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Roles\GivePermissionToRoleRequest;
 use App\Http\Requests\Roles\RevokePermissionFromRoleRequest;
@@ -21,6 +22,13 @@ class RolesController extends Controller
 {
     use AuthorizesRequests;
 
+    protected int $per_page;
+
+    public function __construct()
+    {
+        $this->per_page = Settings::get('pagination_size');
+    }
+
     /**
      * List  all roles
      *
@@ -34,7 +42,7 @@ class RolesController extends Controller
             ->defaultSort('-created_at')
             ->allowedFilters('name')
             ->allowedSorts(['name','created_at'])
-            ->paginate($request->get('per_page'));
+            ->paginate($request->get('per_page') ?? $this->per_page);
 
         return ResponseBuilder::asSuccess()
             ->withMessage('Roles fetched successfully')

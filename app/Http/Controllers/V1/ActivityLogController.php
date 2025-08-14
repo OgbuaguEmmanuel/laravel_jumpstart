@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Enums\PermissionTypeEnum;
+use App\Facades\Settings;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -15,6 +16,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ActivityLogController extends Controller
 {
+    protected int $per_page;
+
+    public function __construct()
+    {
+        $this->per_page = Settings::get('pagination_size');
+    }
+
     /**
      * List activity logs with various filtering and pagination options.
      *
@@ -80,7 +88,7 @@ class ActivityLogController extends Controller
 
             $query->latest();
 
-            $perPage = $validatedData['per_page'] ?? 15;
+            $perPage = $validatedData['per_page'] ?? $this->per_page;
             $activities = $query->paginate($perPage);
 
             if ($activities->isEmpty()) {
