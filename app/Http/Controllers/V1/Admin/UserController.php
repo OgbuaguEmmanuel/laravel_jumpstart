@@ -95,7 +95,8 @@ class UserController extends Controller
             $file = $request->file('profile_picture');
         }
 
-        $user = $action->handle($userData, $file);
+        $admin = Auth::user();
+        $user = $action->handle($userData, $file, $admin->id);
 
         if (! empty($userData['roles'])) {
             $roles = Role::whereIn('name', $userData['roles'])->get();
@@ -103,8 +104,6 @@ class UserController extends Controller
         }
 
         $user->forcePasswordReset();
-
-        $user->sendWelcomeNotification();
 
         $user->profile_picture_url = $user->profilePicture();
 
@@ -115,7 +114,7 @@ class UserController extends Controller
             ->withProperties([
                 'user_id' => $user->id,
                 'user_email' => $user->email,
-                'created_by' => Auth::user()->email,
+                'created_by' => $admin->email,
                 'assigned_roles' => $user->roles->pluck('name')->toArray(),
                 'ip_address' => request()->ip(),
             ])
@@ -281,9 +280,22 @@ class UserController extends Controller
     public function import(FileImportRequest $request)
     {
         $this->authorize('importUsers', User::class);
+
+        if (! $request->hasFile('file')) {
+            abort(400, 'No file uploaded');
+        }
+
+        $file = $request->file('file');
+        $path = 'app/private/imports/';
+        $fileName = $file->getClientOriginalName();
+        $file->move(storage_path($path), $fileName);
+        $fullPath = storage_path($path . $fileName);
+
         $admin = Auth::user();
-        $import = new UsersImport($admin);
-        Excel::import($import, $request->file('file'));
+        $import = new UsersImport($admin->id);
+        Excel::import($import, $fullPath);
+
+        Storage::disk('local')->delete('/imports/'.$fileName);
 
         if ($import->failures()->isNotEmpty()) {
             Mail::to($admin->email)->send(new ImportUsersReportMail($import->failures()));

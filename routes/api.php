@@ -60,8 +60,7 @@ Route::prefix('V1')->group(function () {
                     ->name('auth.2fa.disable');
                 Route::post('/recovery-codes', [TwoFactorAuthenticationController::class, 'generateNewRecoveryCodes'])
                     ->name('auth.2fa.recovery-codes');
-            }
-            );
+            });
     });
 
     Route::middleware(['auth:user', 'verified', 'isActive', 'isLocked', 'passwordResetNeeded'])

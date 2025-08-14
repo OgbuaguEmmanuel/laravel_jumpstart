@@ -4,7 +4,6 @@ namespace App\Actions;
 
 use App\Enums\MediaTypeEnum;
 use App\Models\User;
-use App\Notifications\WelcomeUserNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,7 +12,7 @@ class CreateUserAction
     /**
      * Create a new class instance.
      */
-    public function handle(array $data, ?UploadedFile $file = null): User
+    public function handle(array $data, ?UploadedFile $file = null, ?int $admin = null): User
     {
         $user = User::create([
             'first_name' => $data['first_name'],
@@ -21,6 +20,7 @@ class CreateUserAction
             'email' => $data['email'],
             'phone_number' => $data['phone_number'] ?? null,
             'password' => Hash::make($data['password']),
+            'created_by' => $admin,
         ]);
 
         if (! empty($data['profile_picture'])) {
@@ -37,8 +37,6 @@ class CreateUserAction
                 ])
                 ->log('Profile picture uploaded');
         }
-
-        $user->notify(new WelcomeUserNotification(config('frontend.dashboard')));
 
         return $user;
     }

@@ -18,6 +18,7 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
     use SkipsFailures;
 
     protected $importedBy;
+    protected $currentRow = 1;
 
     public function __construct($importedBy)
     {
@@ -29,38 +30,36 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
      */
     public function model(array $row)
     {
-        if (User::where('email', $row['email'])->exists()) {
-            $this->failRow($row, 'email', 'User already exists');
-
-            return null;
-        }
-
+        $this->currentRow++;
         $tempPassword = Str::random(12);
-
-        $user = User::create([
-            'first_name' => $row['first_name'],
-            'last_name' => $row['last_name'],
-            'email' => $row['email'],
-            'password' => Hash::make($tempPassword),
-            'force_password_reset' => true,
-            'created_by' => $this->importedBy->id,
-
-        ]);
 
         if (! empty($row['role'])) {
             $roleNames = array_map('trim', explode(',', $row['role']));
+
             $roles = Role::whereIn('name', $roleNames)->pluck('name');
 
             if ($roles->count() !== count($roleNames)) {
                 $this->failRow($row, 'role', 'One or more roles do not exist');
-
                 return null;
             }
-
-            $user->syncRoles($roles);
         }
 
-        $user->sendWelcomeNotification();
+        $user = User::updateOrCreate(
+            [
+                'email' => $row['email'],
+            ],
+            [
+                'first_name' => $row['first_name'],
+                'last_name' => $row['last_name'],
+                'password' => Hash::make($tempPassword),
+                'force_password_reset' => true,
+                'created_by' => $this->importedBy,
+            ]
+        );
+
+        if (! empty($row['role'])) {
+            $user->syncRoles($roles);
+        }
 
         return $user;
     }
@@ -78,7 +77,7 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
     protected function failRow(array $row, string $attribute, string $error)
     {
         $this->onFailure(new \Maatwebsite\Excel\Validators\Failure(
-            $row['_row'] ?? null,
+            $this->currentRow,
             $attribute,
             [$error],
             $row

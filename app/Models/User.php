@@ -7,6 +7,7 @@ use App\Enums\MediaTypeEnum;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerifyEmailNotification;
 use App\Notifications\WelcomeNotification;
+use App\Notifications\WelcomeUserNotification;
 use App\Observers\UserObserver;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -38,7 +39,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
      * @var list<string>
      */
     protected $fillable = [
-        'first_name', 'last_name',
+        'first_name', 'last_name', 'created_by',
         'email', 'phone_number', 'force_password_reset',
         'password', 'provider_name', 'locked_until',
         'provider_id', 'avatar', 'failed_attempts',
@@ -295,5 +296,15 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function supportTickets()
     {
         return $this->hasMany(SupportTicket::class);
+    }
+
+    public function createdByAdmin()
+    {
+        return ! is_null($this->created_by);
+    }
+
+    public function welcomeUserNotification()
+    {
+        $this->notify(new WelcomeUserNotification(config('frontend.dashboard')));
     }
 }

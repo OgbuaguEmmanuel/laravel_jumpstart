@@ -12,6 +12,11 @@ class UserObserver
     public function created(User $user): void
     {
         $user->sendEmailVerificationNotification();
+        $user->welcomeUserNotification();
+        if ($user->createdByAdmin()) {
+            $user->sendWelcomeNotification();
+        }
+
     }
 
     /**
