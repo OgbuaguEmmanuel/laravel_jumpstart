@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'isLocked' => App\Http\Middleware\IsUserLockedMiddleware::class,
             'isActive' => App\Http\Middleware\IsUserActiveMiddleware::class,
             'passwordResetNeeded' => App\Http\Middleware\ForcePasswordResetMiddleware::class,
+            'is2FAEnabled' => App\Http\Middleware\TwoFactorAuthenticationEnabledMiddleware::class,
 
         ]);
     })

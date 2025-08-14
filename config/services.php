@@ -79,4 +79,11 @@ return [
         'client_secret' => env('BITBUCKET_CLIENT_SECRET'),
         'redirect' => env('BITBUCKET_REDIRECT_URI'),
     ],
+
+    '2FA' => [
+        'enabled' => env('TWO_FACTOR_AUTHENTICATION_ENABLED', false)
+    ],
+    'pagination' => [
+        'size' => env('PAGINATION_SIZE', 15)
+    ]
 ];
