@@ -10,6 +10,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ImportUsersJob implements ShouldQueue
@@ -20,16 +21,21 @@ class ImportUsersJob implements ShouldQueue
 
     public $filePath;
 
-    public function __construct($admin, $filePath)
+    public $pathForDelete;
+
+    public function __construct($admin, $filePath, $pathForDelete)
     {
         $this->admin = $admin;
         $this->filePath = $filePath;
+        $this->pathForDelete = $pathForDelete;
     }
 
     public function handle()
     {
-        $import = new UsersImport($this->admin);
-        Excel::import($import, storage_path('app/'.$this->filePath));
+        $import = new UsersImport($this->admin->id);
+        Excel::import($import, $this->filePath);
+
+        Storage::disk('local')->delete($this->pathForDelete);
 
         Mail::to($this->admin->email)->send(
             new ImportUsersReportMail($import->failures())

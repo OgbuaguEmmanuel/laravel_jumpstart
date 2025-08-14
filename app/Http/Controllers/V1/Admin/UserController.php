@@ -315,9 +315,15 @@ class UserController extends Controller
     public function importAsync(FileImportRequest $request)
     {
         $this->authorize('importUsers', User::class);
-        $filePath = $request->file('file')->store('imports');
 
-        ImportUsersJob::dispatch(auth()->user(), $filePath);
+        $file = $request->file('file');
+        $path = 'app/private/imports/';
+        $fileName = $file->getClientOriginalName();
+        $file->move(storage_path($path), $fileName);
+        $fullPath = storage_path($path . $fileName);
+        $pathForDelete = '/imports/'.$fileName;
+
+        ImportUsersJob::dispatch(Auth::user(), $fullPath, $pathForDelete);
 
         return ResponseBuilder::asSuccess()
             ->withMessage('Import started. You will receive an email when it is completed.')
