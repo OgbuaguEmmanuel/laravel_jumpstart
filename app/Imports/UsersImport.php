@@ -18,6 +18,7 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
     use SkipsFailures;
 
     protected $importedBy;
+
     protected $currentRow = 1;
 
     public function __construct($importedBy)
@@ -40,6 +41,7 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
 
             if ($roles->count() !== count($roleNames)) {
                 $this->failRow($row, 'role', 'One or more roles do not exist');
+
                 return null;
             }
         }

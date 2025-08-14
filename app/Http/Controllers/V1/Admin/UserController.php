@@ -289,7 +289,7 @@ class UserController extends Controller
         $path = 'app/private/imports/';
         $fileName = $file->getClientOriginalName();
         $file->move(storage_path($path), $fileName);
-        $fullPath = storage_path($path . $fileName);
+        $fullPath = storage_path($path.$fileName);
 
         $admin = Auth::user();
         $import = new UsersImport($admin->id);
@@ -320,7 +320,7 @@ class UserController extends Controller
         $path = 'app/private/imports/';
         $fileName = $file->getClientOriginalName();
         $file->move(storage_path($path), $fileName);
-        $fullPath = storage_path($path . $fileName);
+        $fullPath = storage_path($path.$fileName);
         $pathForDelete = '/imports/'.$fileName;
 
         ImportUsersJob::dispatch(Auth::user(), $fullPath, $pathForDelete);
