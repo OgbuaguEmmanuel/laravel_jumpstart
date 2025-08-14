@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\ActivityLogTypeEnum;
+use App\Facades\Settings;
 use App\Notifications\LoginAlertNotification;
 use App\Notifications\VerifyEmailNotification;
 use App\Traits\AuthHelpers;
@@ -91,7 +92,7 @@ class LoginUserAction
             ])->status(403);
         }
 
-        if ($user->hasTwoFactorEnabled()) {
+        if (Settings::get('two_factor_enabled') && $user->hasTwoFactorEnabled()) {
             $challengeKey = Str::uuid()->toString();
             Cache::put('2fa_challenge:'.$challengeKey, $user->id, now()->addMinutes(5));
 
