@@ -170,6 +170,17 @@ final class APIExceptionHandler
                 ->build();
         }
 
+        if (
+            str_contains($throwable->getMessage(), 'Allowed memory size') &&
+            str_contains($throwable->getFile(), 'PhpSpreadsheet') &&
+            str_contains($throwable->getFile(), 'Xlsx')
+        ) {
+            return ResponseBuilder::asError(Response::HTTP_REQUEST_ENTITY_TOO_LARGE)
+                ->withMessage('Excel export failed due to memory limits. Please try CSV format or use the background export option.')
+                ->withHttpCode(Response::HTTP_REQUEST_ENTITY_TOO_LARGE)
+                ->build();
+        }
+
         if ($throwable instanceof HttpException) {
             $safeMessage = app()->environment('production')
                 ? __('Something went wrong. Please try again.')
