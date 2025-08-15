@@ -3,16 +3,15 @@
 namespace App\Jobs;
 
 use App\Exports\UsersExport;
-use App\Mail\ExportUsersReadyMail;
+use App\Mail\ExportUsersFailedMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\URL;
-use Maatwebsite\Excel\Facades\Excel;
-use Symfony\Component\Mime\MimeTypes;
+use Maatwebsite\Excel\Excel as ExcelWriter;
 
 class ExportUsersJob implements ShouldQueue
 {
@@ -22,47 +21,51 @@ class ExportUsersJob implements ShouldQueue
 
     public $type;
 
-    public function __construct($admin, $type)
+    public $limit;
+
+    public $offset;
+
+    public $year;
+
+    public function __construct($admin, $type, $limit, $offset, $year)
     {
         $this->admin = $admin;
         $this->type = $type;
+        $this->limit = $limit;
+        $this->offset = $offset;
+        $this->year = $year;
     }
 
-    public function handle()
+    public function handle(): void
     {
-        $fileName = 'users_export_'.now()->format('Y_m_d_His').'.'.$this->type;
-        $filePath = 'exports/'.$fileName;
+        $extension = $this->type === 'csv' ? 'csv' : 'xlsx';
+        $writerType = $this->type === 'csv' ? ExcelWriter::CSV : ExcelWriter::XLSX;
 
-        Excel::store(new UsersExport, $filePath, 'local');
+        $relativeDir = 'exports';
+        $fileName = 'users_export_'.now()->format('Y_m_d_His').'.'.$extension;
+        $filePath = $relativeDir.'/'.$fileName;
 
-        $fullPath = storage_path('app/'.$filePath);
-        $fileSize = filesize($fullPath); // size in bytes
-        $maxAttachmentSize = 5 * 1024 * 1024; // 5 MB
+        (new UsersExport($this->limit, $this->offset, $this->year))
+            ->store($filePath, 'local', $writerType);
 
-        if ($fileSize <= $maxAttachmentSize) {
-            // Send as attachment
-            $mimeType = MimeTypes::getDefault()->guessMimeType($fullPath);
-            Mail::to($this->admin->email)->send(
-                new ExportUsersReadyMail(
-                    null,
-                    $fileName,
-                    $fullPath,
-                    $mimeType
-                )
-            );
-        } else {
-            // Send secure download link
-            $downloadUrl = URL::temporarySignedRoute(
-                'exports.download', now()->addHours(48),
-                ['file' => $fileName, 'owner' => $this->admin->id]
-            );
+        DeleteExportFileJob::dispatch($filePath)->delay(now()->addHours(48));
 
-            Mail::to($this->admin->email)->send(
-                new ExportUsersReadyMail(
-                    $downloadUrl,
-                    $fileName
-                )
-            );
-        }
+        dispatch(new SendExportReadyJob($this->admin, $filePath, $fileName));
+    }
+
+    public function failed(\Throwable $exception): void
+    {
+        Log::error('User export job failed', [
+            'file' => $this->fileName ?? '(not generated)',
+            'error' => $exception->getMessage(),
+        ]);
+
+        Mail::to($this->admin->email)->send(
+            new ExportUsersFailedMail(
+                $this->admin->full_name,
+                $this->fileName ?? '(not generated)',
+                $exception->getMessage()
+            )
+        );
     }
 }

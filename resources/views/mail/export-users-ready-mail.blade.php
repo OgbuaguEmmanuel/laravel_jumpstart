@@ -7,7 +7,7 @@ Your file **{{ $fileName }}** has been generated successfully.
 @component('mail::button', ['url' => $downloadUrl])
 Download Now
 @endcomponent
-> This link will expire in 48 hours for security reasons.
+This link will expire in 48 hours for security reasons.
 @else
 The file has been attached to this email.
 @endif
