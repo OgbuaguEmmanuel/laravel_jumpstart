@@ -96,9 +96,10 @@ Route::prefix('V1')->group(function () {
             Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
             Route::post('/users/importAsync', [UserController::class, 'importAsync'])->name('users.import.async');
             Route::get('/export/users', [UserController::class, 'export'])->name('users.export');
-            Route::get('/users/exportAsync', [UserController::class, 'exportAsync'])->name('users.export.async');
+            Route::get('exportAsync/users', [UserController::class, 'exportAsync'])->name('users.export.async');
             Route::get('/exports/download/{file}', [UserController::class, 'download'])
-                ->name('exports.download')->middleware(['auth', 'signed:relative']);
+                ->name('exports.download')->middleware(['signed'])
+                ->withoutMiddleware(['auth:user', 'verified', 'isActive', 'isLocked', 'passwordResetNeeded']);
 
             Route::apiResource('settings', SettingsController::class)->only('view', 'index');
             Route::post('/settings/set', [SettingsController::class, 'storeOrUpdate'])

@@ -334,22 +334,31 @@ class UserController extends Controller
     {
         $this->authorize('exportUsers', User::class);
 
-        $type = strtolower($request->query('type', 'excel'));
+        $type = $request->query('type', 'excel');
         $fileName = 'users_export_'.now()->format('Y_m_d_His');
 
+        $limit = $request->query('take');
+        $offset = $request->query('skip');
+        $year = $request->query('year');
+
+        $export = new UsersExport($limit, $offset, $year);
+
         if ($type === 'csv') {
-            return Excel::download(new UsersExport, $fileName.'.csv', ExcelExcel::CSV);
+            return Excel::download($export, $fileName.'.csv', ExcelExcel::CSV);
         }
 
-        return Excel::download(new UsersExport, $fileName.'.xlsx', ExcelExcel::XLSX);
+        return Excel::download($export, $fileName.'.xlsx', ExcelExcel::XLSX);
     }
 
     public function exportAsync(Request $request)
     {
         $this->authorize('exportUsers', User::class);
+        $limit = $request->query('take');
+        $offset = $request->query('skip');
+        $year = $request->query('year');
 
-        $type = strtolower($request->query('type', 'excel'));
-        ExportUsersJob::dispatch(auth()->user(), $type);
+        $type = $request->query('type', 'excel');
+        ExportUsersJob::dispatch(auth()->user(), $type, $limit, $offset, $year);
 
         return ResponseBuilder::asSuccess()
             ->withMessage('Export started. You will receive an email with the file when it is ready.')
@@ -358,10 +367,6 @@ class UserController extends Controller
 
     public function download(string $file): StreamedResponse
     {
-        if ((int) request()->owner !== auth()->id()) {
-            abort(403, 'You are not authorized to download this file.');
-        }
-
         $path = 'exports/'.$file;
         if (! Storage::disk('local')->exists($path)) {
             abort(404, 'File not found.');
