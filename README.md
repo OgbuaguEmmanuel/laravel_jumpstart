@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="#"><img src="https://github.com/OgbuaguEmmanuel/laravel_jumpstart/actions/workflows/tests.yml/badge.svg" alt="Build Status"></a>
-  [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
 </p>
 
 ---
