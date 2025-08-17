@@ -8,10 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateSupportTicketRequest;
 use App\Http\Requests\UpdateSupportTicketRequest;
 use App\Models\SupportTicket;
+use App\Sorts\CustomSort;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedSort;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class SupportTicketController extends Controller
@@ -31,30 +33,48 @@ class SupportTicketController extends Controller
     public function index()
     {
         if (Auth::user()->hasPermissionTo(PermissionTypeEnum::viewSupportTicket)) {
-            $tickets = QueryBuilder::for(SupportTicket::query())
-                ->allowedIncludes(['user'])
-                ->defaultSort('-created_at')
-                ->allowedSorts(['created_at', 'priority', 'status'])
-                ->allowedFilters([
-                    'subject',
-                    'status',
-                    'priority',
-                    AllowedFilter::exact('user_id'),
-                ])
-                ->paginate(15)
-                ->appends(request()->query());
-
+            $query = QueryBuilder::for(SupportTicket::query());
         } else {
-            $tickets = QueryBuilder::for(Auth::user()->supportTickets()->latest())
-                ->allowedIncludes(['user'])
-                ->allowedFilters([
-                    'subject',
-                    'status',
-                    'priority',
-                ])
-                ->paginate($this->per_page)
-                ->appends(request()->query());
+            $query = QueryBuilder::for(Auth::user()->supportTickets()->latest());
         }
+
+        $tickets = $query
+            ->allowedFields([
+                'support_tickets.id',
+                'support_tickets.subject',
+                'support_tickets.status',
+                'support_tickets.priority',
+                'support_tickets.description',
+                'support_tickets.user_id',
+                'support_tickets.updated_by',
+                'support_tickets.created_at',
+                'user.id',
+                'user.first_name',
+                'user.last_name',
+                'user.email',
+                'user.is_active',
+                'user.is_locked',
+                'user.created_at',
+            ])
+            ->allowedIncludes([
+                'user','updatedBy','messages'
+            ])
+            ->defaultSort('-created_at')
+            ->allowedSorts([
+                'created_at',
+                AllowedSort::custom('priority', new CustomSort),
+                AllowedSort::custom('status', new CustomSort),
+            ])
+            ->allowedFilters([
+                'subject',
+                'status',
+                'priority',
+                AllowedFilter::exact('user_id'),
+                AllowedFilter::exact('updated_by'),
+
+            ])
+            ->paginate(request()->get('per_page') ?? $this->per_page)
+            ->appends(request()->query());
 
         return ResponseBuilder::asSuccess()
             ->withData($tickets)
@@ -79,29 +99,29 @@ class SupportTicketController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(SupportTicket $supportTicket)
+    public function show(SupportTicket $ticket)
     {
-        $this->authorize('view', $supportTicket);
+        $this->authorize('view', $ticket);
 
         return ResponseBuilder::asSuccess()
             ->withMessage('Ticket fetched')
-            ->withData($supportTicket->load('messages.user'))
+            ->withData($ticket->load('messages.user'))
             ->build();
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSupportTicketRequest $request, SupportTicket $supportTicket)
+    public function update(UpdateSupportTicketRequest $request, SupportTicket $ticket)
     {
         $this->authorize('update', SupportTicket::class);
 
-        $supportTicket->fill($request->validated());
-        $supportTicket->updated_by = Auth::user()->id;
-        $supportTicket->save();
+        $ticket->fill($request->validated());
+        $ticket->updated_by = Auth::user()->id;
+        $ticket->save();
 
         return ResponseBuilder::asSuccess()
-            ->withData($supportTicket)
+            ->withData($ticket)
             ->withMessage('Ticket updated')
             ->build();
     }
