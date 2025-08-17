@@ -41,7 +41,7 @@ class SettingsController extends Controller
 
         $setting = Settings::set($request->validated('key'), $request->validated('value'));
 
-        $message =  $setting->wasRecentlyCreated ? 'Setting created successfully.' : 'Setting updated successfully.';
+        $message = $setting->wasRecentlyCreated ? 'Setting created successfully.' : 'Setting updated successfully.';
 
         return ResponseBuilder::asSuccess()
             ->withMessage($message)

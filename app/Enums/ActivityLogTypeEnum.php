@@ -45,5 +45,4 @@ final class ActivityLogTypeEnum extends Enum
     const UserManagement = 'user_management';
 
     const settingModel = 'Setting';
-
 }

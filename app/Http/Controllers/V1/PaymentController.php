@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\DTOs\PaymentPayload;
 use App\Enums\PaymentCurrencyEnum;
 use App\Enums\PaymentPurposeEnum;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\InitiatePaymentRequest;
 use App\Http\Requests\VerifyPaymentRequest;
 use App\Interfaces\PaymentGatewayInterface;

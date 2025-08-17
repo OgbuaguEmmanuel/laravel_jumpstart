@@ -18,7 +18,7 @@ class SettingsService
         $setting = Setting::updateOrCreate(['key' => $key], ['value' => $value]);
 
         cache()->forget("setting_{$key}");
-        cache()->forget("all_settings");
+        cache()->forget('all_settings');
 
         return $setting;
     }

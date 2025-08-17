@@ -50,6 +50,7 @@ class Setting extends Model
     public function getActivitylogOptions(): LogOptions
     {
         $performedBy = Auth::user()->email;
+
         return LogOptions::defaults()
             // Log changes to all fillable attributes when the model is created/updated
             ->logFillable()
@@ -64,7 +65,7 @@ class Setting extends Model
             // Don't create an empty log if nothing changed (default, good for updates)
             ->dontSubmitEmptyLogs()
             // Customize the description for different events
-            ->setDescriptionForEvent(function (string $eventName) use($performedBy) {
+            ->setDescriptionForEvent(function (string $eventName) use ($performedBy) {
                 if ($eventName === 'created') {
                     return 'New setting created: '.($this->key ?? 'N/A');
                 }
