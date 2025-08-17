@@ -20,7 +20,7 @@ class SettingsController extends Controller
         $this->authorize('view', Setting::class);
 
         return ResponseBuilder::asSuccess()
-            ->withData(Settings::get($key))
+            ->withData(Settings::findByKey($key))
             ->withMessage('Here we go!')
             ->build();
     }
