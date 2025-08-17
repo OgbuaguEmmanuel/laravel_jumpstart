@@ -101,10 +101,10 @@ Route::prefix('V1')->group(function () {
                 ->name('exports.download')->middleware(['signed'])
                 ->withoutMiddleware(['auth:user', 'verified', 'isActive', 'isLocked', 'passwordResetNeeded']);
 
-            Route::apiResource('settings', SettingsController::class)->only('view', 'index');
-            Route::post('/settings/set', [SettingsController::class, 'storeOrUpdate'])
+            Route::apiResource('settings', SettingsController::class)->only('show', 'index');
+            Route::post('/settings/setOrUpdate', [SettingsController::class, 'storeOrUpdate'])
                 ->name('settings.set');
-            Route::post('/settings/bulkSet', [SettingsController::class, 'bulkSet'])
+            Route::post('/settings/bulkSetOrUpdate', [SettingsController::class, 'bulkSetOrUpdate'])
                 ->name('settings.set.bulk');
 
         });

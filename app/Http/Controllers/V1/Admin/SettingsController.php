@@ -15,7 +15,7 @@ class SettingsController extends Controller
 {
     use AuthorizesRequests;
 
-    public function view(string $key)
+    public function show(string $key)
     {
         $this->authorize('view', Setting::class);
 
@@ -41,7 +41,7 @@ class SettingsController extends Controller
 
         $setting = Settings::set($request->validated('key'), $request->validated('value'));
 
-        $message = $request->validated('id') ? 'Setting updated successfully.' : 'Setting created successfully.';
+        $message =  $setting->wasRecentlyCreated ? 'Setting created successfully.' : 'Setting updated successfully.';
 
         return ResponseBuilder::asSuccess()
             ->withMessage($message)
@@ -49,7 +49,7 @@ class SettingsController extends Controller
             ->build();
     }
 
-    public function bulkSet(BulkSettingsRequest $request)
+    public function bulkSetOrUpdate(BulkSettingsRequest $request)
     {
         $this->authorize('storeOrUpdate', Setting::class);
 
