@@ -21,7 +21,7 @@ class SupportTicketTreatedNotification extends BaseNotification implements Shoul
     {
         return (new MailMessage)
             ->subject('Your Support Ticket Has Been Treated')
-            ->greeting('Hello '.$notifiable->name)
+            ->greeting('Hello '.$notifiable->full_name)
             ->line('Your support ticket "'.$this->ticket->subject.'" has been updated by our support team.')
             ->line('Thank you for contacting us!');
     }
