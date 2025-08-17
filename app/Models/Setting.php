@@ -49,7 +49,7 @@ class Setting extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        $performedBy = Auth::user()->email;
+        $performedBy = Auth::user()?->email;
 
         return LogOptions::defaults()
             // Log changes to all fillable attributes when the model is created/updated
