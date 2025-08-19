@@ -13,6 +13,7 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use MarcinOrlowski\ResponseBuilder\ResponseBuilder;
 use Spatie\Permission\Models\Permission;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -33,7 +34,11 @@ class PermissionsController extends Controller
     {
         $this->authorize('viewAny', Permission::class);
 
-        $permissions = QueryBuilder::for(Permission::query())
+        $permissionsQuery = Cache::rememberForever('permissions.all', function () {
+            return Permission::query()->get();
+        });
+
+        $permissions = QueryBuilder::for($permissionsQuery->toQuery())
             ->defaultSort('-created_at')
             ->allowedSorts(['name', 'created_at'])
             ->allowedFilters(['name'])
@@ -58,7 +63,7 @@ class PermissionsController extends Controller
             'name' => $request->validated('name'),
         ]);
 
-        $permission->refresh();
+        $this->refreshPermissionsCache();
 
         activity()
             ->inLog(ActivityLogTypeEnum::RolesAndPermissions)
@@ -98,6 +103,9 @@ class PermissionsController extends Controller
 
         $permission->name = $request->validated('name');
         $permission->save();
+
+        $this->refreshPermissionsCache();
+
         $permission->refresh();
 
         activity()
@@ -205,5 +213,11 @@ class PermissionsController extends Controller
                 'user_permissions' => $user->permissions->pluck('name')->toArray(),
             ])
             ->build();
+    }
+
+    private function refreshPermissionsCache(): void
+    {
+        Cache::forget('permissions.all');
+        Cache::rememberForever('permissions.all', fn () => Permission::all());
     }
 }
